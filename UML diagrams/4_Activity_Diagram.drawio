@@ -1,0 +1,99 @@
+<mxfile host="app.diagrams.net" modified="2026-09-05T00:00:00.000Z" agent="Claude" version="24.7.5" type="device">
+  <diagram id="activity-diagram" name="Activity Diagram">
+    <mxGraphModel dx="1200" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="start" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="400" y="30" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="a_login" value="Student logs in" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="340" y="90" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="a_view" value="View assigned exams" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="340" y="150" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d_window" value="Exam within scheduled window?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="345" y="220" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="a_notavail" value="Show &quot;exam not available&quot; message" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="600" y="230" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="a_startattempt" value="Start attempt (server timer starts)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="330" y="320" width="170" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="a_viewq" value="View question" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="345" y="400" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="a_select" value="Select/change answer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="345" y="460" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="a_autosave" value="Auto-save response (every 10s)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="330" y="520" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d_more" value="More questions and time remaining?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="330" y="580" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="d_expired" value="Time expired?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="345" y="680" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="a_autosubmit" value="System auto-submits" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="220" y="770" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="a_clicksubmit" value="Student clicks Submit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="420" y="770" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="a_evaluate" value="Auto-Evaluator scores attempt" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="330" y="840" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="a_resultcreated" value="Result record created" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="345" y="900" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="d_visible" value="Result visible now?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="345" y="960" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="a_viewresult" value="Student views result" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="220" y="1050" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="a_notified" value="Student notified later when visible" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1050" width="170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="end" value="" style="ellipse;whiteSpace=wrap;html=1;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="400" y="1130" width="30" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" style="endArrow=block;html=1;" edge="1" parent="1" source="start" target="a_login"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="endArrow=block;html=1;" edge="1" parent="1" source="a_login" target="a_view"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="endArrow=block;html=1;" edge="1" parent="1" source="a_view" target="d_window"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" value="yes" style="endArrow=block;html=1;" edge="1" parent="1" source="d_window" target="a_startattempt"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" value="no" style="endArrow=block;html=1;" edge="1" parent="1" source="d_window" target="a_notavail"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="endArrow=block;html=1;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="a_notavail" target="end">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="850" y="255"/><mxPoint x="850" y="1145"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" style="endArrow=block;html=1;" edge="1" parent="1" source="a_startattempt" target="a_viewq"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="endArrow=block;html=1;" edge="1" parent="1" source="a_viewq" target="a_select"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" style="endArrow=block;html=1;" edge="1" parent="1" source="a_select" target="a_autosave"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="endArrow=block;html=1;" edge="1" parent="1" source="a_autosave" target="d_more"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e11" value="yes (loop)" style="endArrow=block;html=1;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="d_more" target="a_viewq">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="560" y="615"/><mxPoint x="560" y="420"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e12" value="no" style="endArrow=block;html=1;" edge="1" parent="1" source="d_more" target="d_expired"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e13" value="yes" style="endArrow=block;html=1;" edge="1" parent="1" source="d_expired" target="a_autosubmit"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e14" value="no" style="endArrow=block;html=1;" edge="1" parent="1" source="d_expired" target="a_clicksubmit"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e15" style="endArrow=block;html=1;" edge="1" parent="1" source="a_autosubmit" target="a_evaluate"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e16" style="endArrow=block;html=1;" edge="1" parent="1" source="a_clicksubmit" target="a_evaluate"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e17" style="endArrow=block;html=1;" edge="1" parent="1" source="a_evaluate" target="a_resultcreated"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e18" style="endArrow=block;html=1;" edge="1" parent="1" source="a_resultcreated" target="d_visible"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e19" value="yes" style="endArrow=block;html=1;" edge="1" parent="1" source="d_visible" target="a_viewresult"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e20" value="no" style="endArrow=block;html=1;" edge="1" parent="1" source="d_visible" target="a_notified"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e21" style="endArrow=block;html=1;" edge="1" parent="1" source="a_viewresult" target="end"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e22" style="endArrow=block;html=1;" edge="1" parent="1" source="a_notified" target="end"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

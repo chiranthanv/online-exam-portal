@@ -1,0 +1,132 @@
+<mxfile host="app.diagrams.net" modified="2026-09-05T00:00:00.000Z" agent="Claude" version="24.7.5" type="device">
+  <diagram id="class-diagram" name="Class Diagram">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="cls_Batch" value="Batch" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="160" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_Batch_attrs" value="+ id: UUID&#10;+ name: string&#10;+ year: int" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;html=1;" vertex="1" parent="cls_Batch">
+          <mxGeometry y="26" width="160" height="64" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cls_User" value="User" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="320" y="40" width="220" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_User_attrs" value="+ id: UUID&#10;+ name: string&#10;+ email: string&#10;+ passwordHash: string&#10;+ role: enum{ADMIN,STUDENT}&#10;+ createdAt: datetime" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;html=1;" vertex="1" parent="cls_User">
+          <mxGeometry y="26" width="220" height="114" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cls_Question" value="Question" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="360" width="230" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_Question_attrs" value="+ id: UUID&#10;+ text: string&#10;+ subject: string&#10;+ topic: string&#10;+ difficulty: enum{EASY,MEDIUM,HARD}&#10;+ marks: float&#10;+ negativeMarks: float&#10;+ createdBy: UUID" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;html=1;" vertex="1" parent="cls_Question">
+          <mxGeometry y="26" width="230" height="144" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cls_Exam" value="Exam" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="360" y="360" width="230" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_Exam_attrs" value="+ id: UUID&#10;+ title: string&#10;+ durationMinutes: int&#10;+ startTime: datetime&#10;+ endTime: datetime&#10;+ totalMarks: float&#10;+ resultVisibleFrom: datetime&#10;+ createdBy: UUID" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;html=1;" vertex="1" parent="cls_Exam">
+          <mxGeometry y="26" width="230" height="144" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cls_Option" value="Option" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="600" width="180" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_Option_attrs" value="+ id: UUID&#10;+ text: string&#10;+ isCorrect: bool" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;html=1;" vertex="1" parent="cls_Option">
+          <mxGeometry y="26" width="180" height="64" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cls_ExamQuestion" value="ExamQuestion" style="swimlane;html=1;startSize=26;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="280" y="600" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_ExamQuestion_attrs" value="+ examId: UUID&#10;+ questionId: UUID&#10;+ sequence: int" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;html=1;" vertex="1" parent="cls_ExamQuestion">
+          <mxGeometry y="26" width="200" height="64" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cls_Attempt" value="Attempt" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="640" y="360" width="230" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_Attempt_attrs" value="+ id: UUID&#10;+ examId: UUID&#10;+ studentId: UUID&#10;+ startedAt: datetime&#10;+ submittedAt: datetime&#10;+ status: enum{IN_PROGRESS,SUBMITTED,&#10;   AUTO_SUBMITTED,DISQUALIFIED}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;html=1;" vertex="1" parent="cls_Attempt">
+          <mxGeometry y="26" width="230" height="124" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cls_Response" value="Response" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="560" y="600" width="230" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_Response_attrs" value="+ id: UUID&#10;+ attemptId: UUID&#10;+ questionId: UUID&#10;+ selectedOptionId: UUID&#10;+ isFlaggedForReview: bool&#10;+ lastSavedAt: datetime" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;html=1;" vertex="1" parent="cls_Response">
+          <mxGeometry y="26" width="230" height="114" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cls_ProctoringLog" value="ProctoringLog" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="960" y="600" width="230" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_ProctoringLog_attrs" value="+ id: UUID&#10;+ attemptId: UUID&#10;+ eventType: enum{TAB_SWITCH,BLUR,&#10;   FULLSCREEN_EXIT}&#10;+ timestamp: datetime" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;html=1;" vertex="1" parent="cls_ProctoringLog">
+          <mxGeometry y="26" width="230" height="94" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cls_Result" value="Result" style="swimlane;html=1;startSize=26;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="960" y="360" width="220" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="cls_Result_attrs" value="+ id: UUID&#10;+ attemptId: UUID&#10;+ score: float&#10;+ percentage: float&#10;+ status: enum{PASS,FAIL}&#10;+ evaluatedAt: datetime" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;html=1;" vertex="1" parent="cls_Result">
+          <mxGeometry y="26" width="220" height="114" as="geometry" />
+        </mxCell>
+
+        <!-- Relationships -->
+        <mxCell id="r1" value="belongs to (student)" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_Batch" target="cls_User">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="0" y="0" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r1a" value="0..*" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="215" y="220" width="30" height="20" as="geometry" /></mxCell>
+        <mxCell id="r1b" value="0..*" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="290" y="140" width="30" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="r2" value="authors" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_User" target="cls_Question"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r2a" value="1" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="345" y="185" width="20" height="20" as="geometry" /></mxCell>
+        <mxCell id="r2b" value="0..*" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="230" y="330" width="30" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="r3" value="creates" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_User" target="cls_Exam"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r3a" value="1" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="470" y="185" width="20" height="20" as="geometry" /></mxCell>
+        <mxCell id="r3b" value="0..*" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="470" y="330" width="30" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="r4" value="makes" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_User" target="cls_Attempt"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r4a" value="1" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="600" y="185" width="20" height="20" as="geometry" /></mxCell>
+        <mxCell id="r4b" value="0..*" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="750" y="330" width="30" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="r5" value="has" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_Question" target="cls_Option"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r5a" value="1" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="130" y="535" width="20" height="20" as="geometry" /></mxCell>
+        <mxCell id="r5b" value="2..6" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="130" y="580" width="30" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="r6" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_Question" target="cls_ExamQuestion"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r6a" value="1" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="260" y="535" width="20" height="20" as="geometry" /></mxCell>
+        <mxCell id="r6b" value="0..*" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="290" y="580" width="30" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="r7" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_Exam" target="cls_ExamQuestion"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r7a" value="1" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="460" y="535" width="20" height="20" as="geometry" /></mxCell>
+        <mxCell id="r7b" value="0..*" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="430" y="580" width="30" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="r8" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_Exam" target="cls_Attempt"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r8a" value="1" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="600" y="420" width="20" height="20" as="geometry" /></mxCell>
+        <mxCell id="r8b" value="0..*" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="630" y="420" width="30" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="r9" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_Attempt" target="cls_Response"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r9a" value="1" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="700" y="535" width="20" height="20" as="geometry" /></mxCell>
+        <mxCell id="r9b" value="0..*" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="680" y="580" width="30" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="r10" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_Question" target="cls_Response"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="r11" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_Attempt" target="cls_Result"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r11a" value="1" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="880" y="420" width="20" height="20" as="geometry" /></mxCell>
+        <mxCell id="r11b" value="1" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="930" y="420" width="20" height="20" as="geometry" /></mxCell>
+
+        <mxCell id="r12" style="endArrow=none;html=1;" edge="1" parent="1" source="cls_Attempt" target="cls_ProctoringLog"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="r12a" value="1" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="880" y="535" width="20" height="20" as="geometry" /></mxCell>
+        <mxCell id="r12b" value="0..*" style="html=1;fontSize=10;" vertex="1" parent="1"><mxGeometry x="960" y="580" width="30" height="20" as="geometry" /></mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

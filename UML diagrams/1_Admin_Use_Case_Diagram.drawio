@@ -1,0 +1,48 @@
+<mxfile host="app.diagrams.net" modified="2026-09-05T00:00:00.000Z" agent="Claude" version="24.7.5" type="device">
+  <diagram id="admin-uc" name="Admin Use Case">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="boundary" value="Online Exam Portal" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=14;fontStyle=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="220" y="40" width="560" height="580" as="geometry" />
+        </mxCell>
+        <mxCell id="actorAdmin" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="300" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_login" value="Login" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="70" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_createexam" value="Create Exam" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="140" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_scheduleexam" value="Schedule Exam" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="210" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_managestudents" value="Manage Students&#10;(bulk upload)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="280" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_reports" value="Generate / Export Reports" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="360" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_disqualify" value="Disqualify / Re-permit Attempt" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="440" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_questionbank" value="Manage Question Bank" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="540" y="160" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_proctoring" value="Monitor Proctoring Flags" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="540" y="440" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e_login" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorAdmin" target="uc_login"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_createexam" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorAdmin" target="uc_createexam"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_scheduleexam" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorAdmin" target="uc_scheduleexam"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_managestudents" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorAdmin" target="uc_managestudents"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_reports" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorAdmin" target="uc_reports"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_disqualify" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorAdmin" target="uc_disqualify"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_include" value="&lt;&lt;include&gt;&gt;" style="dashed=1;html=1;endArrow=open;endFill=0;fontStyle=2;" edge="1" parent="1" source="uc_createexam" target="uc_questionbank"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_extend" value="&lt;&lt;extend&gt;&gt;" style="dashed=1;html=1;endArrow=open;endFill=0;fontStyle=2;" edge="1" parent="1" source="uc_disqualify" target="uc_proctoring"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

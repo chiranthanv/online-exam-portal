@@ -1,0 +1,55 @@
+<mxfile host="app.diagrams.net" modified="2026-09-05T00:00:00.000Z" agent="Claude" version="24.7.5" type="device">
+  <diagram id="student-uc" name="Student Use Case">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="boundary" value="Online Exam Portal" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=14;fontStyle=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="220" y="40" width="480" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="actorStudent" value="Student" style="shape=umlActor;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="280" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="actorEvaluator" value="&lt;&lt;system&gt;&gt;&#10;Auto-Evaluator" style="shape=umlActor;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="760" y="220" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="actorNotify" value="&lt;&lt;system&gt;&gt;&#10;Notification Service" style="shape=umlActor;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="500" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_login" value="Login" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="70" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_viewassigned" value="View Assigned Exams" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="140" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_attempt" value="Attempt Exam" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="210" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_submit" value="Submit Exam" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="500" y="210" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_autoeval" value="Auto-Evaluate Submission" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="280" width="180" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_viewresult" value="View Result" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="360" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_review" value="Review Answers" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="430" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc_notify" value="Receive Notifications" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="260" y="500" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorStudent" target="uc_login"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorStudent" target="uc_viewassigned"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorStudent" target="uc_attempt"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorStudent" target="uc_viewresult"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorStudent" target="uc_review"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorNotify" target="uc_notify"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" style="edgeStyle=none;html=1;endArrow=none;" edge="1" parent="1" source="actorEvaluator" target="uc_autoeval"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e_include" value="&lt;&lt;include&gt;&gt;" style="dashed=1;html=1;endArrow=open;endFill=0;fontStyle=2;" edge="1" parent="1" source="uc_attempt" target="uc_submit"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" style="edgeStyle=none;html=1;endArrow=block;endFill=1;" edge="1" parent="1" source="uc_submit" target="actorEvaluator"><mxGeometry relative="1" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
