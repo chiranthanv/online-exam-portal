@@ -1,134 +1,68 @@
-# 📝 Online Exam Portal
+# Online Exam Portal
 
-A secure and scalable web-based examination platform developed as part of the Software Engineering course project.
+Software Engineering Course Project
 
----
+## Team Members
 
-## 👥 Team 15
+- Chiranthan V (PES2UG24CS138)
+- Dwijesh Krishna Ghattamaraju (PES2UG24CS163)
+- Harkirat Singh (PES2UG24CS180)
 
-| Name | SRN |
-| Chiranthan V | PES2UG24CS138 |
-| Dwijesh Krishna Ghattamaraju | PES2UG24CS163 |
-| Harkirat Singh | PES2UG24CS180 |
+## Project Description
 
----
+The Online Exam Portal is a web-based application designed to facilitate the creation, management, and evaluation of online examinations.
 
-## 📌 Project Overview
+The system allows administrators to create exams, manage question banks, schedule assessments, and generate results. Students can securely log in, take examinations, and view their results through the portal.
 
-The Online Exam Portal is designed to streamline the examination process for educational institutions.
+## Key Features
 
-The system enables administrators to create and manage exams, maintain question banks, schedule assessments, and automatically evaluate student responses.
+### Student Module
 
-Students can securely log in, attend examinations, and view their results through a centralized platform.
+- User authentication and login
+- View available examinations
+- Attend timed examinations
+- Submit responses online
+- View examination results
 
----
+### Administrator Module
 
-## ✨ Features
+- User management
+- Question bank management
+- Exam creation and scheduling
+- Automatic evaluation
+- Result generation and reporting
 
-### 👨‍🎓 Student Features
-
-- Secure Login
-- View Available Exams
-- Attend Timed Examinations
-- Submit Answers
-- View Results
-- Track Exam History
-
-### 👨‍💼 Administrator Features
-
-- User Management
-- Question Bank Management
-- Exam Creation & Scheduling
-- Automated Evaluation
-- Result Generation
-- Performance Analytics
-
----
-
-## 🔒 Security Features
-
-- Role-Based Access Control (RBAC)
-- Secure Authentication
-- Password Protection
-- Session Management
-- Data Validation
-- Exam Integrity Controls
-
----
-
-## 🏗️ System Modules
-
-```text
-Online Exam Portal
-│
-├── User Management
-├── Authentication Module
-├── Question Bank Module
-├── Exam Management Module
-├── Evaluation Module
-├── Results Module
-└── Reporting & Analytics
-```
-
----
-
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Backend
 - Python
 - Django
-
-### Database
-- PostgreSQL
 
 ### Frontend
 - HTML
 - CSS
 - JavaScript
 
----
+### Database
+- PostgreSQL
 
-## 📊 UML Models Included
+## Documentation
 
-- Use Case Diagram
-- Class Diagram
-- Activity Diagram
-- Sequence Diagram
-- System Architecture Diagram
-- Database Design
+The complete Software Requirements Specification (SRS) document is included in this repository:
 
----
+- Online_Exam_Portal_SRS_Final.pdf
 
-## 📄 Documentation
-
-The complete Software Requirements Specification (SRS) document is available in:
+## Repository Contents
 
 ```text
 Online_Exam_Portal_SRS_Final.pdf
+README.md
 ```
 
----
+## Course Information
 
-## 🎯 Project Objectives
-
-- Digitize examination workflows
-- Reduce manual evaluation effort
-- Improve examination security
-- Generate instant results
-- Enhance scalability and accessibility
-
----
-
-## 📚 Course Information
-
-Software Engineering Project
+Software Engineering
 
 PES University
 
 Academic Year 2025–26
-
----
-
-## 📜 License
-
-Academic Project – Educational Use Only
