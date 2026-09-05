@@ -10,35 +10,14 @@ Authors: Chiranthan V (PES2UG24CS138) · Dwijesh Krishna Ghattamaraju (PES2UG24C
 
 Version: 1.0
 
-Date: 02-09-2026
+Date: 05-09-2026
 
-Status: Draft for Review
+Status:final
 
-Technology Stack: Python (Django) — primary recommendation; MERN Stack noted as alternative
+Technology Stack: Python (Django) — primary recommendation; MERN Stack 
 
-## Revision history
 
-## Approvals
 
-## Table of Contents
-
-# 1. Introduction
-
-# 2. Overall description
-
-# 3. External interfaces
-
-# 4. System features (detailed)
-
-# 5. Non-functional requirements (detailed)
-
-## 5.1 Security (Objectives & Requirements)
-
-# 6. Quality attributes & Acceptance tests
-
-# 7. System models and diagrams (UML Use-Case Diagram)
-
-# 8. Requirements Traceability Matrix (RTM)
 
 # 1. Introduction
 
@@ -184,203 +163,44 @@ Two UML use-case diagrams are provided in the accompanying Online_Exam_Portal_Pr
 
 # 8. Requirements Traceability Matrix (RTM)
 
-
-
-| Version | Date | Author | Change summary | Approval |
-
-| --- | --- | --- | --- | --- |
-
-| 1.0 | 02-09-2026 | Team 15 | Initial SRS drafted for Online Exam Portal | Pending |
-
-
-
-
-
-| Role | Name | Signature / Email | Date |
-
-| --- | --- | --- | --- |
-
-| Course Coordinator |  |  |  |
-
-| Team Lead | Chiranthan V |  |  |
-
-
-
-
-
-| Req ID | Requirement (shall…) | Type | Priority | Source/Stakeholder | Acceptance criteria / Test case ref | Comments / Dependencies |
-
-| --- | --- | --- | --- | --- | --- | --- |
-
-| OEP-F-001 | The system shall allow Admin and Student users to log in with email + password, issuing a role-scoped session/JWT token. | Functional | High | All admin/student | AC-OEP-F-001: Valid credentials return a token scoped to the correct role. Test: TC-Auth-01 | Passwords hashed (see OEP-SR-001) |
-
-| OEP-F-002 | The system shall lock a login after 5 consecutive failed attempts for 15 minutes and log the event. | Functional | High | Security | AC-OEP-F-002: 6th attempt is rejected regardless of correctness. Test: TC-Auth-02 |  |
-
-| OEP-F-003 | The system shall enforce RBAC at the API level so Student tokens cannot access Admin-only endpoints. | Functional | High | Security | AC-OEP-F-003: Student token calling an admin route returns 403. Test: TC-Sec-Auth-01 | See OEP-SR-004 |
-
-| OEP-F-004 | The system shall allow an Admin to reset a student's password and force re-verification via email. | Functional | Medium | Admin | AC-OEP-F-004: Reset link expires after 1 hour and works once. Test: TC-Auth-03 |  |
-
-
-
-
-
-| Req ID | Requirement (shall…) | Type | Priority | Source/Stakeholder | Acceptance criteria / Test case ref | Comments / Dependencies |
-
-| --- | --- | --- | --- | --- | --- | --- |
-
-| OEP-F-005 | The system shall allow an Admin to create/edit/delete MCQ questions with 2-6 options, exactly one marked correct, marks, negative marks, subject, topic and difficulty tags. | Functional | High | Admin/Faculty | AC-OEP-F-005: A question with zero or 2+ correct options is rejected on save. Test: TC-QB-01 |  |
-
-| OEP-F-006 | The system shall allow an Admin to search/filter questions by subject, topic and difficulty. | Functional | Medium | Admin/Faculty | AC-OEP-F-006: Filter returns only matching questions. Test: TC-QB-02 |  |
-
-| OEP-F-007 | The system shall never expose a question's correct-option flag to any Student-facing API response. | Functional | High | Security | AC-OEP-F-007: /attempts/{id}/questions response contains no isCorrect field. Test: TC-Sec-01 | See OEP-SR-003 |
-
-
-
-
-
-| Req ID | Requirement (shall…) | Type | Priority | Source/Stakeholder | Acceptance criteria / Test case ref | Comments / Dependencies |
-
-| --- | --- | --- | --- | --- | --- | --- |
-
-| OEP-F-008 | The system shall allow an Admin to create an exam with title, duration, total marks, start time, end time and result-visible-from time. | Functional | High | Admin/Faculty | AC-OEP-F-008: Exam saved with all fields validated (end > start). Test: TC-Exam-01 |  |
-
-| OEP-F-009 | The system shall allow an Admin to attach questions to an exam manually or via random selection from tagged pools. | Functional | High | Admin/Faculty | AC-OEP-F-009: Random selection respects requested count and difficulty mix. Test: TC-Exam-02 | Depends on OEP-F-005 |
-
-| OEP-F-010 | The system shall allow an Admin to assign a scheduled exam to one or more student batches. | Functional | High | Admin/Faculty | AC-OEP-F-010: Only students in an assigned batch can see the exam. Test: TC-Exam-03 |  |
-
-
-
-
-
-| Req ID | Requirement (shall…) | Type | Priority | Source/Stakeholder | Acceptance criteria / Test case ref | Comments / Dependencies |
-
-| --- | --- | --- | --- | --- | --- | --- |
-
-| OEP-F-011 | The system shall allow an Admin to bulk-import students via a CSV/Excel file (name, email, USN, batch). | Functional | Medium | Admin | AC-OEP-F-011: Valid rows create accounts; invalid rows are reported with reasons, not silently dropped. Test: TC-Stu-01 |  |
-
-| OEP-F-012 | The system shall allow an Admin to create batches/sections and map students to them (many-to-many). | Functional | Medium | Admin | AC-OEP-F-012: A student can belong to more than one batch. Test: TC-Stu-02 |  |
-
-
-
-
-
-| Req ID | Requirement (shall…) | Type | Priority | Source/Stakeholder | Acceptance criteria / Test case ref | Comments / Dependencies |
-
-| --- | --- | --- | --- | --- | --- | --- |
-
-| OEP-F-013 | The system shall show a Student only the exams assigned to their batch(es) and currently within the scheduled window. | Functional | High | Student | AC-OEP-F-013: An exam outside the window is not listed/accessible. Test: TC-Attempt-00 |  |
-
-| OEP-F-014 | The system shall allow only one active attempt per (exam, student) pair, blocking a second concurrent session. | Functional | High | Security/Academic Integrity | AC-OEP-F-014: Second login for the same exam is rejected while the first attempt is IN_PROGRESS. Test: TC-Attempt-04 | See OEP-SR-005 |
-
-| OEP-F-015 | The system shall auto-save the student's current answer state to the server every 10 seconds during an attempt. | Functional | High | Student | AC-OEP-F-015: Refreshing mid-exam restores the last auto-saved answers. Test: TC-Attempt-01 |  |
-
-| OEP-F-016 | The system shall auto-submit an attempt the instant the server-side timer reaches zero, independent of client clock. | Functional | High | Academic Integrity | AC-OEP-F-016: Attempt status becomes AUTO_SUBMITTED at expiry even if the tab is inactive. Test: TC-Attempt-02 |  |
-
-
-
-
-
-| Req ID | Requirement (shall…) | Type | Priority | Source/Stakeholder | Acceptance criteria / Test case ref | Comments / Dependencies |
-
-| --- | --- | --- | --- | --- | --- | --- |
-
-| OEP-F-017 | The system shall auto-evaluate a submitted attempt by comparing each Response to the stored correct Option and applying marks/negative-marking rules. | Functional | High | Academic/Business | AC-OEP-F-017: Score = sum(correct marks) - sum(incorrect negative marks); unanswered = 0. Test: TC-Eval-01 |  |
-
-| OEP-F-018 | The system shall lock all Responses of an attempt from further modification once its status leaves IN_PROGRESS. | Functional | High | Security | AC-OEP-F-018: A write attempt to a submitted attempt's responses is rejected. Test: TC-Sec-02 |  |
-
-
-
-
-
-| Req ID | Requirement (shall…) | Type | Priority | Source/Stakeholder | Acceptance criteria / Test case ref | Comments / Dependencies |
-
-| --- | --- | --- | --- | --- | --- | --- |
-
-| OEP-F-019 | The system shall generate, per exam, a class performance report and a question-wise difficulty report, exportable to CSV/PDF. | Functional | Medium | Admin/Faculty | AC-OEP-F-019: Export file matches on-screen report totals. Test: TC-Rep-01 |  |
-
-| OEP-F-020 | The system shall log tab-switch/window-blur events per attempt and present a flagged-attempts view to the Admin. | Functional | Medium | Academic Integrity | AC-OEP-F-020: Two tab switches during an attempt create two ProctoringLog rows visible to Admin. Test: TC-Proc-01 |  |
-
-| OEP-F-021 | The system shall allow an Admin to manually disqualify or re-permit a flagged attempt, recording the action in an audit log. | Functional | Medium | Admin | AC-OEP-F-021: A disqualified attempt is excluded from the result/report until re-permitted. Test: TC-Proc-02 | See OEP-SR-006 |
-
-| OEP-F-022 | The system shall send an email notification to affected students when an exam is scheduled and when results become visible. | Functional | Low | Student | AC-OEP-F-022: Notification email is queued within 1 minute of the triggering action. Test: TC-Notif-01 | Async job |
-
-
-
-
-
-| Req ID | Requirement | Category | Priority | Acceptance criteria / Measurement |
-
-| --- | --- | --- | --- | --- |
-
-| OEP-NF-001 | The exam attempt page shall load within 2 seconds and support at least 200 concurrent students per exam without response-time degradation beyond 3 seconds (95th percentile). | Performance | High | Load test with 200 simulated students. Test: TC-Perf-01 |
-
-| OEP-NF-002 | The application tier shall be horizontally scalable and the database indexed on (exam_id, student_id) for attempts and responses. | Scalability | Medium | Design/code review + query plan (EXPLAIN) shows index usage. |
-
-| OEP-NF-003 | The system shall provide 99.5% availability during any published exam window, excluding pre-announced maintenance. | Reliability | High | Uptime monitoring logs during test exam windows. |
-
-| OEP-NF-004 | The system shall auto-save attempt state at most 10 seconds apart so that a client crash loses no more than the last 10 seconds of activity. | Reliability | High | Simulate crash mid-attempt; verify recovered state age. Test: TC-Attempt-01 |
-
-| OEP-NF-005 | The UI shall be responsive across desktop and mobile-browser viewports and shall meet WCAG 2.1 AA basics (contrast, keyboard navigation) for exam-taking screens. | Usability/Accessibility | Medium | Manual accessibility audit + Lighthouse score ≥ 90. Test: TC-UX-01 |
-
-| OEP-NF-006 | Core modules (evaluation engine, exam engine) shall carry ≥ 70% automated unit-test coverage. | Maintainability | Medium | Coverage report from CI pipeline. |
-
-
-
-
-
-| Req ID | Requirement (shall…) | Type | Priority | Acceptance criteria / Test case ref |
-
-| --- | --- | --- | --- | --- |
-
-| OEP-SR-001 | The system shall store all passwords using a salted one-way hash (bcrypt or Argon2); plaintext passwords shall never be stored or logged. | Security | High | Inspect DB directly; confirm no plaintext. Test: TC-Sec-Pwd-01 |
-
-| OEP-SR-002 | All client-server traffic shall be served over HTTPS/TLS 1.2+, with session cookies marked HttpOnly and Secure. | Security | High | TLS scan + cookie attribute inspection. |
-
-| OEP-SR-003 | The correct-option flag and answer key shall never be included in any API response reachable by a Student role; evaluation shall occur only in the server-side Evaluation Engine. | Security | High | Inspect network responses during an attempt. Test: TC-Sec-01 |
-
-| OEP-SR-004 | Role-based access control shall be enforced on every API endpoint server-side (not only hidden in the UI). | Security | High | Attempt admin endpoints with a student token; expect 403. Test: TC-Sec-Auth-01 |
-
-| OEP-SR-005 | Each exam attempt shall be bound to a single active session; a second login for the same (exam, student) pair while IN_PROGRESS shall be rejected. | Security | High | Concurrent login test. Test: TC-Attempt-04 |
-
-| OEP-SR-006 | All Admin actions that alter question content, results, or attempt status (disqualify/re-permit) shall be written to an append-only audit log with actor, timestamp and action. | Security | Medium | Perform an override; verify immutable log entry. Test: TC-Sec-Audit-01 |
-
-| OEP-SR-007 | All user-supplied input shall be validated and persisted via parameterized queries/ORM to prevent SQL/NoSQL injection and stored XSS in rendered question text. | Security | High | Run OWASP ZAP / manual injection payloads against search and question-text fields. Test: TC-Sec-Inject-01 |
-
-
-
-
-
-| Req ID | Requirement (short) | Section ref / Design Spec | Module | Test case(s) | Status (N/P/A) |
-
-| --- | --- | --- | --- | --- | --- |
-
-| OEP-F-001 | Login with RBAC | 4.1 | AuthModule | TC-Auth-01, TC-Sec-Auth-01 | N |
-
-| OEP-F-005 | Question bank CRUD | 4.2 | QuestionBankModule | TC-QB-01 | N |
-
-| OEP-F-007 | Hide answer key from student API | 4.2 / OEP-SR-003 | QuestionBankModule / ExamEngine | TC-Sec-01 | N |
-
-| OEP-F-009 | Build exam from question bank | 4.3 | ExamManagementModule | TC-Exam-02 | N |
-
-| OEP-F-014 | Single active attempt per exam | 4.5 / OEP-SR-005 | ExamEngine | TC-Attempt-04 | N |
-
-| OEP-F-015 | Auto-save every 10s | 4.5 | ExamEngine | TC-Attempt-01 | N |
-
-| OEP-F-016 | Server-side auto-submit on timeout | 4.5 | ExamEngine | TC-Attempt-02 | N |
-
-| OEP-F-017 | Auto-evaluate with negative marking | 4.6 | EvaluationEngine | TC-Eval-01 | N |
-
-| OEP-F-019 | Class & question-wise reports | 4.7 | ReportingModule | TC-Rep-01 | N |
-
-| OEP-F-020 | Tab-switch proctoring log | 4.7 | ProctoringModule | TC-Proc-01 | N |
-
-| OEP-NF-001 | Response time / concurrency target | 5 | ExamEngine / Infra | TC-Perf-01 | N |
-
-| OEP-NF-003 | 99.5% availability during exam windows | 5 | Infra / Ops | Ops monitoring | N |
-
-| OEP-SR-001 | Password hashing | 5.1.2 | AuthModule | TC-Sec-Pwd-01 | N |
-
-| OEP-SR-003 | Answer key never sent to client | 5.1.2 | ExamEngine | TC-Sec-01 | N |
-
-| OEP-SR-005 | Single-session-per-attempt enforcement | 5.1.2 | ExamEngine | TC-Attempt-04 | N |
-
+The Requirements Traceability Matrix (RTM) maps the major functional, non-functional, and security requirements to their corresponding design modules, priorities, owners, and test cases. This ensures that every important requirement is accounted for and can be verified during system testing.
+
+## 8.1 Functional Requirements
+
+| Req. ID       | Requirement                         | Priority | Owner                         | Section / Design Module                            | Test Case(s)               | Status |
+| ------------- | ----------------------------------- | -------- | ----------------------------- | -------------------------------------------------- | -------------------------- | ------ |
+| **OEP-F-001** | Login with RBAC                     | High     | Admin / Student               | 4.1 — AuthModule                                   | TC-Auth-01, TC-Sec-Auth-01 | N      |
+| **OEP-F-005** | Question bank CRUD                  | High     | Admin / Faculty               | 4.2 — QuestionBankModule                           | TC-QB-01                   | N      |
+| **OEP-F-007** | Hide answer key from student API    | High     | Security                      | 4.2 / OEP-SR-003 — QuestionBankModule / ExamEngine | TC-Sec-01                  | N      |
+| **OEP-F-009** | Build exam from question bank       | High     | Admin / Faculty               | 4.3 — ExamManagementModule                         | TC-Exam-02                 | N      |
+| **OEP-F-014** | Single active attempt per exam      | High     | Security / Academic Integrity | 4.5 / OEP-SR-005 — ExamEngine                      | TC-Attempt-04              | N      |
+| **OEP-F-015** | Auto-save every 10 seconds          | High     | Student                       | 4.5 — ExamEngine                                   | TC-Attempt-01              | N      |
+| **OEP-F-016** | Server-side auto-submit on timeout  | High     | Academic Integrity            | 4.5 — ExamEngine                                   | TC-Attempt-02              | N      |
+| **OEP-F-017** | Auto-evaluate with negative marking | High     | Academic / Business           | 4.6 — EvaluationEngine                             | TC-Eval-01                 | N      |
+| **OEP-F-019** | Class and question-wise reports     | Medium   | Admin / Faculty               | 4.7 — ReportingModule                              | TC-Rep-01                  | N      |
+| **OEP-F-020** | Tab-switch proctoring log           | Medium   | Academic Integrity            | 4.7 — ProctoringModule                             | TC-Proc-01                 | N      |
+
+## 8.2 Non-Functional Requirements
+
+| Req. ID        | Requirement                            | Priority | Owner                       | Section / Design Module         | Test Case(s)   | Status |
+| -------------- | -------------------------------------- | -------- | --------------------------- | ------------------------------- | -------------- | ------ |
+| **OEP-NF-001** | Response-time and concurrency target   | High     | Infrastructure / ExamEngine | 5 — ExamEngine / Infrastructure | TC-Perf-01     | N      |
+| **OEP-NF-003** | 99.5% availability during exam windows | High     | Infrastructure / Operations | 5 — Infrastructure / Operations | Ops Monitoring | N      |
+
+## 8.3 Security Requirements
+
+| Req. ID        | Requirement                            | Priority | Owner                 | Section / Design Module | Test Case(s)  | Status |
+| -------------- | -------------------------------------- | -------- | --------------------- | ----------------------- | ------------- | ------ |
+| **OEP-SR-001** | Password hashing                       | High     | Security / AuthModule | 5.1.2 — AuthModule      | TC-Sec-Pwd-01 | N      |
+| **OEP-SR-003** | Answer key never sent to client        | High     | Security / ExamEngine | 5.1.2 — ExamEngine      | TC-Sec-01     | N      |
+| **OEP-SR-005** | Single-session-per-attempt enforcement | High     | Security / ExamEngine | 5.1.2 — ExamEngine      | TC-Attempt-04 | N      |
+
+## 8.4 Status Legend
+
+| Status | Meaning                          |
+| ------ | -------------------------------- |
+| N      | Not yet implemented / verified   |
+| P      | Partially implemented / verified |
+| A      | Approved / verified              |
+
+> **Traceability Objective:** Every high-priority requirement should be assigned to an owner, linked to a design module, and mapped to at least one corresponding test case before the project is considered ready for acceptance testing.
