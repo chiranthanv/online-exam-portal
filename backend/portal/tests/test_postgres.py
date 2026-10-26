@@ -5,7 +5,7 @@ from datetime import timedelta
 from threading import Barrier
 from unittest import skipUnless
 
-from django.db import close_old_connections, connection
+from django.db import close_old_connections, connection, connections
 from django.test import TransactionTestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
@@ -40,7 +40,7 @@ class PostgreSQLConcurrencyTests(TransactionTestCase):
                     "/api/v1/auth/login", {"email": self.admin.email, "password": "wrong"}, format="json"
                 ).status_code
             finally:
-                close_old_connections()
+                connections.close_all()
 
         with ThreadPoolExecutor(max_workers=6) as executor:
             statuses = list(executor.map(fail_login, range(6)))
@@ -64,7 +64,7 @@ class PostgreSQLConcurrencyTests(TransactionTestCase):
                 barrier.wait(timeout=10)
                 return client.post("/api/v1/auth/refresh", {}, format="json").status_code
             finally:
-                close_old_connections()
+                connections.close_all()
 
         with ThreadPoolExecutor(max_workers=2) as executor:
             statuses = list(executor.map(refresh, range(2)))
@@ -100,7 +100,7 @@ class PostgreSQLConcurrencyTests(TransactionTestCase):
                 barrier.wait(timeout=10)
                 select_questions(exam.id, {"mode": "manual", "question_ids": ids}, self.admin)
             finally:
-                close_old_connections()
+                connections.close_all()
 
         with ThreadPoolExecutor(max_workers=2) as executor:
             list(executor.map(replace, choices))
