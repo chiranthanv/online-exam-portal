@@ -1,0 +1,88 @@
+name: Backend verification
+on:
+  push:
+    branches: [main, 'sprint1/**']
+  pull_request:
+    branches: [main, 'planning/**']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: portal
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd 'pg_isready -U portal -d portal'
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://portal:ci-only-password@localhost:5432/portal
+      DEBUG: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - run: ruff check . && ruff format --check .
+      - run: python backend/manage.py makemigrations --check --dry-run
+      - run: python backend/manage.py check
+      - run: python backend/manage.py migrate --noinput
+      - name: API, security and PostgreSQL concurrency tests
+        run: |
+          coverage run backend/manage.py test portal.tests --verbosity 2
+          coverage report
+          coverage xml
+      - name: Synthetic development fixtures are repeatable
+        run: |
+          python backend/manage.py seed_demo
+          python backend/manage.py seed_demo
+      - name: Deployment configuration checks
+        env:
+          DEBUG: '0'
+          SECRET_KEY: ci-only-deployment-config-validation-key-never-for-real-deployment-12345
+          EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
+          FRONTEND_URL: https://exam.example.test
+          CORS_ALLOWED_ORIGINS: https://exam.example.test
+          CSRF_TRUSTED_ORIGINS: https://exam.example.test
+        run: python backend/manage.py check --deploy --fail-level WARNING
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: coverage.xml
+      - name: Build runtime image
+        run: docker build -t online-exam-portal:test .
+      - name: Verify the deployed backend over TLS 1.2
+        run: |
+          cp .env.example .env
+          cat >> .env <<'EOF'
+          DEBUG=0
+          SECRET_KEY=ci-only-deployment-config-validation-key-never-for-real-deployment-12345
+          EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+          FRONTEND_URL=https://localhost
+          CORS_ALLOWED_ORIGINS=https://localhost
+          CSRF_TRUSTED_ORIGINS=https://localhost
+          TRUST_PROXY=1
+          DOMAIN=localhost
+          EOF
+          docker compose up -d db
+          docker compose run --rm api python manage.py migrate --noinput
+          docker compose run --rm -e DEBUG=1 api python manage.py seed_demo
+          docker compose --profile tls up -d --wait
+          docker compose cp tls:/data/caddy/pki/authorities/local/root.crt /tmp/portal-ca.crt
+          python scripts/tls_smoke.py /tmp/portal-ca.crt | tee tls-verification.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-tls-verification
+          path: tls-verification.txt
+      - name: Stop integration containers
+        if: always()
+        run: docker compose --profile tls down -v || true

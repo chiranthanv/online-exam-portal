@@ -1,0 +1,13 @@
+Name                               Stmts   Miss Branch BrPart  Cover   Missing
+------------------------------------------------------------------------------
+backend/portal/__init__.py             0      0      0      0   100%
+backend/portal/auth_views.py         156      0     16      0   100%
+backend/portal/authentication.py       8      0      2      0   100%
+backend/portal/models.py             112      0      2      0   100%
+backend/portal/permissions.py          7      0      0      0   100%
+backend/portal/roster.py              81      6     34      6    90%   34, 39, 41, 48, 76, 80
+backend/portal/serializers.py         98      1     26      1    98%   155
+backend/portal/services.py            47      1     20      1    97%   50
+backend/portal/views.py              172      3     22      1    98%   74-75, 173
+------------------------------------------------------------------------------
+TOTAL                                681     11    122      9    98%

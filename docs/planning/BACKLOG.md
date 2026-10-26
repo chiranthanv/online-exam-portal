@@ -31,7 +31,7 @@ The source screenshot specifies backlog planning on 12 October, an optional prac
 | Dwijesh Krishna Ghattamaraju | @Dwijesh60 | Frontend and exam engine | Named owner; GitHub rejected assignment with current repository eligibility |
 | Harkirat Singh | @h4ki06 | Evaluation, security and testing | Assigned |
 
-Both teammate usernames were supplied by Chiranthan. Harkirat has repository write access. Dwijesh currently has read access; changing collaborator access requires a separate explicit decision. Do not attribute commits or PRs made through Chiranthan's connection to another teammate.
+Both teammate usernames were supplied by Chiranthan. Harkirat has repository write access. Dwijesh currently has read access; Chiranthan authorized a write-access invitation on 26 October; completion/acceptance still needs verification. Do not attribute commits or PRs made through Chiranthan's connection to another teammate.
 
 ## Estimation and workflow
 
