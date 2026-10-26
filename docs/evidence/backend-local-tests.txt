@@ -1,0 +1,90 @@
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Found 45 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: corsheaders, rest_framework
+  Apply all migrations: auth, contenttypes, portal, sessions, token_blacklist
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying portal.0001_initial... OK
+  Applying portal.0002_immutable_audit... OK
+  Applying sessions.0001_initial... OK
+  Applying token_blacklist.0001_initial... OK
+  Applying token_blacklist.0002_outstandingtoken_jti_hex... OK
+  Applying token_blacklist.0003_auto_20171017_2007... OK
+  Applying token_blacklist.0004_auto_20171017_2013... OK
+  Applying token_blacklist.0005_remove_outstandingtoken_jti... OK
+  Applying token_blacklist.0006_auto_20171017_2113... OK
+  Applying token_blacklist.0007_auto_20171017_2214... OK
+  Applying token_blacklist.0008_migrate_to_bigautofield... OK
+  Applying token_blacklist.0010_fix_migrate_to_bigautofield... OK
+  Applying token_blacklist.0011_linearizes_history... OK
+  Applying token_blacklist.0012_alter_outstandingtoken_user... OK
+  Applying token_blacklist.0013_alter_blacklistedtoken_options_and_more...test_audit_is_immutable_in_orm_and_database (portal.tests.test_api.PortalTests.test_audit_is_immutable_in_orm_and_database) ... ok
+test_available_exams_deduplicates_membership_and_hides_empty (portal.tests.test_api.PortalTests.test_available_exams_deduplicates_membership_and_hides_empty) ... ok
+test_available_exams_membership_time_boundaries_and_no_keys (portal.tests.test_api.PortalTests.test_available_exams_membership_time_boundaries_and_no_keys) ... ok
+test_batch_assignment_replacement_and_invalid_atomicity (portal.tests.test_api.PortalTests.test_batch_assignment_replacement_and_invalid_atomicity) ... ok
+test_batch_creation_and_idempotent_membership (portal.tests.test_api.PortalTests.test_batch_creation_and_idempotent_membership) ... ok
+test_composite_keys_and_email_uniqueness (portal.tests.test_api.PortalTests.test_composite_keys_and_email_uniqueness) ... ok
+test_csv_all_valid_and_casefold_duplicates (portal.tests.test_api.PortalTests.test_csv_all_valid_and_casefold_duplicates) ... ok
+test_csv_invalid_headers_empty_and_missing_file (portal.tests.test_api.PortalTests.test_csv_invalid_headers_empty_and_missing_file) ... ok
+test_csv_partial_import_with_exact_row_errors (portal.tests.test_api.PortalTests.test_csv_partial_import_with_exact_row_errors) ... ok
+test_deployment_refresh_cookie_is_secure (portal.tests.test_api.PortalTests.test_deployment_refresh_cookie_is_secure) ... ok
+test_email_failure_rolls_back_reset (portal.tests.test_api.PortalTests.test_email_failure_rolls_back_reset) ... ok
+test_exam_create_validation_and_readonly_total (portal.tests.test_api.PortalTests.test_exam_create_validation_and_readonly_total) ... ok
+test_exam_partial_updates_validate_existing_schedule (portal.tests.test_api.PortalTests.test_exam_partial_updates_validate_existing_schedule) ... ok
+test_expired_lock_allows_login_and_resets_counter (portal.tests.test_api.PortalTests.test_expired_lock_allows_login_and_resets_counter) ... ok
+test_expired_reset_and_unknown_reset_rejected (portal.tests.test_api.PortalTests.test_expired_reset_and_unknown_reset_rejected) ... ok
+test_five_failures_lock_sixth_even_correct (portal.tests.test_api.PortalTests.test_five_failures_lock_sixth_even_correct) ... ok
+test_import_row_limit_is_enforced_before_writes (portal.tests.test_api.PortalTests.test_import_row_limit_is_enforced_before_writes) ... ok
+test_in_use_question_cannot_change_or_delete (portal.tests.test_api.PortalTests.test_in_use_question_cannot_change_or_delete) ... ok
+test_inactive_user_cannot_login (portal.tests.test_api.PortalTests.test_inactive_user_cannot_login) ... ok
+test_injection_strings_remain_data (portal.tests.test_api.PortalTests.test_injection_strings_remain_data) ... ok
+test_invalid_and_oversized_roster_files (portal.tests.test_api.PortalTests.test_invalid_and_oversized_roster_files) ... ok
+test_login_and_refresh_require_csrf (portal.tests.test_api.PortalTests.test_login_and_refresh_require_csrf) ... ok
+test_login_hash_role_and_cookie (portal.tests.test_api.PortalTests.test_login_hash_role_and_cookie) ... ok
+test_logout_revokes_access_and_refresh (portal.tests.test_api.PortalTests.test_logout_revokes_access_and_refresh) ... ok
+test_manual_selection_order_and_totals (portal.tests.test_api.PortalTests.test_manual_selection_order_and_totals) ... ok
+test_new_reset_invalidates_previous_link (portal.tests.test_api.PortalTests.test_new_reset_invalidates_previous_link) ... ok
+test_partial_options_require_text_and_replace_atomically (portal.tests.test_api.PortalTests.test_partial_options_require_text_and_replace_atomically) ... ok
+test_question_crud_filter_and_audit (portal.tests.test_api.PortalTests.test_question_crud_filter_and_audit) ... ok
+test_question_option_and_marks_validation (portal.tests.test_api.PortalTests.test_question_option_and_marks_validation) ... ok
+test_random_selection_without_replacement_and_mix (portal.tests.test_api.PortalTests.test_random_selection_without_replacement_and_mix) ... ok
+test_readiness_endpoint (portal.tests.test_api.PortalTests.test_readiness_endpoint) ... ok
+test_refresh_rotates_and_rejects_replay (portal.tests.test_api.PortalTests.test_refresh_rotates_and_rejects_replay) ... ok
+test_reset_revokes_student_session_immediately (portal.tests.test_api.PortalTests.test_reset_revokes_student_session_immediately) ... ok
+test_reset_single_use_hashed_and_one_hour (portal.tests.test_api.PortalTests.test_reset_single_use_hashed_and_one_hour) ... ok
+test_role_matrix_for_all_admin_routes (portal.tests.test_api.PortalTests.test_role_matrix_for_all_admin_routes) ... ok
+test_selection_failure_preserves_existing_exam (portal.tests.test_api.PortalTests.test_selection_failure_preserves_existing_exam) ... ok
+test_started_exam_freezes_all_configuration (portal.tests.test_api.PortalTests.test_started_exam_freezes_all_configuration) ... ok
+test_success_resets_prior_failure (portal.tests.test_api.PortalTests.test_success_resets_prior_failure) ... ok
+test_unknown_membership_id_rolls_back_whole_request (portal.tests.test_api.PortalTests.test_unknown_membership_id_rolls_back_whole_request) ... ok
+test_unknown_user_and_bad_password_are_identical (portal.tests.test_api.PortalTests.test_unknown_user_and_bad_password_are_identical) ... ok
+test_weak_password_does_not_consume_link (portal.tests.test_api.PortalTests.test_weak_password_does_not_consume_link) ... ok
+test_xlsx_import_and_formula_rejection (portal.tests.test_api.PortalTests.test_xlsx_import_and_formula_rejection) ... ok
+test_concurrent_question_replacement_keeps_consistent_total (portal.tests.test_postgres.PostgreSQLConcurrencyTests.test_concurrent_question_replacement_keeps_consistent_total) ... skipped 'Requires PostgreSQL row locks; executed by CI'
+test_concurrent_refresh_accepts_token_once (portal.tests.test_postgres.PostgreSQLConcurrencyTests.test_concurrent_refresh_accepts_token_once) ... skipped 'Requires PostgreSQL row locks; executed by CI'
+test_parallel_login_failures_do_not_lose_increments (portal.tests.test_postgres.PostgreSQLConcurrencyTests.test_parallel_login_failures_do_not_lose_increments) ... skipped 'Requires PostgreSQL row locks; executed by CI'
+
+----------------------------------------------------------------------
+Ran 45 tests in 3.064s
+
+OK (skipped=3)
+Destroying test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+ OK
+System check identified no issues (0 silenced).

@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-exam_portal}
+      POSTGRES_USER: ${POSTGRES_USER:-exam_portal}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env and set POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  api:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-exam_portal}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-exam_portal}
+    ports:
+      - '127.0.0.1:8000:8000'
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen(urllib.request.Request("http://127.0.0.1:8000/health", headers={"X-Forwarded-Proto":"https"}), timeout=3)']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    # Migrations run explicitly before starting API; see README.
+  tls:
+    image: caddy:2
+    profiles: [tls]
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN for TLS}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api]
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
