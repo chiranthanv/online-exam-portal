@@ -344,7 +344,7 @@ class SubmitAttempt(APIView):
         for item in answers:
             if not isinstance(item, dict) or "question_id" not in item:
                 raise ValidationError({"answers": "Each answer requires a question_id."})
-            question_id = str(item["question_id"])
+            question_id = str(serializers.UUIDField().run_validation(item["question_id"]))
             if question_id in submitted:
                 raise ValidationError({"answers": "A question may be answered only once."})
             submitted[question_id] = item.get("option_id")
