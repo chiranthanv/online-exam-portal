@@ -14,6 +14,7 @@ from portal.models import (
     ExamBatch,
     ExamQuestion,
     Option,
+    ProctoringFlag,
     Question,
     StudentBatch,
     User,
@@ -176,6 +177,11 @@ class AttemptEvaluationTests(TestCase):
         self.assertEqual(
             [x["event_type"] for x in attempt["flags"]], ["TAB_SWITCH", "WINDOW_BLUR", "TAB_SWITCH"]
         )
+        flag = ProctoringFlag.objects.first()
+        with self.assertRaises(ValueError):
+            flag.delete()
+        with self.assertRaises(ValueError):
+            ProctoringFlag.objects.filter(pk=flag.pk).update(event_type="WINDOW_BLUR")
 
     def test_invalid_cross_question_option_and_duplicate_question_rejected(self):
         attempt_id = self.start()["attempt_id"]
