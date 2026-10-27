@@ -1,5 +1,6 @@
 import csv
 from datetime import timedelta
+from decimal import Decimal
 from io import BytesIO
 from xml.sax.saxutils import escape
 
@@ -410,7 +411,7 @@ class SubmitAttempt(APIView):
                 )
             )
         # An exam cannot award a negative overall score.
-        attempt.score = total
+        attempt.score = max(total, Decimal('0.00'))
         attempt.submitted_at = now
         attempt.save(update_fields=["score", "submitted_at"])
         AttemptAnswer.objects.bulk_create(answer_rows)
