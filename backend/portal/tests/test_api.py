@@ -681,15 +681,19 @@ class PortalTests(TestCase):
         )
         self.assertEqual(rejected.status_code, 400)
         ExamAttempt.objects.filter(pk=data["attempt_id"]).update(deadline_at=timezone.now() - timedelta(seconds=1))
-        expired = self.client.get(f"/api/v1/attempts/{data['attempt_id']}")
-        self.assertEqual(expired.status_code, 200, expired.content)
-        self.assertEqual(expired.json()["status"], ExamAttempt.AUTO_SUBMITTED)
         late = self.client.patch(
             f"/api/v1/attempts/{data['attempt_id']}/answers",
             {"question_id": data["questions"][0]["id"], "option_id": None},
             format="json",
         )
         self.assertEqual(late.status_code, 409)
+        self.assertEqual(
+            ExamAttempt.objects.get(pk=data["attempt_id"]).status,
+            ExamAttempt.AUTO_SUBMITTED,
+        )
+        expired = self.client.get(f"/api/v1/attempts/{data['attempt_id']}")
+        self.assertEqual(expired.status_code, 200, expired.content)
+        self.assertEqual(expired.json()["status"], ExamAttempt.AUTO_SUBMITTED)
 
     def test_expiry_worker_auto_submits_without_browser_request(self):
         result, _ = self.create_student_attempt()
