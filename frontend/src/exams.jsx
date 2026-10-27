@@ -543,6 +543,7 @@ function ExamAttemptRunner({ exam, onBack }) {
   const [submitting, setSubmitting] = useState(false);
   const [now, setNow] = useState(Date.now());
   const autoSubmitting = useRef(false);
+  const deadlineMonotonicAt = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -571,6 +572,9 @@ function ExamAttemptRunner({ exam, onBack }) {
         sessionStorage.setItem(storageKey, JSON.stringify(saved));
         if (active) {
           setSessionId(saved.session_id);
+          deadlineMonotonicAt.current =
+            window.performance.now() +
+            Math.max(0, Date.parse(data.deadline_at) - Date.parse(data.server_now));
           setAttempt(data);
         }
       } catch (e) {
@@ -586,12 +590,12 @@ function ExamAttemptRunner({ exam, onBack }) {
   }, [storageKey, exam.exam_id]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 250);
+    const timer = window.setInterval(() => setNow(window.performance.now()), 250);
     return () => window.clearInterval(timer);
   }, []);
 
   const remainingMs = attempt
-    ? Math.max(0, Date.parse(attempt.deadline_at) - now)
+    ? Math.max(0, (deadlineMonotonicAt.current ?? now) - now)
     : 0;
   const remainingSeconds = Math.ceil(remainingMs / 1000);
   const timerLabel = `${Math.floor(remainingSeconds / 60)
