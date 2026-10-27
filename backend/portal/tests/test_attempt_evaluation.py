@@ -102,14 +102,16 @@ class AttemptEvaluationTests(TestCase):
         started = self.start()
         attempt_id = started["attempt_id"]
         payload = {
-            "answers": [
-                {"question_id": str(self.questions[0].id), "option_id": str(self.options[0][0].id)}
-            ]
+            "answers": [{"question_id": str(self.questions[0].id), "option_id": str(self.options[0][0].id)}]
         }
         first = self.client.post(f"/api/v1/attempts/{attempt_id}/submit", payload, format="json")
         second = self.client.post(
             f"/api/v1/attempts/{attempt_id}/submit",
-            {"answers": [{"question_id": str(self.questions[1].id), "option_id": str(self.options[1][0].id)}]},
+            {
+                "answers": [
+                    {"question_id": str(self.questions[1].id), "option_id": str(self.options[1][0].id)}
+                ]
+            },
             format="json",
         )
         self.assertEqual(first.status_code, 200, first.content)
@@ -149,7 +151,11 @@ class AttemptEvaluationTests(TestCase):
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(self.client.get(result_url).status_code, 200)
         self.assertEqual(
-            list(AuditLog.objects.filter(target=attempt_id).order_by("timestamp").values_list("action", flat=True)),
+            list(
+                AuditLog.objects.filter(target=attempt_id)
+                .order_by("timestamp")
+                .values_list("action", flat=True)
+            ),
             ["ATTEMPT_STARTED", "ATTEMPT_SUBMITTED", "ATTEMPT_DISQUALIFIED", "ATTEMPT_REPERMITTED"],
         )
 
@@ -167,7 +173,9 @@ class AttemptEvaluationTests(TestCase):
         response = admin_client.get("/api/v1/admin/attempts")
         self.assertEqual(response.status_code, 200, response.content)
         attempt = response.json()["results"][0]
-        self.assertEqual([x["event_type"] for x in attempt["flags"]], ["TAB_SWITCH", "WINDOW_BLUR", "TAB_SWITCH"])
+        self.assertEqual(
+            [x["event_type"] for x in attempt["flags"]], ["TAB_SWITCH", "WINDOW_BLUR", "TAB_SWITCH"]
+        )
 
     def test_invalid_cross_question_option_and_duplicate_question_rejected(self):
         attempt_id = self.start()["attempt_id"]
@@ -194,12 +202,15 @@ class AttemptEvaluationTests(TestCase):
         )
         self.assertEqual(response.status_code, 400)
 
-
     def test_reports_require_release_exclude_disqualified_and_export_csv(self):
         attempt_id = self.start()["attempt_id"]
         response = self.client.post(
             f"/api/v1/attempts/{attempt_id}/submit",
-            {"answers": [{"question_id": str(self.questions[0].id), "option_id": str(self.options[0][0].id)}]},
+            {
+                "answers": [
+                    {"question_id": str(self.questions[0].id), "option_id": str(self.options[0][0].id)}
+                ]
+            },
             format="json",
         )
         self.assertEqual(response.status_code, 200, response.content)
