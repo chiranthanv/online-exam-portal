@@ -210,10 +210,19 @@ class ProctoringFlag(models.Model):
     event_type = models.CharField(max_length=20, choices=EVENT_TYPES)
     occurred_at = models.DateTimeField()
     received_at = models.DateTimeField(auto_now_add=True)
+    objects = ImmutableAuditQuerySet.as_manager()
 
     class Meta:
         db_table = "proctoring_flags"
         ordering = ["received_at", "id"]
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValueError("Proctoring events are append-only.")
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValueError("Proctoring events are append-only.")
 
 
 class ExamNotification(models.Model):
