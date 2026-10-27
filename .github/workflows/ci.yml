@@ -1,0 +1,66 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - "sprint1/**"
+  pull_request:
+    branches:
+      - main
+      - "sprint1/**"
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: exam_portal
+          POSTGRES_USER: exam_portal
+          POSTGRES_PASSWORD: ci-only-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U exam_portal -d exam_portal"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DEBUG: "1"
+      SECRET_KEY: "ci-only-secret-key-not-for-production-000000000000000000000000000000000000"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+      DATABASE_URL: "postgres://exam_portal:ci-only-password@localhost:5432/exam_portal"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install backend and development dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements-dev.txt
+
+      - name: Check formatting and lint
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Check migration drift
+        run: python backend/manage.py makemigrations --check --dry-run
+
+      - name: Run Django tests with coverage
+        run: coverage run backend/manage.py test portal.tests --verbosity 2
+
+      - name: Enforce coverage threshold
+        run: coverage report --fail-under=85
