@@ -1,10 +1,16 @@
 import csv
 from datetime import timedelta
+from io import BytesIO
+from xml.sax.saxutils import escape
 
 from django.db import connection, transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from rest_framework import generics, serializers
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.parsers import MultiPartParser
@@ -517,6 +523,39 @@ class AdminAttemptOverride(APIView):
         return Response({"attempt_id": str(attempt.id), "is_disqualified": attempt.is_disqualified})
 
 
+def _pdf_report(title, headers, rows, filename):
+    """Render a simple, printable PDF table without interpreting user text as markup."""
+    buffer = BytesIO()
+    document = SimpleDocTemplate(
+        buffer, pagesize=landscape(letter), rightMargin=24, leftMargin=24, topMargin=24, bottomMargin=24
+    )
+    styles = getSampleStyleSheet()
+    table_data = [[Paragraph(escape(str(value)), styles["BodyText"]) for value in headers]]
+    table_data.extend(
+        [[Paragraph(escape(str(value)), styles["BodyText"]) for value in row] for row in rows]
+    )
+    table = Table(table_data, repeatRows=1, hAlign="LEFT")
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E8EEF7")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#172B4D")),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#AAB4C3")),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 5),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    document.build([Paragraph(escape(title), styles["Title"]), Spacer(1, 12), table])
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
+
+
 class AdminClassReport(APIView):
     """Class-level score summary; only released, submitted, permitted attempts count."""
 
@@ -541,6 +580,24 @@ class AdminClassReport(APIView):
             }
             for attempt in attempts
         ]
+        if request.query_params.get("format") == "pdf":
+            return _pdf_report(
+                f"Class report — {exam.title}",
+                ["student_id", "student_name", "usn", "score", "total_marks"],
+                [[row[key] for key in ["student_id", "student_name", "usn", "score", "total_marks"]] for row in rows],
+                "class-report.pdf",
+            )
+        if request.query_params.get("format") == "pdf":
+            fields = [
+                "question_id", "difficulty", "subject", "topic",
+                "submitted_attempts", "correct", "incorrect", "unanswered",
+            ]
+            return _pdf_report(
+                f"Question report — {exam.title}",
+                fields,
+                [[row[key] for key in fields] for row in rows],
+                "question-report.pdf",
+            )
         if request.query_params.get("format") == "csv":
             response = HttpResponse(content_type="text/csv; charset=utf-8")
             response["Content-Disposition"] = 'attachment; filename="class-report.csv"'
