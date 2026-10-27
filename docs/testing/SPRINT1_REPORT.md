@@ -1,3 +1,5 @@
+> Historical backend checkpoint. The [current integration report](SPRINT1_INTEGRATION_REPORT.md) supersedes the pending frontend/demo status below.
+
 # Chiranthan's Sprint 1 backend verification
 
 Execution date: **26 October 2026**. Scope: administrative backend, its database/API security, and integration handoff. This is not a declaration that the complete team product is done.

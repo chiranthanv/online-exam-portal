@@ -36,3 +36,9 @@ with opener.open(request, timeout=10) as response:
 print("PASS: real HTTPS login; refresh cookie has Secure, HttpOnly, SameSite=Lax and restricted path.")
 print("PASS: HTTPS response has HSTS max-age=31536000.")
 print("Scope: temporary CI deployment of the backend; not a public production site.")
+
+with opener.open(base + "/", timeout=10) as response:
+    html = response.read().decode()
+    assert '<div id="root"></div>' in html
+    assert "/assets/" in html
+print("PASS: compiled React entry is served over certificate-verified HTTPS.")

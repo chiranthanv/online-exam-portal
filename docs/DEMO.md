@@ -1,22 +1,19 @@
-# One-minute Sprint 1 demonstration
+# Actual Sprint 1 product demonstration
 
-The final course deliverable is a recording of the **actual integrated React + Django + PostgreSQL application**. It depends on Dwijesh's frontend and Harkirat's integration verification. Do not claim an API recording, slides or a mock interface proves the complete product.
+[Play/download the 60-second MP4](evidence/sprint1-product-demo.mp4).
 
-## Preparation
+Recorded on 27 October 2026 by Playwright against the real React + Django + PostgreSQL application using synthetic demo accounts. No API mocks or slides are used. The silent recording is 60.04 seconds, H.264/yuv420p MP4, 1280 × 900. Browser dates in this CI recording use UTC.
 
-Use synthetic data only. Start a clean development instance, migrate and run `seed_demo`. Have 50 questions and three batches available. Prepare a UTF-8 roster containing one valid row and one duplicate/invalid row. Set the demo exam's start near the recording time or use the seeded available exam. Hide credentials, reset tokens, JWTs and real student data. Rehearse navigation before capture.
+| Time | Actual action |
+|---|---|
+| 0–8 s | Sign-in screen, administrator login and exam dashboard |
+| 8–21 s | Create an MCQ and filter the question bank |
+| 21–31 s | Import a roster and show the invalid-row error |
+| 31–49 s | Create a future exam, select five questions and assign a batch |
+| 49–60 s | Sign in as a student and show the currently eligible seeded exam |
 
-| Time | Actual screen/action | Evidence |
-|---|---|---|
-| 0–8 s | Admin signs in and opens question bank | Role login; real data loaded from API |
-| 8–20 s | Add or edit an unused MCQ; filter by difficulty | Validation, save and matching list |
-| 20–30 s | Import roster into existing batch | Created count and precise invalid-row error |
-| 30–44 s | Create a future exam, select questions, show total, assign batch | Persisted schedule, selection and assignment |
-| 44–55 s | Sign in as seeded student; show available exam; compare unassigned student if time allows | Server-enforced eligibility |
-| 55–60 s | Show repository CI result and state Sprint 1 scope | Traceable evidence; attempts/scoring are Sprint 2 |
+Screenshots extracted from the recording: [question bank](evidence/sprint1-question-bank.png), [student eligibility](evidence/sprint1-student-view.png).
 
-Record approximately 60 seconds in a playable MP4, inspect playback and actual duration, then commit it as `docs/evidence/sprint1-product-demo.mp4` (keep comfortably below GitHub's single-file limit). Add the actual commit/PR/CI/review links to the test report and issue #27. If a GitHub attachment is used instead, link it clearly from the repository. Do not fabricate or backdate evidence.
+Application commit: `574c4847d33a43be223572ed483ec1f8bc1e6223`. [Successful source workflow and browser artifact](https://github.com/chiranthanv/online-exam-portal/actions/runs/40437235390). The MP4 is transcoded from the workflow's original WebM; it is not a replacement mock-up. Duration and screenshots were inspected before committing.
 
-## Backend-only supporting demonstration
-
-A live API walkthrough can support Chiranthan's backend handoff, but must be labelled **backend-only**. Show real health/login (token hidden), question validation, roster errors, manual/random selection with totals, student eligibility and an admin-route rejection. Keep the final product demo pending until the React flows above work.
+To reproduce, use a disposable seeded development database and run `npm run record:demo` in `frontend/`; see README for the backend setup. The recording creates synthetic records. Full verification and remaining acceptance requirements are in the [integration report](testing/SPRINT1_INTEGRATION_REPORT.md). Exam-taking and evaluation remain Sprint 2.
