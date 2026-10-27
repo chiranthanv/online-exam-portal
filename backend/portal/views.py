@@ -292,6 +292,7 @@ def _require_attempt_session(request, attempt):
 
 
 def _attempt_payload(attempt):
+    server_now = timezone.now()
     mappings = (
         ExamQuestion.objects.filter(exam=attempt.exam)
         .select_related("question")
@@ -329,6 +330,8 @@ def _attempt_payload(attempt):
         "status": attempt.status,
         "started_at": attempt.started_at.isoformat(),
         "deadline_at": attempt.deadline_at.isoformat(),
+        "server_now": server_now.isoformat(),
+        "remaining_seconds": max(0, int((attempt.deadline_at - server_now).total_seconds() + 0.999)),
         "submitted_at": attempt.submitted_at.isoformat() if attempt.submitted_at else None,
         "last_saved_at": attempt.last_saved_at.isoformat() if attempt.last_saved_at else None,
         "answers": saved,
