@@ -577,9 +577,10 @@ class AdminQuestionReport(APIView):
                 for answer in attempt.answers.all()
                 if answer.question_id == mapping.question_id
             ]
-            answered = len(answers)
-            correct = sum(answer.awarded_marks > 0 for answer in answers)
-            incorrect = sum(answer.awarded_marks < 0 for answer in answers)
+            selected_answers = [answer for answer in answers if answer.selected_option_id is not None]
+            correct = sum(answer.awarded_marks > 0 for answer in selected_answers)
+            incorrect = sum(answer.awarded_marks <= 0 for answer in selected_answers)
+            unanswered = len(attempts) - len(selected_answers)
             rows.append(
                 {
                     "question_id": str(mapping.question_id),
@@ -589,7 +590,7 @@ class AdminQuestionReport(APIView):
                     "submitted_attempts": len(attempts),
                     "correct": correct,
                     "incorrect": incorrect,
-                    "unanswered": len(attempts) - answered,
+                    "unanswered": unanswered,
                 }
             )
         if request.query_params.get("format") == "csv":
