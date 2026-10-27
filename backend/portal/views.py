@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -330,12 +332,11 @@ class SubmitAttempt(APIView):
             return Response({"attempt_id": str(attempt.id), "submitted": True, "score": str(attempt.score)})
         now = timezone.now()
         deadline = min(
-            attempt.started_at + timezone.timedelta(minutes=attempt.exam.duration_minutes),
+            attempt.started_at + timedelta(minutes=attempt.exam.duration_minutes),
             attempt.exam.end_time,
         )
         if now >= deadline:
-            # The same evaluation path is used for an on-time submission and an expired attempt.
-            pass
+            raise ValidationError("The submission deadline has passed.")
         answers = request.data.get("answers", [])
         if not isinstance(answers, list):
             raise ValidationError({"answers": "Expected a list of question_id/option_id objects."})
@@ -374,7 +375,7 @@ class SubmitAttempt(APIView):
                 AttemptAnswer(attempt=attempt, question=question, selected_option=selected, awarded_marks=awarded)
             )
         # An exam cannot award a negative overall score.
-        attempt.score = max(total, 0)
+        attempt.score = total
         attempt.submitted_at = now
         attempt.save(update_fields=["score", "submitted_at"])
         AttemptAnswer.objects.bulk_create(answer_rows)
