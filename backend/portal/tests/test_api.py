@@ -680,7 +680,9 @@ class PortalTests(TestCase):
             format="json",
         )
         self.assertEqual(rejected.status_code, 400)
-        ExamAttempt.objects.filter(pk=data["attempt_id"]).update(deadline_at=timezone.now() - timedelta(seconds=1))
+        ExamAttempt.objects.filter(pk=data["attempt_id"]).update(
+            deadline_at=timezone.now() - timedelta(seconds=1)
+        )
         late = self.client.patch(
             f"/api/v1/attempts/{data['attempt_id']}/answers",
             {"question_id": data["questions"][0]["id"], "option_id": None},
@@ -705,9 +707,7 @@ class PortalTests(TestCase):
         self.assertEqual(attempt.status, ExamAttempt.AUTO_SUBMITTED)
         self.assertIsNotNone(attempt.submitted_at)
         self.assertEqual(
-            AuditLog.objects.filter(
-                action="EXAM_ATTEMPT_AUTO_SUBMITTED", target=attempt_id
-            ).count(),
+            AuditLog.objects.filter(action="EXAM_ATTEMPT_AUTO_SUBMITTED", target=attempt_id).count(),
             1,
         )
 
