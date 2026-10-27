@@ -193,3 +193,37 @@ class AttemptEvaluationTests(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 400)
+
+
+    def test_reports_require_release_exclude_disqualified_and_export_csv(self):
+        attempt_id = self.start()["attempt_id"]
+        response = self.client.post(
+            f"/api/v1/attempts/{attempt_id}/submit",
+            {"answers": [{"question_id": str(self.questions[0].id), "option_id": str(self.options[0][0].id)}]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        admin_client = APIClient()
+        admin_client.force_authenticate(user=self.admin)
+        class_url = f"/api/v1/admin/reports/class?exam_id={self.exam.id}"
+        question_url = f"/api/v1/admin/reports/questions?exam_id={self.exam.id}"
+        self.assertEqual(admin_client.get(class_url).status_code, 400)
+        self.exam.result_visible_from = timezone.now() - timedelta(seconds=1)
+        self.exam.save(update_fields=["result_visible_from"])
+        class_json = admin_client.get(class_url)
+        self.assertEqual(class_json.status_code, 200, class_json.content)
+        self.assertEqual(class_json.json()["results"][0]["score"], "2.00")
+        class_csv = admin_client.get(class_url + "&format=csv")
+        self.assertEqual(class_csv.status_code, 200)
+        self.assertIn("student_name,usn,score,total_marks", class_csv.content.decode())
+        question_json = admin_client.get(question_url)
+        self.assertEqual(question_json.status_code, 200, question_json.content)
+        self.assertEqual(question_json.json()["results"][0]["correct"], 1)
+        self.assertEqual(question_json.json()["results"][1]["unanswered"], 1)
+        override = admin_client.post(
+            f"/api/v1/admin/attempts/{attempt_id}/override",
+            {"disqualified": True, "reason": "Test disqualification"},
+            format="json",
+        )
+        self.assertEqual(override.status_code, 200)
+        self.assertEqual(admin_client.get(class_url).json()["results"], [])
