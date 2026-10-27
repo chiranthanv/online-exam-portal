@@ -1,28 +1,42 @@
 # Team 15 — Sprint 1 handoff
 
-The remaining React frontend and system/security automation are implemented in [PR #30](https://github.com/chiranthanv/online-exam-portal/pull/30), through Chiranthan's account at his request. Backend PR #29 is already merged into `planning/product-backlog`; PR #30 targets that branch. Integration PR #28 then carries the reviewed product into main. No commits or independent reviews are attributed to teammates.
+Sprint 1 implementation is merged into `main` at commit [`ae010108`](https://github.com/chiranthanv/online-exam-portal/commit/ae0101088c61e676180362673250fc647ffb9a75). Backend PR [#29](https://github.com/chiranthanv/online-exam-portal/pull/29), frontend/integration PR [#30](https://github.com/chiranthanv/online-exam-portal/pull/30), and final integration PR [#28](https://github.com/chiranthanv/online-exam-portal/pull/28) are merged. The implementation and automation were completed through Chiranthan's account at his request; no teammate-authored code or independent reviews are claimed.
 
 ## Dwijesh — @Dwijesh60
 
-1. Check out `sprint1/frontend-integration` and follow README setup. Run frontend lint, unit tests and build; exercise login/reset, question bank, students/imports, exam configuration and student eligibility.
-2. Read `frontend/src/`, API.md and the integration report. Verify responsive layouts, keyboard use, validation and error states. Leave a genuine review on PR #30 with any reproducible findings.
-3. Fix any real frontend findings in a branch from the integration head, using your own account. Do not duplicate the completed frontend or create empty contribution commits. If your course requires individual implementation evidence, discuss that requirement with the instructor and record actual work honestly.
-4. If direct push access is unavailable, use a fork PR. A collaborator invitation was authorized but is not confirmed sent or accepted.
+Dwijesh now has repository write access and is assigned his planned GitHub backlog stories.
+
+1. Check out `main` and follow the README setup. Run frontend lint, unit tests, build, and browser tests; exercise login/reset, question bank, students/imports, exam configuration, and student eligibility.
+2. Read `frontend/src/`, `docs/API.md`, and the integration report. Verify responsive layouts, keyboard use, validation, and error states. Record genuine results in the relevant GitHub issues.
+3. Report reproducible defects. Fix real frontend findings in a branch from `main` and open a PR using your own account. Do not create empty contribution commits.
+4. If the course requires member-specific implementation evidence beyond verification, confirm the expectation with the instructor and record only actual work.
 
 ## Harkirat — @h4ki06
 
-1. Independently run/review PostgreSQL backend tests and the five browser scenarios. Check the linked GitHub Actions logs and actual one-minute demo.
-2. Review role enforcement, lockout, single-use reset, CSRF/session recovery, import errors, stored-XSS handling, answer-key exclusion, exam integrity and TLS headers. Focus on the Test Plan and RTM, not just green CI.
-3. Leave a genuine review on PR #30 and integration PR #28. Add regression tests for real gaps through your own account; provide reproducible defect reports. CI and system tests already exist, so they do not need rebuilding.
+Harkirat has repository write access and his planned GitHub stories are assigned.
+
+1. Independently run the PostgreSQL backend tests and five browser scenarios. Inspect the final GitHub Actions runs and actual one-minute demo.
+2. Review role enforcement, lockout, single-use reset, CSRF/session recovery, import errors, stored-XSS handling, answer-key exclusion, exam integrity, audit behavior, and TLS headers.
+3. Record genuine verification results in the relevant GitHub issues. Add regression tests or fixes through a PR from `main` if a real gap is found.
 
 ## Chiranthan — final integration and submission
 
-- Resolve real review findings; merge reviewed #30 into `planning/product-backlog`, then reviewed #28 into main with green checks.
-- Link the [integration report](testing/SPRINT1_INTEGRATION_REPORT.md), [demo](DEMO.md), CI runs and genuine reviews in the submission. Set Project completion states after review/acceptance, and confirm evaluator access to the private Project/repository.
-- If the course requires a public/institutional deployment, configure its actual domain and SMTP credentials and verify controlled-mailbox delivery. Current evidence covers a temporary CI HTTPS deployment and file-backed test email, not a public deployment.
+Completed:
 
-The code, automated tests, RTM and actual product recording are delivered. Human independent review, any required member-specific authorship evidence and environment-specific acceptance remain separate from implementation completion.
+- Merged PRs #29, #30, and #28.
+- Verified the final `main` commit with successful backend and frontend/browser workflows.
+- Linked the integration report, demo, CI evidence, backlog, and RTM.
+- Assigned GitHub stories to collaborators whose access is available.
+
+Still dependent on people or the target environment:
+
+- Resolve real teammate findings and record genuine acceptance evidence before closing review-dependent stories.
+- Add Dwijesh and Harkirat to Jira when their Atlassian accounts are available, then assign their planned stories.
+- Confirm the evaluator can open the repository, Project, Jira board, CI runs, and demo.
+- Configure a real domain and SMTP account only if public/institutional deployment is required. Current evidence covers temporary CI HTTPS and file-backed test email.
+
+The code, automated tests, RTM, and actual product recording are delivered. Human independent review, any required member-specific authorship evidence, and environment-specific acceptance remain separate from implementation completion.
 
 ## Sprint 1 only
 
-Attempts, timers, autosave, submission, evaluation, reports, proctoring, notifications and performance/availability acceptance remain in Sprint 2.
+Attempts, timers, autosave, submission, evaluation, reports, proctoring, notifications, and performance/availability acceptance remain in Sprint 2.
