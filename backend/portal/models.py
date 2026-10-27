@@ -158,3 +158,94 @@ class PasswordResetGrant(models.Model):
 
     class Meta:
         db_table = "password_reset_grants"
+
+
+class Attempt(models.Model):
+    """One server-authoritative attempt per student and exam."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student = models.ForeignKey(User, on_delete=models.PROTECT, related_name="exam_attempts")
+    exam = models.ForeignKey(Exam, on_delete=models.PROTECT, related_name="attempts")
+    started_at = models.DateTimeField(auto_now_add=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    score = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    is_disqualified = models.BooleanField(default=False)
+    disqualification_reason = models.CharField(max_length=500, blank=True)
+    overridden_at = models.DateTimeField(null=True, blank=True)
+    overridden_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.PROTECT, related_name="attempt_overrides"
+    )
+
+    class Meta:
+        db_table = "exam_attempts"
+        constraints = [
+            models.UniqueConstraint(fields=["student", "exam"], name="one_attempt_per_student_exam"),
+        ]
+        ordering = ["-started_at", "id"]
+
+
+class AttemptAnswer(models.Model):
+    """Persist only the selected option; correctness is calculated on the server."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    attempt = models.ForeignKey(Attempt, on_delete=models.CASCADE, related_name="answers")
+    question = models.ForeignKey(Question, on_delete=models.PROTECT)
+    selected_option = models.ForeignKey(Option, null=True, blank=True, on_delete=models.PROTECT)
+    awarded_marks = models.DecimalField(max_digits=7, decimal_places=2, default=0)
+
+    class Meta:
+        db_table = "attempt_answers"
+        constraints = [
+            models.UniqueConstraint(fields=["attempt", "question"], name="one_answer_per_attempt_question"),
+        ]
+
+
+class ProctoringFlag(models.Model):
+    """Append-only client-reported focus/tab events, scoped to a real attempt."""
+
+    EVENT_TYPES = [("TAB_SWITCH", "Tab switch"), ("WINDOW_BLUR", "Window blur")]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    attempt = models.ForeignKey(Attempt, on_delete=models.PROTECT, related_name="proctoring_flags")
+    event_type = models.CharField(max_length=20, choices=EVENT_TYPES)
+    occurred_at = models.DateTimeField()
+    received_at = models.DateTimeField(auto_now_add=True)
+    objects = ImmutableAuditQuerySet.as_manager()
+
+    class Meta:
+        db_table = "proctoring_flags"
+        ordering = ["received_at", "id"]
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValueError("Proctoring events are append-only.")
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValueError("Proctoring events are append-only.")
+
+
+class ExamNotification(models.Model):
+    """Durable, de-duplicated outbox for exam schedule and result emails."""
+
+    TYPES = [("SCHEDULED", "Exam scheduled"), ("RESULTS_RELEASED", "Results released")]
+    STATUSES = [("PENDING", "Pending"), ("SENT", "Sent"), ("FAILED", "Failed")]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student = models.ForeignKey(User, on_delete=models.PROTECT, related_name="exam_notifications")
+    exam = models.ForeignKey(Exam, on_delete=models.PROTECT, related_name="notifications")
+    notification_type = models.CharField(max_length=20, choices=TYPES)
+    status = models.CharField(max_length=10, choices=STATUSES, default="PENDING")
+    attempts = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    last_error = models.CharField(max_length=120, blank=True)
+
+    class Meta:
+        db_table = "exam_notifications"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "exam", "notification_type"], name="one_exam_notification_per_type"
+            ),
+        ]
+        ordering = ["created_at", "id"]

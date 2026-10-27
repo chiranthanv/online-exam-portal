@@ -2,7 +2,12 @@ from django.urls import path
 from portal import auth_views as auth
 from portal import views
 
+from .frontend import asset, entry
+
 urlpatterns = [
+    path("", entry),
+    path("reset-password", entry),
+    path("assets/<path:filename>", asset),
     path("health", views.HealthView.as_view()),
     path("api/v1/auth/csrf", auth.CsrfView.as_view()),
     path("api/v1/auth/login", auth.LoginView.as_view()),
@@ -19,6 +24,14 @@ urlpatterns = [
     path("api/v1/questions/<uuid:pk>", views.QuestionDetail.as_view()),
     path("api/v1/exams", views.ExamList.as_view()),
     path("api/v1/exams/available", views.AvailableExams.as_view()),
+    path("api/v1/exams/<uuid:pk>/attempt", views.StartAttempt.as_view()),
+    path("api/v1/attempts/<uuid:pk>/submit", views.SubmitAttempt.as_view()),
+    path("api/v1/attempts/<uuid:pk>/result", views.AttemptResult.as_view()),
+    path("api/v1/attempts/<uuid:pk>/proctoring-events", views.AttemptProctoringEvent.as_view()),
+    path("api/v1/admin/attempts", views.AdminAttemptList.as_view()),
+    path("api/v1/admin/attempts/<uuid:pk>/override", views.AdminAttemptOverride.as_view()),
+    path("api/v1/admin/reports/class", views.AdminClassReport.as_view()),
+    path("api/v1/admin/reports/questions", views.AdminQuestionReport.as_view()),
     path("api/v1/exams/<uuid:pk>", views.ExamDetail.as_view()),
     path("api/v1/exams/<uuid:pk>/questions", views.ExamQuestions.as_view()),
     path("api/v1/exams/<uuid:pk>/batches", views.ExamBatches.as_view()),
