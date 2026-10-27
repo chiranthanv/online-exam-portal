@@ -623,6 +623,21 @@ function ExamAttemptRunner({ exam, onBack }) {
       .catch((e) => setSaveError(e.message));
   }, [attempt, remainingMs, sessionId]);
 
+  async function requestWithRetry(path, options) {
+    let lastError;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        return await api.request(path, options);
+      } catch (e) {
+        lastError = e;
+        const retryable = e.status === 0 || e.status === 429 || e.status >= 500;
+        if (!retryable || attempt === 2) throw e;
+        await new Promise((resolve) => window.setTimeout(resolve, 250 * 2 ** attempt));
+      }
+    }
+    throw lastError;
+  }
+
   async function saveAnswer(questionId, optionId) {
     if (!attempt || attempt.status !== "IN_PROGRESS" || savingAnswers[questionId]) {
       return;
@@ -639,7 +654,7 @@ function ExamAttemptRunner({ exam, onBack }) {
       answers: { ...current.answers, [questionId]: optionId },
     }));
     try {
-      const result = await api.request(`/attempts/${attempt.attempt_id}/answers`, {
+      const result = await requestWithRetry(`/attempts/${attempt.attempt_id}/answers`, {
         method: "PATCH",
         body: { question_id: questionId, option_id: optionId },
         headers: { "X-Exam-Session": sessionId },
