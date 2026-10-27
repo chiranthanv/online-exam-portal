@@ -416,7 +416,7 @@ class SubmitAttempt(APIView):
         attempt.save(update_fields=["score", "submitted_at"])
         AttemptAnswer.objects.bulk_create(answer_rows)
         AuditLog.objects.create(actor=request.user, action="ATTEMPT_SUBMITTED", target=str(attempt.id))
-        return Response({"attempt_id": str(attempt.id), "submitted": True, "score": str(attempt.score)})
+        return Response({"attempt_id": str(attempt.id), "submitted": True})
 
 
 class AttemptResult(APIView):
@@ -579,7 +579,7 @@ class AdminClassReport(APIView):
             }
             for attempt in attempts
         ]
-        if request.query_params.get("format") == "pdf":
+        if request.query_params.get("export") == "pdf":
             return _pdf_report(
                 f"Class report — {exam.title}",
                 ["student_id", "student_name", "usn", "score", "total_marks"],
@@ -589,7 +589,7 @@ class AdminClassReport(APIView):
                 ],
                 "class-report.pdf",
             )
-        if request.query_params.get("format") == "csv":
+        if request.query_params.get("export") == "csv":
             response = HttpResponse(content_type="text/csv; charset=utf-8")
             response["Content-Disposition"] = 'attachment; filename="class-report.csv"'
             writer = csv.DictWriter(
@@ -640,7 +640,7 @@ class AdminQuestionReport(APIView):
                     "unanswered": unanswered,
                 }
             )
-        if request.query_params.get("format") == "pdf":
+        if request.query_params.get("export") == "pdf":
             fields = [
                 "question_id",
                 "difficulty",
@@ -657,7 +657,7 @@ class AdminQuestionReport(APIView):
                 [[row[key] for key in fields] for row in rows],
                 "question-report.pdf",
             )
-        if request.query_params.get("format") == "csv":
+        if request.query_params.get("export") == "csv":
             response = HttpResponse(content_type="text/csv; charset=utf-8")
             response["Content-Disposition"] = 'attachment; filename="question-report.csv"'
             writer = csv.DictWriter(
