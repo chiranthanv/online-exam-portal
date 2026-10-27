@@ -7,8 +7,8 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.core import mail
-from django.core.management import call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.db import DatabaseError, IntegrityError, connection, transaction
 from django.test import TestCase, override_settings
 from django.utils import timezone
