@@ -362,11 +362,12 @@ class StudentExamAttempt(APIView):
         )
         now = timezone.now()
         if attempt:
-            _expire_attempt_if_due(attempt, now)
             _require_attempt_session(request, attempt)
-            # The body session ID is also checked during resume/start.
+            # Validate the session before mutating the attempt so an invalid
+            # second session cannot roll back or interfere with expiry handling.
             if session_key != attempt.session_key:
                 raise Conflict("An attempt already exists in another session for this exam.")
+            _expire_attempt_if_due(attempt, now)
             return Response(_attempt_payload(attempt))
 
         if not exam.start_time <= now < exam.end_time:
@@ -417,7 +418,13 @@ class ExamAttemptAnswers(APIView):
         _require_attempt_session(request, attempt)
         _expire_attempt_if_due(attempt)
         if attempt.status != ExamAttempt.IN_PROGRESS:
-            raise Conflict("This attempt is already submitted; answers can no longer be changed.")
+            # Return instead of raising after expiry: the atomic request must
+            # commit the AUTO_SUBMITTED transition even though this write is rejected.
+            return Response(
+                {"detail": "This attempt is already submitted; answers can no longer be changed.",
+                 "status": attempt.status},
+                status=409,
+            )
 
         try:
             question_id = uuid.UUID(str(request.data.get("question_id", "")))
