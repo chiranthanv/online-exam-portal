@@ -87,7 +87,7 @@ export function Reports() {
                 onClick={() =>
                   action.run(() =>
                     api.download(
-                      `/admin/reports/${kind}?exam_id=${encodeURIComponent(examId)}&format=csv`,
+                      `/admin/reports/${kind}?exam_id=${encodeURIComponent(examId)}&export=csv`,
                       `${kind}-report.csv`,
                     ),
                   )
@@ -101,7 +101,7 @@ export function Reports() {
                 onClick={() =>
                   action.run(() =>
                     api.download(
-                      `/admin/reports/${kind}?exam_id=${encodeURIComponent(examId)}&format=pdf`,
+                      `/admin/reports/${kind}?exam_id=${encodeURIComponent(examId)}&export=pdf`,
                       `${kind}-report.pdf`,
                     ),
                   )
