@@ -1,6 +1,6 @@
-from datetime import timedelta
+import csv\nfrom datetime import timedelta
 
-from django.db import connection, transaction
+from django.db import connection, transaction\nfrom django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, serializers
@@ -492,3 +492,91 @@ class AdminAttemptOverride(APIView):
         return Response(
             {"attempt_id": str(attempt.id), "is_disqualified": attempt.is_disqualified}
         )
+
+
+
+class AdminClassReport(APIView):
+    """Class-level score summary; only released, submitted, permitted attempts count."""
+
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        exam = get_object_or_404(Exam, pk=request.query_params.get("exam_id"))
+        if timezone.now() < exam.result_visible_from:
+            raise ValidationError("Reports are unavailable until results are released.")
+        attempts = (
+            Attempt.objects.filter(exam=exam, submitted_at__isnull=False, is_disqualified=False)
+            .select_related("student")
+            .order_by("student__name", "student__usn")
+        )
+        rows = [
+            {
+                "student_id": str(attempt.student_id),
+                "student_name": attempt.student.name,
+                "usn": attempt.student.usn or "",
+                "score": str(attempt.score),
+                "total_marks": str(exam.total_marks),
+            }
+            for attempt in attempts
+        ]
+        if request.query_params.get("format") == "csv":
+            response = HttpResponse(content_type="text/csv; charset=utf-8")
+            response["Content-Disposition"] = 'attachment; filename="class-report.csv"'
+            writer = csv.DictWriter(response, fieldnames=["student_id", "student_name", "usn", "score", "total_marks"])
+            writer.writeheader()
+            writer.writerows(rows)
+            return response
+        return Response({"exam_id": str(exam.id), "results": rows})
+
+
+class AdminQuestionReport(APIView):
+    """Question difficulty summary based on submitted, released and permitted attempts."""
+
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        exam = get_object_or_404(Exam, pk=request.query_params.get("exam_id"))
+        if timezone.now() < exam.result_visible_from:
+            raise ValidationError("Reports are unavailable until results are released.")
+        attempts = list(
+            Attempt.objects.filter(exam=exam, submitted_at__isnull=False, is_disqualified=False)
+            .prefetch_related("answers__question")
+        )
+        mappings = ExamQuestion.objects.filter(exam=exam).select_related("question")
+        rows = []
+        for mapping in mappings:
+            answers = [
+                answer
+                for attempt in attempts
+                for answer in attempt.answers.all()
+                if answer.question_id == mapping.question_id
+            ]
+            answered = len(answers)
+            correct = sum(answer.awarded_marks > 0 for answer in answers)
+            incorrect = sum(answer.awarded_marks < 0 for answer in answers)
+            rows.append(
+                {
+                    "question_id": str(mapping.question_id),
+                    "difficulty": mapping.question.difficulty,
+                    "subject": mapping.question.subject,
+                    "topic": mapping.question.topic,
+                    "submitted_attempts": len(attempts),
+                    "correct": correct,
+                    "incorrect": incorrect,
+                    "unanswered": len(attempts) - answered,
+                }
+            )
+        if request.query_params.get("format") == "csv":
+            response = HttpResponse(content_type="text/csv; charset=utf-8")
+            response["Content-Disposition"] = 'attachment; filename="question-report.csv"'
+            writer = csv.DictWriter(
+                response,
+                fieldnames=[
+                    "question_id", "difficulty", "subject", "topic",
+                    "submitted_attempts", "correct", "incorrect", "unanswered",
+                ],
+            )
+            writer.writeheader()
+            writer.writerows(rows)
+            return response
+        return Response({"exam_id": str(exam.id), "results": rows})
