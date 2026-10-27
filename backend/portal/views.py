@@ -531,9 +531,7 @@ def _pdf_report(title, headers, rows, filename):
     )
     styles = getSampleStyleSheet()
     table_data = [[Paragraph(escape(str(value)), styles["BodyText"]) for value in headers]]
-    table_data.extend(
-        [[Paragraph(escape(str(value)), styles["BodyText"]) for value in row] for row in rows]
-    )
+    table_data.extend([[Paragraph(escape(str(value)), styles["BodyText"]) for value in row] for row in rows])
     table = Table(table_data, repeatRows=1, hAlign="LEFT")
     table.setStyle(
         TableStyle(
