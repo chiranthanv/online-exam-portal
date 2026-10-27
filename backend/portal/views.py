@@ -300,9 +300,7 @@ def _attempt_payload(attempt):
         .order_by("sequence")
     )
     saved = {
-        str(answer.question_id): (
-            str(answer.selected_option_id) if answer.selected_option_id else None
-        )
+        str(answer.question_id): (str(answer.selected_option_id) if answer.selected_option_id else None)
         for answer in attempt.answers.all()
     }
     questions = []
@@ -316,10 +314,7 @@ def _attempt_payload(attempt):
                 "subject": question.subject,
                 "topic": question.topic,
                 "marks": str(question.default_marks),
-                "options": [
-                    {"id": str(option.id), "text": option.text}
-                    for option in question.options.all()
-                ],
+                "options": [{"id": str(option.id), "text": option.text} for option in question.options.all()],
                 "selected_option_id": saved.get(str(question.id)),
             }
         )
@@ -355,11 +350,7 @@ class StudentExamAttempt(APIView):
             raise Conflict("The exam session header does not match the requested session.")
 
         exam = get_object_or_404(Exam.objects.select_for_update(), pk=pk)
-        attempt = (
-            ExamAttempt.objects.select_for_update()
-            .filter(exam=exam, student=request.user)
-            .first()
-        )
+        attempt = ExamAttempt.objects.select_for_update().filter(exam=exam, student=request.user).first()
         now = timezone.now()
         if attempt:
             _require_attempt_session(request, attempt)
@@ -384,9 +375,7 @@ class StudentExamAttempt(APIView):
             started_at=now,
             deadline_at=deadline,
         )
-        AuditLog.objects.create(
-            actor=request.user, action="EXAM_ATTEMPT_STARTED", target=str(attempt.id)
-        )
+        AuditLog.objects.create(actor=request.user, action="EXAM_ATTEMPT_STARTED", target=str(attempt.id))
         return Response(_attempt_payload(attempt), status=201)
 
 
@@ -421,8 +410,10 @@ class ExamAttemptAnswers(APIView):
             # Return instead of raising after expiry: the atomic request must
             # commit the AUTO_SUBMITTED transition even though this write is rejected.
             return Response(
-                {"detail": "This attempt is already submitted; answers can no longer be changed.",
-                 "status": attempt.status},
+                {
+                    "detail": "This attempt is already submitted; answers can no longer be changed.",
+                    "status": attempt.status,
+                },
                 status=409,
             )
 
