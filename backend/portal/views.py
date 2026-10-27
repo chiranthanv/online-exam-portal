@@ -588,23 +588,6 @@ class AdminClassReport(APIView):
                 ],
                 "class-report.pdf",
             )
-        if request.query_params.get("format") == "pdf":
-            fields = [
-                "question_id",
-                "difficulty",
-                "subject",
-                "topic",
-                "submitted_attempts",
-                "correct",
-                "incorrect",
-                "unanswered",
-            ]
-            return _pdf_report(
-                f"Question report — {exam.title}",
-                fields,
-                [[row[key] for key in fields] for row in rows],
-                "question-report.pdf",
-            )
         if request.query_params.get("format") == "csv":
             response = HttpResponse(content_type="text/csv; charset=utf-8")
             response["Content-Disposition"] = 'attachment; filename="class-report.csv"'
@@ -655,6 +638,23 @@ class AdminQuestionReport(APIView):
                     "incorrect": incorrect,
                     "unanswered": unanswered,
                 }
+            )
+        if request.query_params.get("format") == "pdf":
+            fields = [
+                "question_id",
+                "difficulty",
+                "subject",
+                "topic",
+                "submitted_attempts",
+                "correct",
+                "incorrect",
+                "unanswered",
+            ]
+            return _pdf_report(
+                f"Question report — {exam.title}",
+                fields,
+                [[row[key] for key in fields] for row in rows],
+                "question-report.pdf",
             )
         if request.query_params.get("format") == "csv":
             response = HttpResponse(content_type="text/csv; charset=utf-8")
