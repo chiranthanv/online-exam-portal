@@ -33,7 +33,7 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-exam_portal}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-exam_portal}
-    command: ["python", "manage.py", "expire_exam_attempts", "--loop", "--interval", "5"]
+    command: ["python", "manage.py", "expire_exam_attempts", "--loop", "--interval", "1"]
     restart: unless-stopped
     depends_on:
       db:
