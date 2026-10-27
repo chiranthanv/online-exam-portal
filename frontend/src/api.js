@@ -56,10 +56,22 @@ export function createApi(fetcher = (...args) => fetch(...args)) {
     const data =
       response.status === 204
         ? null
-        : await response.json().catch(() => ({
-            detail: `Request failed (${response.status}). Refresh the page and try again.`,
-          }));
-    if (!response.ok) throw new ApiError(response.status, data);
+        : responseType === "blob"
+          ? await response.blob()
+          : await response.json().catch(() => ({
+              detail: `Request failed (${response.status}). Refresh the page and try again.`,
+            }));
+    if (!response.ok) {
+      let errorData = data;
+      if (responseType === "blob" && data instanceof Blob) {
+        try {
+          errorData = JSON.parse(await data.text());
+        } catch {
+          errorData = { detail: `Request failed (${response.status}).` };
+        }
+      }
+      throw new ApiError(response.status, errorData);
+    }
     return data;
   }
   async function getCsrf() {
@@ -102,6 +114,15 @@ export function createApi(fetcher = (...args) => fetch(...args)) {
   }
   return {
     request,
+    async download(path, filename) {
+      const blob = await request(path, { responseType: "blob" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    },
     onExpired(handler) {
       expired = handler;
       return () => {
