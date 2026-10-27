@@ -48,3 +48,15 @@ Pending dependencies:
 - Sprint 2 features and their performance/availability/accessibility acceptance are planned, not implemented by this change.
 
 See [RTM.md](RTM.md) for all 35 SRS requirements and [TEAM_HANDOFF.md](../TEAM_HANDOFF.md) for exact member tasks. No teammate authorship, reviews, public deployment or future test outcomes are claimed.
+
+
+## Follow-up backend work on 27 October 2026 — pending execution
+
+A follow-up change set adds server-side attempt/evaluation routes, result-release checks, proctoring events and admin overrides, JSON/CSV class and question reports, an email outbox with deduplication/retry handling, and additional regression tests. These changes are **not yet verified**: the new test suite, migration drift check, Ruff checks and PostgreSQL CI must pass before the acceptance criteria can be marked complete.
+
+Current limitations are explicit:
+- Report exports currently support JSON and CSV, not PDF.
+- The email outbox must be processed by a scheduler at least once per minute; this repository change does not configure production cron/worker infrastructure or prove real SMTP delivery.
+- Tab/window focus events are client-reported signals and must not be treated as conclusive proof of misconduct.
+- The React attempt/report UI is not present in this branch; browser integration and frontend CI cannot be claimed.
+- A real eligible teammate review is still required. No review or passing CI result is claimed here.
