@@ -28,9 +28,9 @@ export function createApi(fetcher = (...args) => fetch(...args)) {
     expired = () => {};
   async function raw(
     path,
-    { method = "GET", body, auth = true, withCsrf = false } = {},
+    { method = "GET", body, auth = true, withCsrf = false, headers: extraHeaders = {} } = {},
   ) {
-    const headers = { Accept: "application/json" };
+    const headers = { Accept: "application/json", ...extraHeaders };
     if (access && auth) headers.Authorization = `Bearer ${access}`;
     if (withCsrf && csrf) headers["X-CSRFToken"] = csrf;
     if (body !== undefined && !(body instanceof FormData))
