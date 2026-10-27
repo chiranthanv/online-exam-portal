@@ -1,10 +1,10 @@
 # Sprint 1 integration report — 27 October 2026
 
-Scope: the administrative Sprint 1 product only. The React implementation and automated system/security tests were completed through Chiranthan's account at his explicit request to take over the remaining implementation. No teammate-authored code or independent reviews are claimed.
+Scope: the administrative Sprint 1 product only. The main React implementation and automated system/security suite were completed through Chiranthan's account at his explicit request. Genuine teammate follow-up PR #31 subsequently added two injection regression tests. No independent review beyond the recorded GitHub activity is claimed.
 
 ## Final integration state
 
-PR [#29](https://github.com/chiranthanv/online-exam-portal/pull/29), PR [#30](https://github.com/chiranthanv/online-exam-portal/pull/30), and final integration PR [#28](https://github.com/chiranthanv/online-exam-portal/pull/28) are merged. The final Sprint 1 application is on `main` at commit [`ae0101088c61e676180362673250fc647ffb9a75`](https://github.com/chiranthanv/online-exam-portal/commit/ae0101088c61e676180362673250fc647ffb9a75).
+PR [#29](https://github.com/chiranthanv/online-exam-portal/pull/29), PR [#30](https://github.com/chiranthanv/online-exam-portal/pull/30), and final integration PR [#28](https://github.com/chiranthanv/online-exam-portal/pull/28) are merged. Genuine teammate follow-up PR [#31](https://github.com/chiranthanv/online-exam-portal/pull/31) added SQL-injection and stored-XSS regression tests. PR #31 was opened from Harkirat's account and its commit/merge activity is attributed by GitHub to Dwijesh. The resulting `main` merge commit is [`8550754a2c4a496e75316804c882c8cc526b8ad5`](https://github.com/chiranthanv/online-exam-portal/commit/8550754a2c4a496e75316804c882c8cc526b8ad5).
 
 ## Delivered functionality
 
@@ -26,8 +26,8 @@ PR [#29](https://github.com/chiranthanv/online-exam-portal/pull/29), PR [#30](ht
 - **5 actual-browser integration scenarios passed** against Django and PostgreSQL.
 - ESLint, Prettier, production frontend build, backend lint/format, migration drift, system/deployment checks, repeatable seed, Docker build, and certificate-verified TLS 1.2 passed.
 - The final merged `main` commit passed both workflows:
-  - [Backend verification](https://github.com/chiranthanv/online-exam-portal/actions/runs/40449059078)
-  - [Sprint 1 integrated frontend](https://github.com/chiranthanv/online-exam-portal/actions/runs/40449059096)
+  - [Backend verification](https://github.com/chiranthanv/online-exam-portal/actions/runs/40454219108)
+  - [Sprint 1 integrated frontend](https://github.com/chiranthanv/online-exam-portal/actions/runs/40454219273)
 
 The inspected [60.04-second MP4](../evidence/sprint1-product-demo.mp4) and [screenshots/timeline](../DEMO.md) are committed in the repository. The recording uses the real React, Django, and PostgreSQL application with synthetic accounts and no API mocks.
 
