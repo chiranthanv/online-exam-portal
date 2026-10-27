@@ -117,6 +117,29 @@ Manual IDs must be unique; their order is preserved. Random mode samples without
 
 Once an exam starts, schedule/question/batch changes are rejected. Students see only nonempty exams assigned through their batches where `start_time <= server_now < end_time`. Overlapping batch membership does not duplicate cards. Available exams contain metadata only. There is **no start-attempt endpoint in Sprint 1**; do not add a nonfunctional Start button or imply attempts work yet.
 
+## Student exam attempt lifecycle (implementation branch)
+
+These endpoints are part of the `fix/dwijesh-open-issues` implementation branch. They are student-only and use the existing bearer access token. They deliberately return option text and IDs, never the answer key.
+
+| Method and path | Purpose | Key request/response |
+|---|---|---|
+| POST `/exams/{exam_id}/attempt` | Start an attempt or resume the same attempt | Body: `{"session_id":"UUID"}`; send the same value in `X-Exam-Session`. Response includes `attempt_id`, status, server-calculated `deadline_at`, `server_now`, and the ordered question/options list. |
+| GET `/attempts/{attempt_id}` | Recover saved state after refresh/reconnect | Requires `X-Exam-Session: UUID`; response includes all answers saved so far and each question's `selected_option_id`. |
+| PATCH `/attempts/{attempt_id}/answers` | Save or clear one answer | Requires the session header. Body: `{"question_id":"UUID","option_id":"UUID-or-null"}`. A null option clears the answer. Successful responses return `saved_at` and the authoritative deadline. |
+| POST `/attempts/{attempt_id}/submit` | Submit manually, or finalize an expired attempt | Requires the session header. Repeating the request is idempotent. An expired in-progress attempt becomes `AUTO_SUBMITTED`; a timely manual submission becomes `SUBMITTED`. |
+
+The database enforces one attempt per exam/student and one saved answer per attempt/question. The exam row is locked when creating an attempt; the attempt row is locked during answer writes, resume/expiry and submission. A new browser session ID cannot resume an existing attempt. The deadline is calculated by the server as the earlier of `started_at + duration_minutes` and `exam.end_time`. Browser time is only used to render a countdown; writes after the deadline are rejected by the server.
+
+For automatic submission when the browser is closed, keep the deadline worker running:
+
+```bash
+python backend/manage.py expire_exam_attempts --loop --interval 1
+```
+
+The Docker Compose `worker` service runs that command for container deployments. It persists auto-submission even without a browser request. The poll interval means scheduled closure can lag the exact deadline by up to approximately one poll interval plus processing delay. An environment that does not run this worker (or an equivalent scheduler) can still enforce the deadline on a subsequent API request, but cannot promise immediate database state transition while all clients are disconnected.
+
+Evaluation, scoring, results release, and proctoring are not included in this increment. A manual WCAG audit and measured Lighthouse score remain outstanding and must be recorded from a real browser run.
+
 ## Errors and frontend acceptance
 
 400: field or business validation (`{field:[messages]}`, `{non_field_errors:[...]}` or `{detail:...}`); 401: missing/expired credentials; 403: wrong role or CSRF; 404: unknown UUID; 409: question in use; 423: login lockout; 503: SMTP unavailable. CSRF failures can be HTML from Django middleware; handle non-JSON errors gracefully. JSON API responses have no HTML rendering semantics.

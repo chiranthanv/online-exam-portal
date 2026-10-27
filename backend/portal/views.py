@@ -1,3 +1,6 @@
+import uuid
+from datetime import timedelta
+
 from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -8,7 +11,19 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import AuditLog, Batch, Exam, ExamBatch, ExamQuestion, Question, StudentBatch, User
+from .models import (
+    AttemptAnswer,
+    AuditLog,
+    Batch,
+    Exam,
+    ExamAttempt,
+    ExamBatch,
+    ExamQuestion,
+    Option,
+    Question,
+    StudentBatch,
+    User,
+)
 from .permissions import IsAdmin, IsStudent
 from .roster import import_roster
 from .serializers import (
@@ -249,6 +264,215 @@ class AvailableExams(APIView):
                 ]
             }
         )
+
+
+def _expire_attempt_if_due(attempt, now=None):
+    now = now or timezone.now()
+    if attempt.status == ExamAttempt.IN_PROGRESS and now >= attempt.deadline_at:
+        attempt.status = ExamAttempt.AUTO_SUBMITTED
+        attempt.submitted_at = now
+        attempt.save(update_fields=["status", "submitted_at"])
+        AuditLog.objects.create(
+            actor=attempt.student,
+            action="EXAM_ATTEMPT_AUTO_SUBMITTED",
+            target=str(attempt.id),
+        )
+    return attempt
+
+
+def _require_attempt_session(request, attempt):
+    value = request.headers.get("X-Exam-Session", "")
+    try:
+        session_key = uuid.UUID(value)
+    except (TypeError, ValueError, AttributeError):
+        raise Conflict("This attempt session is missing or invalid. Reopen the same exam session.")
+    if session_key != attempt.session_key:
+        raise Conflict("This attempt is active in another session. Return to the original exam session.")
+    return attempt
+
+
+def _attempt_payload(attempt):
+    server_now = timezone.now()
+    mappings = (
+        ExamQuestion.objects.filter(exam=attempt.exam)
+        .select_related("question")
+        .prefetch_related("question__options")
+        .order_by("sequence")
+    )
+    saved = {
+        str(answer.question_id): (str(answer.selected_option_id) if answer.selected_option_id else None)
+        for answer in attempt.answers.all()
+    }
+    questions = []
+    for mapping in mappings:
+        question = mapping.question
+        questions.append(
+            {
+                "id": str(question.id),
+                "sequence": mapping.sequence,
+                "text": question.text,
+                "subject": question.subject,
+                "topic": question.topic,
+                "marks": str(question.default_marks),
+                "options": [{"id": str(option.id), "text": option.text} for option in question.options.all()],
+                "selected_option_id": saved.get(str(question.id)),
+            }
+        )
+    return {
+        "attempt_id": str(attempt.id),
+        "exam_id": str(attempt.exam_id),
+        "exam_title": attempt.exam.title,
+        "status": attempt.status,
+        "started_at": attempt.started_at.isoformat(),
+        "deadline_at": attempt.deadline_at.isoformat(),
+        "server_now": server_now.isoformat(),
+        "remaining_seconds": max(0, int((attempt.deadline_at - server_now).total_seconds() + 0.999)),
+        "submitted_at": attempt.submitted_at.isoformat() if attempt.submitted_at else None,
+        "last_saved_at": attempt.last_saved_at.isoformat() if attempt.last_saved_at else None,
+        "answers": saved,
+        "questions": questions,
+    }
+
+
+class StudentExamAttempt(APIView):
+    permission_classes = [IsStudent]
+
+    @transaction.atomic
+    def post(self, request, pk):
+        try:
+            session_key = uuid.UUID(str(request.data.get("session_id", "")))
+            header_session = uuid.UUID(request.headers.get("X-Exam-Session", ""))
+        except (TypeError, ValueError, AttributeError):
+            raise ValidationError(
+                {"session_id": "Provide the same valid UUID in session_id and X-Exam-Session."}
+            )
+        if header_session != session_key:
+            raise Conflict("The exam session header does not match the requested session.")
+
+        exam = get_object_or_404(Exam.objects.select_for_update(), pk=pk)
+        attempt = ExamAttempt.objects.select_for_update().filter(exam=exam, student=request.user).first()
+        now = timezone.now()
+        if attempt:
+            _require_attempt_session(request, attempt)
+            # Validate the session before mutating the attempt so an invalid
+            # second session cannot roll back or interfere with expiry handling.
+            if session_key != attempt.session_key:
+                raise Conflict("An attempt already exists in another session for this exam.")
+            _expire_attempt_if_due(attempt, now)
+            return Response(_attempt_payload(attempt))
+
+        if not exam.start_time <= now < exam.end_time:
+            raise ValidationError("This exam is outside its scheduled availability window.")
+        if exam.total_marks <= 0 or not exam.questions.exists():
+            raise ValidationError("This exam is not ready to be attempted.")
+        if not ExamBatch.objects.filter(exam=exam, batch__students=request.user).exists():
+            raise ValidationError("This exam is not assigned to your batch.")
+        deadline = min(now + timedelta(minutes=exam.duration_minutes), exam.end_time)
+        attempt = ExamAttempt.objects.create(
+            exam=exam,
+            student=request.user,
+            session_key=session_key,
+            started_at=now,
+            deadline_at=deadline,
+        )
+        AuditLog.objects.create(actor=request.user, action="EXAM_ATTEMPT_STARTED", target=str(attempt.id))
+        return Response(_attempt_payload(attempt), status=201)
+
+
+class ExamAttemptDetail(APIView):
+    permission_classes = [IsStudent]
+
+    @transaction.atomic
+    def get(self, request, pk):
+        attempt = get_object_or_404(
+            ExamAttempt.objects.select_for_update().select_related("exam"),
+            pk=pk,
+            student=request.user,
+        )
+        _require_attempt_session(request, attempt)
+        _expire_attempt_if_due(attempt)
+        return Response(_attempt_payload(attempt))
+
+
+class ExamAttemptAnswers(APIView):
+    permission_classes = [IsStudent]
+
+    @transaction.atomic
+    def patch(self, request, pk):
+        attempt = get_object_or_404(
+            ExamAttempt.objects.select_for_update().select_related("exam"),
+            pk=pk,
+            student=request.user,
+        )
+        _require_attempt_session(request, attempt)
+        _expire_attempt_if_due(attempt)
+        if attempt.status != ExamAttempt.IN_PROGRESS:
+            # Return instead of raising after expiry: the atomic request must
+            # commit the AUTO_SUBMITTED transition even though this write is rejected.
+            return Response(
+                {
+                    "detail": "This attempt is already submitted; answers can no longer be changed.",
+                    "status": attempt.status,
+                },
+                status=409,
+            )
+
+        try:
+            question_id = uuid.UUID(str(request.data.get("question_id", "")))
+        except (TypeError, ValueError, AttributeError):
+            raise ValidationError({"question_id": "Provide a valid question UUID."})
+        if not ExamQuestion.objects.filter(exam=attempt.exam, question_id=question_id).exists():
+            raise ValidationError({"question_id": "This question is not part of the attempt."})
+        if "option_id" not in request.data:
+            raise ValidationError({"option_id": "Provide an option UUID or null to clear the answer."})
+        option_value = request.data.get("option_id")
+        option_id = None
+        if option_value is not None:
+            try:
+                option_id = uuid.UUID(str(option_value))
+            except (TypeError, ValueError, AttributeError):
+                raise ValidationError({"option_id": "Provide a valid option UUID or null."})
+            if not Option.objects.filter(pk=option_id, question_id=question_id).exists():
+                raise ValidationError({"option_id": "The option does not belong to this question."})
+
+        AttemptAnswer.objects.update_or_create(
+            attempt=attempt,
+            question_id=question_id,
+            defaults={"selected_option_id": option_id},
+        )
+        attempt.last_saved_at = timezone.now()
+        attempt.save(update_fields=["last_saved_at"])
+        return Response(
+            {
+                "question_id": str(question_id),
+                "selected_option_id": str(option_id) if option_id else None,
+                "saved_at": attempt.last_saved_at.isoformat(),
+                "deadline_at": attempt.deadline_at.isoformat(),
+            }
+        )
+
+
+class ExamAttemptSubmit(APIView):
+    permission_classes = [IsStudent]
+
+    @transaction.atomic
+    def post(self, request, pk):
+        attempt = get_object_or_404(
+            ExamAttempt.objects.select_for_update().select_related("exam"),
+            pk=pk,
+            student=request.user,
+        )
+        _require_attempt_session(request, attempt)
+        now = timezone.now()
+        _expire_attempt_if_due(attempt, now)
+        if attempt.status == ExamAttempt.IN_PROGRESS:
+            attempt.status = ExamAttempt.SUBMITTED
+            attempt.submitted_at = now
+            attempt.save(update_fields=["status", "submitted_at"])
+            AuditLog.objects.create(
+                actor=request.user, action="EXAM_ATTEMPT_SUBMITTED", target=str(attempt.id)
+            )
+        return Response(_attempt_payload(attempt))
 
 
 class AuditSerializer(serializers.ModelSerializer):

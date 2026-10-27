@@ -1,6 +1,6 @@
 # Online Exam Portal — Team 15
 
-Sprint 1 application: **React + Django REST Framework + PostgreSQL**. Includes role-based sign-in, password reset, student/batch administration, question bank, exam configuration and student eligibility. The remaining team implementation and automated tests were completed through Chiranthan’s account at his request; they are not attributed to teammate accounts. Sprint 2 attempts, autosave, submission and evaluation are not implemented.
+Sprint 1 application: **React + Django REST Framework + PostgreSQL**. Includes role-based sign-in, password reset, student/batch administration, question bank, exam configuration and student eligibility. The remaining team implementation and automated tests were completed through Chiranthan’s account at his request; they are not attributed to teammate accounts. The `fix/dwijesh-open-issues` branch adds the first Sprint 2 implementation increment: one attempt per student/exam, a session-bound student exam UI, durable answer autosave/recovery, and server-deadline manual/automatic submission. Evaluation/results remain unimplemented; the WCAG manual audit and Lighthouse >=90 threshold still require an actual browser run. This branch has not yet been merged.
 
 - [GitHub Project: backlog and two-sprint plan](https://github.com/users/chiranthanv/projects/1)
 - [SRS-linked backlog](docs/planning/BACKLOG.md) · [structured stories](docs/planning/backlog.json)
@@ -57,10 +57,10 @@ cp .env.example .env
 docker compose up -d db
 docker compose run --rm api python manage.py migrate --noinput
 docker compose run --rm api python manage.py seed_demo
-docker compose up -d api
+docker compose up -d api worker
 ```
 
-Open **http://localhost:8000** for the compiled application. `docker compose logs api` shows startup status. `docker compose down` preserves the database volume. `docker compose down -v` deletes development data; use it only deliberately.
+Open **http://localhost:8000** for the compiled application. The `worker` service polls expired attempts once per second and auto-submits them even if a browser is closed. For a non-Docker local run, start `python backend/manage.py expire_exam_attempts --loop --interval 1` in another terminal after migrations. `docker compose logs api` shows API startup status. `docker compose down` preserves the database volume. `docker compose down -v` deletes development data; use it only deliberately.
 
 ## Run checks
 
@@ -74,7 +74,7 @@ coverage report
 coverage xml
 ```
 
-The suite includes real JWT requests, CSRF enforcement and a route-by-route role matrix. Three concurrency tests require PostgreSQL and are explicitly skipped on SQLite. Set `DATABASE_URL` to a disposable PostgreSQL database whose account can create test databases to run those locally. GitHub Actions uses PostgreSQL 16, builds the container, and verifies a temporary Caddy deployment over certificate-verified TLS 1.2. Coverage gates the implemented backend at 85%; it is not evidence for unimplemented Sprint 2 modules.
+The suite includes real JWT requests, CSRF enforcement and a route-by-route role matrix. The attempt lifecycle branch adds regression tests for one-attempt/session enforcement, saved-answer recovery, deadline expiry, forbidden late writes and idempotent manual submission. Three concurrency tests require PostgreSQL and are explicitly skipped on SQLite. Set `DATABASE_URL` to a disposable PostgreSQL database whose account can create test databases to run those locally. GitHub Actions uses PostgreSQL 16, builds the container, and verifies a temporary Caddy deployment over certificate-verified TLS 1.2. Coverage gates the implemented backend at 85%; it is not evidence for unimplemented Sprint 2 modules.
 
 ## Frontend and integrated browser checks
 

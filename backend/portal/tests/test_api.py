@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.db import DatabaseError, IntegrityError, connection, transaction
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -15,9 +16,11 @@ from openpyxl import Workbook
 from rest_framework.test import APIClient
 
 from portal.models import (
+    AttemptAnswer,
     AuditLog,
     Batch,
     Exam,
+    ExamAttempt,
     ExamBatch,
     ExamQuestion,
     Option,
@@ -603,6 +606,123 @@ class PortalTests(TestCase):
                 constraints = connection.introspection.get_constraints(cursor, table)
                 primary = [set(c["columns"]) for c in constraints.values() if c["primary_key"]]
                 self.assertEqual(primary, [columns])
+
+    def create_student_attempt(self):
+        self.login()
+        selected = self.select(mode="manual", question_ids=[str(self.questions[0].id)])
+        self.assertEqual(selected.status_code, 200, selected.content)
+        assigned = self.post(f"exams/{self.exam.id}/batches", {"batch_ids": [str(self.batch.id)]})
+        self.assertEqual(assigned.status_code, 200, assigned.content)
+        now = timezone.now()
+        Exam.objects.filter(pk=self.exam.id).update(
+            start_time=now - timedelta(minutes=1), end_time=now + timedelta(hours=1)
+        )
+        logged_in = self.login(self.student)
+        self.assertEqual(logged_in.status_code, 200, logged_in.content)
+        session_id = uuid.uuid4()
+        self.student_access_header = "Bearer " + logged_in.json()["access_token"]
+        self.client.credentials(
+            HTTP_X_CSRFTOKEN=self.csrf,
+            HTTP_AUTHORIZATION=self.student_access_header,
+            HTTP_X_EXAM_SESSION=str(session_id),
+        )
+        result = self.post(f"exams/{self.exam.id}/attempt", {"session_id": str(session_id)})
+        return result, session_id
+
+    def test_attempt_starts_once_and_blocks_a_second_session(self):
+        result, session_id = self.create_student_attempt()
+        self.assertEqual(result.status_code, 201, result.content)
+        data = result.json()
+        self.assertEqual(data["status"], ExamAttempt.IN_PROGRESS)
+        self.assertNotIn("is_correct", result.content.decode())
+        self.assertNotIn("correct_option", result.content.decode())
+        resumed = self.post(f"exams/{self.exam.id}/attempt", {"session_id": str(session_id)})
+        self.assertEqual(resumed.status_code, 200, resumed.content)
+        self.assertEqual(ExamAttempt.objects.filter(exam=self.exam, student=self.student).count(), 1)
+        other_session = uuid.uuid4()
+        self.client.credentials(
+            HTTP_X_CSRFTOKEN=self.csrf,
+            HTTP_AUTHORIZATION=self.student_access_header,
+            HTTP_X_EXAM_SESSION=str(other_session),
+        )
+        rejected = self.post(f"exams/{self.exam.id}/attempt", {"session_id": str(other_session)})
+        self.assertEqual(rejected.status_code, 409)
+
+    def test_attempt_answers_autosave_and_recover_after_refresh(self):
+        result, session_id = self.create_student_attempt()
+        self.assertEqual(result.status_code, 201, result.content)
+        data = result.json()
+        question = data["questions"][0]
+        option_id = question["options"][0]["id"]
+        saved = self.client.patch(
+            f"/api/v1/attempts/{data['attempt_id']}/answers",
+            {"question_id": question["id"], "option_id": option_id},
+            format="json",
+        )
+        self.assertEqual(saved.status_code, 200, saved.content)
+        answer = AttemptAnswer.objects.get(attempt_id=data["attempt_id"], question_id=question["id"])
+        self.assertEqual(str(answer.selected_option_id), option_id)
+        restored = self.client.get(f"/api/v1/attempts/{data['attempt_id']}")
+        self.assertEqual(restored.status_code, 200, restored.content)
+        self.assertEqual(restored.json()["answers"][question["id"]], option_id)
+        self.assertEqual(restored.json()["questions"][0]["selected_option_id"], option_id)
+        self.assertNotIn("is_correct", restored.content.decode())
+
+    def test_attempt_rejects_foreign_options_and_late_writes(self):
+        result, _ = self.create_student_attempt()
+        self.assertEqual(result.status_code, 201, result.content)
+        data = result.json()
+        foreign_question = self.questions[1]
+        foreign_option = str(foreign_question.options.first().id)
+        rejected = self.client.patch(
+            f"/api/v1/attempts/{data['attempt_id']}/answers",
+            {"question_id": data["questions"][0]["id"], "option_id": foreign_option},
+            format="json",
+        )
+        self.assertEqual(rejected.status_code, 400)
+        ExamAttempt.objects.filter(pk=data["attempt_id"]).update(
+            deadline_at=timezone.now() - timedelta(seconds=1)
+        )
+        late = self.client.patch(
+            f"/api/v1/attempts/{data['attempt_id']}/answers",
+            {"question_id": data["questions"][0]["id"], "option_id": None},
+            format="json",
+        )
+        self.assertEqual(late.status_code, 409)
+        self.assertEqual(
+            ExamAttempt.objects.get(pk=data["attempt_id"]).status,
+            ExamAttempt.AUTO_SUBMITTED,
+        )
+        expired = self.client.get(f"/api/v1/attempts/{data['attempt_id']}")
+        self.assertEqual(expired.status_code, 200, expired.content)
+        self.assertEqual(expired.json()["status"], ExamAttempt.AUTO_SUBMITTED)
+
+    def test_expiry_worker_auto_submits_without_browser_request(self):
+        result, _ = self.create_student_attempt()
+        self.assertEqual(result.status_code, 201, result.content)
+        attempt_id = result.json()["attempt_id"]
+        ExamAttempt.objects.filter(pk=attempt_id).update(deadline_at=timezone.now() - timedelta(seconds=1))
+        call_command("expire_exam_attempts")
+        attempt = ExamAttempt.objects.get(pk=attempt_id)
+        self.assertEqual(attempt.status, ExamAttempt.AUTO_SUBMITTED)
+        self.assertIsNotNone(attempt.submitted_at)
+        self.assertEqual(
+            AuditLog.objects.filter(action="EXAM_ATTEMPT_AUTO_SUBMITTED", target=attempt_id).count(),
+            1,
+        )
+
+    def test_manual_submission_is_idempotent(self):
+        result, _ = self.create_student_attempt()
+        self.assertEqual(result.status_code, 201, result.content)
+        attempt_id = result.json()["attempt_id"]
+        first = self.client.post(f"/api/v1/attempts/{attempt_id}/submit", {}, format="json")
+        second = self.client.post(f"/api/v1/attempts/{attempt_id}/submit", {}, format="json")
+        self.assertEqual(first.status_code, 200, first.content)
+        self.assertEqual(second.status_code, 200, second.content)
+        self.assertEqual(second.json()["status"], ExamAttempt.SUBMITTED)
+        self.assertEqual(
+            AuditLog.objects.filter(action="EXAM_ATTEMPT_SUBMITTED", target=attempt_id).count(), 1
+        )
 
     def test_readiness_endpoint(self):
         self.assertEqual(self.client.get("/health").json(), {"status": "ok"})

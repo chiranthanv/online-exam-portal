@@ -24,6 +24,17 @@ describe("browser authentication contract", () => {
     expect(localStorage.length).toBe(0);
     expect(sessionStorage.length).toBe(0);
   });
+  it("preserves session headers on protected attempt requests", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(reply({ attempt_id: "attempt-1" }));
+    const api = createApi(fetcher);
+    const headers = { "X-Exam-Session": "session-uuid" };
+    await api.request("/attempts/attempt-1", { headers });
+    expect(fetcher.mock.calls[0][1].headers["X-Exam-Session"]).toBe(
+      "session-uuid",
+    );
+  });
   it("uses a single refresh request when concurrent protected calls expire", async () => {
     let refreshes = 0,
       release;
