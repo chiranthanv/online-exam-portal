@@ -242,7 +242,9 @@ class ExamBatches(APIView):
         ExamBatch.objects.filter(exam=exam).delete()
         ExamBatch.objects.bulk_create([ExamBatch(exam=exam, batch=b) for b in batches])
         student_ids = set(
-            User.objects.filter(role="STUDENT", is_active=True, batches__in=batches).values_list("id", flat=True)
+            User.objects.filter(role="STUDENT", is_active=True, batches__in=batches).values_list(
+                "id", flat=True
+            )
         )
         ExamNotification.objects.bulk_create(
             [
@@ -302,12 +304,14 @@ class StartAttempt(APIView):
     def post(self, request, pk):
         now = timezone.now()
         exam = get_object_or_404(
-            Exam.objects.select_for_update().filter(
+            Exam.objects.select_for_update()
+            .filter(
                 batches__students=request.user,
                 start_time__lte=now,
                 end_time__gt=now,
                 total_marks__gt=0,
-            ).distinct(),
+            )
+            .distinct(),
             pk=pk,
         )
         if not ExamQuestion.objects.filter(exam=exam).exists():
@@ -398,7 +402,9 @@ class SubmitAttempt(APIView):
                     awarded = -question.negative_marks
             total += awarded
             answer_rows.append(
-                AttemptAnswer(attempt=attempt, question=question, selected_option=selected, awarded_marks=awarded)
+                AttemptAnswer(
+                    attempt=attempt, question=question, selected_option=selected, awarded_marks=awarded
+                )
             )
         # An exam cannot award a negative overall score.
         attempt.score = total
@@ -453,9 +459,7 @@ class AttemptProctoringEvent(APIView):
             if parsed is None or timezone.is_naive(parsed):
                 raise ValidationError({"occurred_at": "Use an ISO-8601 timestamp with a timezone."})
             occurred_at = parsed
-        flag = ProctoringFlag.objects.create(
-            attempt=attempt, event_type=event_type, occurred_at=occurred_at
-        )
+        flag = ProctoringFlag.objects.create(attempt=attempt, event_type=event_type, occurred_at=occurred_at)
         AuditLog.objects.create(actor=request.user, action=f"PROCTOR_{event_type}", target=str(attempt.id))
         return Response({"event_id": str(flag.id), "event_type": flag.event_type}, status=201)
 
@@ -509,15 +513,11 @@ class AdminAttemptOverride(APIView):
         attempt.overridden_at = timezone.now()
         attempt.overridden_by = request.user
         attempt.save(
-            update_fields=[
-                "is_disqualified", "disqualification_reason", "overridden_at", "overridden_by"
-            ]
+            update_fields=["is_disqualified", "disqualification_reason", "overridden_at", "overridden_by"]
         )
         action = "ATTEMPT_DISQUALIFIED" if disqualified else "ATTEMPT_REPERMITTED"
         AuditLog.objects.create(actor=request.user, action=action, target=str(attempt.id))
-        return Response(
-            {"attempt_id": str(attempt.id), "is_disqualified": attempt.is_disqualified}
-        )
+        return Response({"attempt_id": str(attempt.id), "is_disqualified": attempt.is_disqualified})
 
 
 
@@ -548,7 +548,9 @@ class AdminClassReport(APIView):
         if request.query_params.get("format") == "csv":
             response = HttpResponse(content_type="text/csv; charset=utf-8")
             response["Content-Disposition"] = 'attachment; filename="class-report.csv"'
-            writer = csv.DictWriter(response, fieldnames=["student_id", "student_name", "usn", "score", "total_marks"])
+            writer = csv.DictWriter(
+                response, fieldnames=["student_id", "student_name", "usn", "score", "total_marks"]
+            )
             writer.writeheader()
             writer.writerows(rows)
             return response
@@ -565,8 +567,9 @@ class AdminQuestionReport(APIView):
         if timezone.now() < exam.result_visible_from:
             raise ValidationError("Reports are unavailable until results are released.")
         attempts = list(
-            Attempt.objects.filter(exam=exam, submitted_at__isnull=False, is_disqualified=False)
-            .prefetch_related("answers__question")
+            Attempt.objects.filter(
+                exam=exam, submitted_at__isnull=False, is_disqualified=False
+            ).prefetch_related("answers__question")
         )
         mappings = ExamQuestion.objects.filter(exam=exam).select_related("question")
         rows = []
@@ -599,8 +602,14 @@ class AdminQuestionReport(APIView):
             writer = csv.DictWriter(
                 response,
                 fieldnames=[
-                    "question_id", "difficulty", "subject", "topic",
-                    "submitted_attempts", "correct", "incorrect", "unanswered",
+                    "question_id",
+                    "difficulty",
+                    "subject",
+                    "topic",
+                    "submitted_attempts",
+                    "correct",
+                    "incorrect",
+                    "unanswered",
                 ],
             )
             writer.writeheader()
