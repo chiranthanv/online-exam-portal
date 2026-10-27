@@ -5,6 +5,7 @@ import { ActionNotice, Field, Notice, useAction } from "./components";
 import { Questions } from "./questions";
 import { Students } from "./students";
 import { Exams, AvailableExams } from "./exams";
+import { Reports } from "./reports";
 import "./style.css";
 
 function SignIn({ onLogin, initialError }) {
@@ -163,6 +164,7 @@ function Workspace({ user, onLogout }) {
         ["exams", "Exams", "01"],
         ["questions", "Question bank", "02"],
         ["students", "Students & batches", "03"],
+        ["reports", "Reports & integrity", "04"],
       ]
     : [["available", "Available exams", "01"]];
   return (
@@ -233,6 +235,8 @@ function Workspace({ user, onLogout }) {
             <Students />
           ) : page === "exams" && admin ? (
             <Exams />
+          ) : page === "reports" && admin ? (
+            <Reports />
           ) : (
             <AvailableExams />
           )}
