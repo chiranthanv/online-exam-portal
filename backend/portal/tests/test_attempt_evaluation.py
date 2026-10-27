@@ -241,6 +241,9 @@ class AttemptEvaluationTests(TestCase):
         self.assertEqual(question_json.status_code, 200, question_json.content)
         self.assertEqual(question_json.json()["results"][0]["correct"], 1)
         self.assertEqual(question_json.json()["results"][1]["unanswered"], 1)
+        question_pdf = admin_client.get(question_url + "&format=pdf")
+        self.assertEqual(question_pdf.status_code, 200)
+        self.assertTrue(question_pdf.content[:4] == bytes([37, 80, 68, 70]))
         override = admin_client.post(
             f"/api/v1/admin/attempts/{attempt_id}/override",
             {"disqualified": True, "reason": "Test disqualification"},
