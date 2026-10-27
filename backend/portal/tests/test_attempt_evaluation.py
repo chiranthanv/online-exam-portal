@@ -97,7 +97,7 @@ class AttemptEvaluationTests(TestCase):
         )
         self.assertEqual(response.status_code, 200, response.content)
         self.assertNotIn("score", response.json())
-        self.assertEqual(Attempt.objects.get(pk=started["attempt_id"]).score, "1.50")
+        self.assertEqual(str(Attempt.objects.get(pk=started["attempt_id"]).score), "1.50")
         self.assertEqual(Attempt.objects.get(pk=attempt_id).answers.count(), 2)
 
     def test_unanswered_questions_score_zero_and_duplicate_submit_is_idempotent(self):
@@ -120,7 +120,7 @@ class AttemptEvaluationTests(TestCase):
         self.assertEqual(second.status_code, 200, second.content)
         self.assertNotIn("score", first.json())
         self.assertNotIn("score", second.json())
-        self.assertEqual(Attempt.objects.get(pk=started["attempt_id"]).score, "2.00")
+        self.assertEqual(str(Attempt.objects.get(pk=started["attempt_id"]).score), "2.00")
         self.assertEqual(Attempt.objects.get(pk=attempt_id).answers.count(), 2)
 
     def test_negative_total_is_clamped_to_zero(self):
@@ -136,7 +136,7 @@ class AttemptEvaluationTests(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(Attempt.objects.get(pk=started["attempt_id"]).score, "0.00")
+        self.assertEqual(str(Attempt.objects.get(pk=started["attempt_id"]).score), "0.00")
         self.assertNotIn("score", response.json())
 
     def test_results_hidden_until_release_and_admin_override_is_audited(self):
@@ -248,10 +248,10 @@ class AttemptEvaluationTests(TestCase):
         class_json = admin_client.get(class_url)
         self.assertEqual(class_json.status_code, 200, class_json.content)
         self.assertEqual(class_json.json()["results"][0]["score"], "2.00")
-        class_csv = admin_client.get(class_url + "&format=csv")
+        class_csv = admin_client.get(class_url + "&export=csv")
         self.assertEqual(class_csv.status_code, 200)
         self.assertIn("student_name,usn,score,total_marks", class_csv.content.decode())
-        class_pdf = admin_client.get(class_url + "&format=pdf")
+        class_pdf = admin_client.get(class_url + "&export=pdf")
         self.assertEqual(class_pdf.status_code, 200)
         self.assertEqual(class_pdf["Content-Type"], "application/pdf")
         self.assertTrue(class_pdf.content[:4] == bytes([37, 80, 68, 70]))
@@ -259,7 +259,7 @@ class AttemptEvaluationTests(TestCase):
         self.assertEqual(question_json.status_code, 200, question_json.content)
         self.assertEqual(question_json.json()["results"][0]["correct"], 1)
         self.assertEqual(question_json.json()["results"][1]["unanswered"], 1)
-        question_pdf = admin_client.get(question_url + "&format=pdf")
+        question_pdf = admin_client.get(question_url + "&export=pdf")
         self.assertEqual(question_pdf.status_code, 200)
         self.assertTrue(question_pdf.content[:4] == bytes([37, 80, 68, 70]))
         override = admin_client.post(
