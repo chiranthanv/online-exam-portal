@@ -123,6 +123,22 @@ class AttemptEvaluationTests(TestCase):
         self.assertEqual(Attempt.objects.get(pk=started["attempt_id"]).score, "2.00")
         self.assertEqual(Attempt.objects.get(pk=attempt_id).answers.count(), 2)
 
+    def test_negative_total_is_clamped_to_zero(self):
+        started = self.start()
+        response = self.client.post(
+            f"/api/v1/attempts/{started['attempt_id']}/submit",
+            {
+                "answers": [
+                    {"question_id": str(self.questions[0].id), "option_id": str(self.options[0][1].id)},
+                    {"question_id": str(self.questions[1].id), "option_id": str(self.options[1][1].id)},
+                ]
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(Attempt.objects.get(pk=started["attempt_id"]).score, "0.00")
+        self.assertNotIn("score", response.json())
+
     def test_results_hidden_until_release_and_admin_override_is_audited(self):
         attempt_id = self.start()["attempt_id"]
         submitted = self.client.post(
