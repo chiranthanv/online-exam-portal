@@ -346,8 +346,13 @@ class StudentExamAttempt(APIView):
     def post(self, request, pk):
         try:
             session_key = uuid.UUID(str(request.data.get("session_id", "")))
+            header_session = uuid.UUID(request.headers.get("X-Exam-Session", ""))
         except (TypeError, ValueError, AttributeError):
-            raise ValidationError({"session_id": "Provide a valid UUID for this browser exam session."})
+            raise ValidationError(
+                {"session_id": "Provide the same valid UUID in session_id and X-Exam-Session."}
+            )
+        if header_session != session_key:
+            raise Conflict("The exam session header does not match the requested session.")
 
         exam = get_object_or_404(Exam.objects.select_for_update(), pk=pk)
         attempt = (
@@ -358,8 +363,8 @@ class StudentExamAttempt(APIView):
         now = timezone.now()
         if attempt:
             _expire_attempt_if_due(attempt, now)
-            _require_attempt_session(request, attempt) if request.headers.get("X-Exam-Session") else None
-            # The session ID in the request body is also checked during resume/start.
+            _require_attempt_session(request, attempt)
+            # The body session ID is also checked during resume/start.
             if session_key != attempt.session_key:
                 raise Conflict("An attempt already exists in another session for this exam.")
             return Response(_attempt_payload(attempt))
