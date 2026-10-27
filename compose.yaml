@@ -28,6 +28,18 @@ services:
       timeout: 5s
       retries: 5
     # Migrations run explicitly before starting API; see README.
+  worker:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-exam_portal}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-exam_portal}
+    command: ["python", "manage.py", "expire_exam_attempts", "--loop", "--interval", "5"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_healthy
   tls:
     image: caddy:2
     profiles: [tls]
