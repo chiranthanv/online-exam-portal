@@ -105,3 +105,7 @@ The command prompts for a password (or reads `ADMIN_PASSWORD`); do not put passw
 Production startup refuses SQLite, development secret keys, file email, and HTTP frontend origins. Run `python manage.py check --deploy --fail-level WARNING` with deployment environment variables. Domain-wide HSTS and preload are deliberate operator opt-ins described in [DEVIATIONS](docs/DEVIATIONS.md). A temporary CI TLS check is not evidence of public hosting, real SMTP delivery, sustained availability, or 200-user performance.
 
 The container serves the React build and API from the same origin, with WhiteNoise for assets, a restrictive Content-Security-Policy on HTML, and access logs that omit query strings so reset tokens are not logged.
+
+## Verified Sprint 1 integration
+
+See the [current integration report](docs/testing/SPRINT1_INTEGRATION_REPORT.md), [actual one-minute product demo](docs/DEMO.md) and [remaining team review steps](docs/TEAM_HANDOFF.md). Sprint 2 remains deferred.
