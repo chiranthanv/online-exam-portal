@@ -26,6 +26,7 @@ def entry(request):
     )
     return response
 
+
 def asset(request, filename):
     """Serve a built frontend asset with immutable caching."""
     try:
