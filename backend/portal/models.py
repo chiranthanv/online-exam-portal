@@ -214,3 +214,29 @@ class ProctoringFlag(models.Model):
     class Meta:
         db_table = "proctoring_flags"
         ordering = ["received_at", "id"]
+
+
+class ExamNotification(models.Model):
+    """Durable, de-duplicated outbox for exam schedule and result emails."""
+
+    TYPES = [("SCHEDULED", "Exam scheduled"), ("RESULTS_RELEASED", "Results released")]
+    STATUSES = [("PENDING", "Pending"), ("SENT", "Sent"), ("FAILED", "Failed")]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    student = models.ForeignKey(User, on_delete=models.PROTECT, related_name="exam_notifications")
+    exam = models.ForeignKey(Exam, on_delete=models.PROTECT, related_name="notifications")
+    notification_type = models.CharField(max_length=20, choices=TYPES)
+    status = models.CharField(max_length=10, choices=STATUSES, default="PENDING")
+    attempts = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    last_error = models.CharField(max_length=120, blank=True)
+
+    class Meta:
+        db_table = "exam_notifications"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student", "exam", "notification_type"], name="one_exam_notification_per_type"
+            ),
+        ]
+        ordering = ["created_at", "id"]
