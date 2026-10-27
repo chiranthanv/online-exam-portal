@@ -8,7 +8,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import AuditLog, Batch, Exam, ExamBatch, ExamQuestion, Question, StudentBatch, User
+from .models import (\n    Attempt, AttemptAnswer, AuditLog, Batch, Exam, ExamBatch, ExamQuestion,\n    Option, ProctoringFlag, Question, StudentBatch, User,\n)
 from .permissions import IsAdmin, IsStudent
 from .roster import import_roster
 from .serializers import (
@@ -262,3 +262,232 @@ class AuditList(generics.ListAPIView):
     permission_classes = [IsAdmin]
     serializer_class = AuditSerializer
     queryset = AuditLog.objects.all()
+
+
+
+class StartAttempt(APIView):
+    """Start an eligible exam without returning answer-key fields."""
+
+    permission_classes = [IsStudent]
+
+    @transaction.atomic
+    def post(self, request, pk):
+        now = timezone.now()
+        exam = get_object_or_404(
+            Exam.objects.select_for_update().filter(
+                batches__students=request.user,
+                start_time__lte=now,
+                end_time__gt=now,
+                total_marks__gt=0,
+            ).distinct(),
+            pk=pk,
+        )
+        if not ExamQuestion.objects.filter(exam=exam).exists():
+            raise ValidationError("This exam has no configured questions.")
+        attempt, created = Attempt.objects.get_or_create(student=request.user, exam=exam)
+        if created:
+            AuditLog.objects.create(actor=request.user, action="ATTEMPT_STARTED", target=str(attempt.id))
+        questions = (
+            ExamQuestion.objects.filter(exam=exam)
+            .select_related("question")
+            .prefetch_related("question__options")
+        )
+        return Response(
+            {
+                "attempt_id": str(attempt.id),
+                "submitted": attempt.submitted_at is not None,
+                "questions": [
+                    {
+                        "question_id": str(row.question_id),
+                        "sequence": row.sequence,
+                        "text": row.question.text,
+                        "marks": str(row.question.default_marks),
+                        "options": [
+                            {"option_id": str(option.id), "text": option.text}
+                            for option in row.question.options.all()
+                        ],
+                    }
+                    for row in questions
+                ],
+            },
+            status=200 if not created else 201,
+        )
+
+
+class SubmitAttempt(APIView):
+    """Evaluate answers server-side and make submission idempotent."""
+
+    permission_classes = [IsStudent]
+
+    @transaction.atomic
+    def post(self, request, pk):
+        attempt = get_object_or_404(
+            Attempt.objects.select_for_update().select_related("exam"),
+            pk=pk,
+            student=request.user,
+        )
+        if attempt.submitted_at is not None:
+            return Response({"attempt_id": str(attempt.id), "submitted": True, "score": str(attempt.score)})
+        now = timezone.now()
+        deadline = min(
+            attempt.started_at + timezone.timedelta(minutes=attempt.exam.duration_minutes),
+            attempt.exam.end_time,
+        )
+        if now >= deadline:
+            # The same evaluation path is used for an on-time submission and an expired attempt.
+            pass
+        answers = request.data.get("answers", [])
+        if not isinstance(answers, list):
+            raise ValidationError({"answers": "Expected a list of question_id/option_id objects."})
+        submitted = {}
+        for item in answers:
+            if not isinstance(item, dict) or "question_id" not in item:
+                raise ValidationError({"answers": "Each answer requires a question_id."})
+            question_id = str(item["question_id"])
+            if question_id in submitted:
+                raise ValidationError({"answers": "A question may be answered only once."})
+            submitted[question_id] = item.get("option_id")
+        mappings = list(
+            ExamQuestion.objects.filter(exam=attempt.exam)
+            .select_related("question")
+            .prefetch_related("question__options")
+        )
+        allowed = {str(row.question_id): row.question for row in mappings}
+        if set(submitted) - set(allowed):
+            raise ValidationError({"answers": "Answers must refer only to questions in this exam."})
+        total = 0
+        answer_rows = []
+        for question_id, question in allowed.items():
+            option_id = submitted.get(question_id)
+            selected = None
+            awarded = 0
+            if option_id is not None:
+                selected = Option.objects.filter(pk=option_id, question_id=question_id).first()
+                if selected is None:
+                    raise ValidationError({"answers": "Selected option does not belong to its question."})
+                if selected.is_correct:
+                    awarded = question.default_marks
+                else:
+                    awarded = -question.negative_marks
+            total += awarded
+            answer_rows.append(
+                AttemptAnswer(attempt=attempt, question=question, selected_option=selected, awarded_marks=awarded)
+            )
+        # An exam cannot award a negative overall score.
+        attempt.score = max(total, 0)
+        attempt.submitted_at = now
+        attempt.save(update_fields=["score", "submitted_at"])
+        AttemptAnswer.objects.bulk_create(answer_rows)
+        AuditLog.objects.create(actor=request.user, action="ATTEMPT_SUBMITTED", target=str(attempt.id))
+        return Response({"attempt_id": str(attempt.id), "submitted": True, "score": str(attempt.score)})
+
+
+class AttemptResult(APIView):
+    permission_classes = [IsStudent]
+
+    def get(self, request, pk):
+        attempt = get_object_or_404(Attempt.objects.select_related("exam"), pk=pk, student=request.user)
+        if attempt.submitted_at is None:
+            raise ValidationError("This attempt has not been submitted.")
+        if timezone.now() < attempt.exam.result_visible_from:
+            return Response({"detail": "Results are not released yet."}, status=403)
+        if attempt.is_disqualified:
+            return Response({"detail": "This result is currently disqualified."}, status=403)
+        return Response(
+            {
+                "attempt_id": str(attempt.id),
+                "exam_id": str(attempt.exam_id),
+                "score": str(attempt.score),
+                "total_marks": str(attempt.exam.total_marks),
+                "submitted_at": attempt.submitted_at.isoformat(),
+            }
+        )
+
+
+class AttemptProctoringEvent(APIView):
+    permission_classes = [IsStudent]
+
+    @transaction.atomic
+    def post(self, request, pk):
+        attempt = get_object_or_404(Attempt.objects.select_for_update(), pk=pk, student=request.user)
+        if attempt.submitted_at is not None:
+            raise ValidationError("Proctoring events cannot be added after submission.")
+        if attempt.is_disqualified:
+            raise ValidationError("This attempt is disqualified.")
+        event_type = request.data.get("event_type")
+        if event_type not in {"TAB_SWITCH", "WINDOW_BLUR"}:
+            raise ValidationError({"event_type": "Use TAB_SWITCH or WINDOW_BLUR."})
+        raw_time = request.data.get("occurred_at")
+        occurred_at = timezone.now()
+        if raw_time:
+            from django.utils.dateparse import parse_datetime
+
+            parsed = parse_datetime(raw_time) if isinstance(raw_time, str) else None
+            if parsed is None or timezone.is_naive(parsed):
+                raise ValidationError({"occurred_at": "Use an ISO-8601 timestamp with a timezone."})
+            occurred_at = parsed
+        flag = ProctoringFlag.objects.create(
+            attempt=attempt, event_type=event_type, occurred_at=occurred_at
+        )
+        AuditLog.objects.create(actor=request.user, action=f"PROCTOR_{event_type}", target=str(attempt.id))
+        return Response({"event_id": str(flag.id), "event_type": flag.event_type}, status=201)
+
+
+class AdminAttemptList(generics.ListAPIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        queryset = Attempt.objects.select_related("student", "exam").prefetch_related("proctoring_flags")
+        exam_id = request.query_params.get("exam_id")
+        if exam_id:
+            queryset = queryset.filter(exam_id=exam_id)
+        return Response(
+            {
+                "results": [
+                    {
+                        "attempt_id": str(attempt.id),
+                        "student_id": str(attempt.student_id),
+                        "student_name": attempt.student.name,
+                        "exam_id": str(attempt.exam_id),
+                        "score": str(attempt.score) if attempt.score is not None else None,
+                        "submitted_at": attempt.submitted_at.isoformat() if attempt.submitted_at else None,
+                        "is_disqualified": attempt.is_disqualified,
+                        "flags": [
+                            {"event_type": flag.event_type, "occurred_at": flag.occurred_at.isoformat()}
+                            for flag in attempt.proctoring_flags.all()
+                        ],
+                    }
+                    for attempt in queryset
+                ]
+            }
+        )
+
+
+class AdminAttemptOverride(APIView):
+    permission_classes = [IsAdmin]
+
+    @transaction.atomic
+    def post(self, request, pk):
+        attempt = get_object_or_404(Attempt.objects.select_for_update(), pk=pk)
+        disqualified = request.data.get("disqualified")
+        if not isinstance(disqualified, bool):
+            raise ValidationError({"disqualified": "A boolean value is required."})
+        reason = request.data.get("reason", "")
+        if not isinstance(reason, str) or len(reason) > 500:
+            raise ValidationError({"reason": "Reason must be at most 500 characters."})
+        if disqualified and not reason.strip():
+            raise ValidationError({"reason": "A reason is required to disqualify an attempt."})
+        attempt.is_disqualified = disqualified
+        attempt.disqualification_reason = reason.strip() if disqualified else ""
+        attempt.overridden_at = timezone.now()
+        attempt.overridden_by = request.user
+        attempt.save(
+            update_fields=[
+                "is_disqualified", "disqualification_reason", "overridden_at", "overridden_by"
+            ]
+        )
+        action = "ATTEMPT_DISQUALIFIED" if disqualified else "ATTEMPT_REPERMITTED"
+        AuditLog.objects.create(actor=request.user, action=action, target=str(attempt.id))
+        return Response(
+            {"attempt_id": str(attempt.id), "is_disqualified": attempt.is_disqualified}
+        )
