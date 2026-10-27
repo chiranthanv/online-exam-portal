@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import {
   ActionNotice,
@@ -530,8 +530,282 @@ export function Exams() {
     </>
   );
 }
+
+function ExamAttemptRunner({ exam, onBack }) {
+  const storageKey = `oep:attempt:${exam.exam_id}`;
+  const [attempt, setAttempt] = useState(null);
+  const [sessionId, setSessionId] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [saveError, setSaveError] = useState("");
+  const [savingAnswers, setSavingAnswers] = useState({});
+  const [submitPending, setSubmitPending] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  const autoSubmitting = useRef(false);
+
+  useEffect(() => {
+    let active = true;
+    async function openOrResume() {
+      setLoading(true);
+      setError("");
+      try {
+        let saved = null;
+        try {
+          saved = JSON.parse(sessionStorage.getItem(storageKey) || "null");
+        } catch {
+          saved = null;
+        }
+        if (!saved?.session_id) {
+          saved = { session_id: window.crypto.randomUUID() };
+        }
+        const headers = { "X-Exam-Session": saved.session_id };
+        const data = saved.attempt_id
+          ? await api.request(`/attempts/${saved.attempt_id}`, { headers })
+          : await api.request(`/exams/${exam.exam_id}/attempt`, {
+              method: "POST",
+              body: { session_id: saved.session_id },
+              headers,
+            });
+        saved.attempt_id = data.attempt_id;
+        sessionStorage.setItem(storageKey, JSON.stringify(saved));
+        if (active) {
+          setSessionId(saved.session_id);
+          setAttempt(data);
+        }
+      } catch (e) {
+        if (active) setError(e.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    openOrResume();
+    return () => {
+      active = false;
+    };
+  }, [storageKey, exam.exam_id]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 250);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const remainingMs = attempt
+    ? Math.max(0, Date.parse(attempt.deadline_at) - now)
+    : 0;
+  const remainingSeconds = Math.ceil(remainingMs / 1000);
+  const timerLabel = `${Math.floor(remainingSeconds / 60)
+    .toString()
+    .padStart(2, "0")}:${(remainingSeconds % 60).toString().padStart(2, "0")}`;
+
+  useEffect(() => {
+    if (
+      !attempt ||
+      attempt.status !== "IN_PROGRESS" ||
+      remainingMs > 0 ||
+      !sessionId ||
+      autoSubmitting.current
+    ) {
+      return;
+    }
+    autoSubmitting.current = true;
+    api
+      .request(`/attempts/${attempt.attempt_id}/submit`, {
+        method: "POST",
+        body: {},
+        headers: { "X-Exam-Session": sessionId },
+      })
+      .then(setAttempt)
+      .catch((e) => setSaveError(e.message));
+  }, [attempt, remainingMs, sessionId]);
+
+  async function saveAnswer(questionId, optionId) {
+    if (!attempt || attempt.status !== "IN_PROGRESS" || savingAnswers[questionId]) {
+      return;
+    }
+    const question = attempt.questions.find((item) => item.id === questionId);
+    const previous = question?.selected_option_id ?? null;
+    setSaveError("");
+    setSavingAnswers((current) => ({ ...current, [questionId]: true }));
+    setAttempt((current) => ({
+      ...current,
+      questions: current.questions.map((item) =>
+        item.id === questionId ? { ...item, selected_option_id: optionId } : item,
+      ),
+      answers: { ...current.answers, [questionId]: optionId },
+    }));
+    try {
+      const result = await api.request(`/attempts/${attempt.attempt_id}/answers`, {
+        method: "PATCH",
+        body: { question_id: questionId, option_id: optionId },
+        headers: { "X-Exam-Session": sessionId },
+      });
+      setAttempt((current) => ({ ...current, last_saved_at: result.saved_at }));
+    } catch (e) {
+      setAttempt((current) => ({
+        ...current,
+        questions: current.questions.map((item) =>
+          item.id === questionId
+            ? { ...item, selected_option_id: previous }
+            : item,
+        ),
+        answers: { ...current.answers, [questionId]: previous },
+      }));
+      setSaveError(`Your answer was not saved: ${e.message}`);
+    } finally {
+      setSavingAnswers((current) => {
+        const next = { ...current };
+        delete next[questionId];
+        return next;
+      });
+    }
+  }
+
+  async function submitAttempt() {
+    if (!attempt || submitting) return;
+    setSubmitting(true);
+    setSaveError("");
+    try {
+      const data = await api.request(`/attempts/${attempt.attempt_id}/submit`, {
+        method: "POST",
+        body: {},
+        headers: { "X-Exam-Session": sessionId },
+      });
+      setAttempt(data);
+      setSubmitPending(false);
+    } catch (e) {
+      setSaveError(e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <section className="card padded" aria-live="polite" role="status">
+        Opening your exam and restoring saved answers…
+      </section>
+    );
+  }
+  if (error) {
+    return (
+      <section className="card padded">
+        <div className="section-title">
+          <h2>{exam.title}</h2>
+          <button className="quiet" onClick={onBack}>Back to exams</button>
+        </div>
+        <p className="notice error" role="alert">{error}</p>
+        <button className="secondary" onClick={() => window.location.reload()}>
+          Retry this session
+        </button>
+      </section>
+    );
+  }
+  if (!attempt) return null;
+
+  const isOpen = attempt.status === "IN_PROGRESS";
+  return (
+    <section className="card padded attempt-shell">
+      <div className="section-title attempt-header">
+        <div>
+          <p className="eyebrow">EXAM IN PROGRESS</p>
+          <h1>{attempt.exam_title}</h1>
+          <p className="muted">Answers save to the server as you choose each option.</p>
+        </div>
+        <div className={remainingSeconds <= 60 && isOpen ? "timer urgent" : "timer"}>
+          <span>Time remaining</span>
+          <strong aria-label={`Time remaining ${timerLabel}`}>{isOpen ? timerLabel : "—"}</strong>
+        </div>
+      </div>
+      {saveError && <p className="notice error" role="alert">{saveError}</p>}
+      <p className="hint" role="status" aria-live="polite">
+        {Object.keys(savingAnswers).length
+          ? "Saving answer…"
+          : attempt.last_saved_at
+            ? `Last saved ${new Date(attempt.last_saved_at).toLocaleTimeString()}`
+            : "No answers saved yet."}
+      </p>
+
+      {!isOpen ? (
+        <div className="notice" role="status">
+          {attempt.status === "AUTO_SUBMITTED"
+            ? "Time expired. Your attempt was automatically submitted."
+            : "Your attempt has been submitted."}
+          <p>Answer editing is now locked. Evaluation and results will be provided in a later release.</p>
+          <button className="secondary" onClick={onBack}>Back to exams</button>
+        </div>
+      ) : (
+        <>
+          <div className="attempt-progress">
+            <strong>{attempt.questions.filter((q) => q.selected_option_id).length}</strong>
+            <span>of {attempt.questions.length} answered</span>
+          </div>
+          {attempt.questions.map((question, index) => (
+            <fieldset className="attempt-question" key={question.id} disabled={!isOpen || !!savingAnswers[question.id]}>
+              <legend>
+                <span>Question {index + 1}</span>
+                <small>{question.marks} marks</small>
+              </legend>
+              <p>{question.text}</p>
+              <div className="attempt-options">
+                {question.options.map((option) => (
+                  <label key={option.id} className={question.selected_option_id === option.id ? "attempt-option selected" : "attempt-option"}>
+                    <input
+                      type="radio"
+                      name={`answer-${question.id}`}
+                      value={option.id}
+                      checked={question.selected_option_id === option.id}
+                      onChange={() => saveAnswer(question.id, option.id)}
+                    />
+                    <span>{option.text}</span>
+                  </label>
+                ))}
+              </div>
+              {question.selected_option_id && (
+                <button className="quiet" type="button" onClick={() => saveAnswer(question.id, null)}>
+                  Clear answer
+                </button>
+              )}
+            </fieldset>
+          ))}
+          {!submitPending ? (
+            <button className="primary" onClick={() => setSubmitPending(true)} disabled={submitting || Object.keys(savingAnswers).length > 0}>
+              Submit exam
+            </button>
+          ) : (
+            <div className="notice" role="alertdialog" aria-labelledby="submit-confirm-title">
+              <strong id="submit-confirm-title">Submit this exam?</strong>
+              <p>You will not be able to change your answers after submission.</p>
+              <div className="row-actions">
+                <button className="primary" onClick={submitAttempt} disabled={submitting}>
+                  {submitting ? "Submitting…" : "Confirm submission"}
+                </button>
+                <button className="secondary" onClick={() => setSubmitPending(false)} disabled={submitting}>
+                  Keep working
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
 export function AvailableExams() {
   const state = useLoad(() => api.request("/exams/available"));
+  const [selectedExam, setSelectedExam] = useState(null);
+  if (selectedExam) {
+    return (
+      <ExamAttemptRunner
+        exam={selectedExam}
+        onBack={() => {
+          setSelectedExam(null);
+          state.reload();
+        }}
+      />
+    );
+  }
   return (
     <>
       <Heading
@@ -559,22 +833,34 @@ export function AvailableExams() {
               </Empty>
             ) : (
               <div className="exam-grid">
-                {state.data.results.map((e) => (
-                  <article className="exam-card" key={e.exam_id}>
-                    <span className="badge easy">Assigned to your batch</span>
-                    <h3>{e.title}</h3>
-                    <p>{e.duration_minutes} minutes</p>
-                    <p className="muted">
-                      Starts {dateText(e.start_time)}
-                      <br />
-                      Ends {dateText(e.end_time)}
-                    </p>
-                    <p className="hint">
-                      This release provides your exam schedule. Exam-taking will
-                      be available in a later release.
-                    </p>
-                  </article>
-                ))}
+                {state.data.results.map((e) => {
+                  let saved = null;
+                  try {
+                    saved = JSON.parse(sessionStorage.getItem(`oep:attempt:${e.exam_id}`) || "null");
+                  } catch {
+                    saved = null;
+                  }
+                  return (
+                    <article className="exam-card" key={e.exam_id}>
+                      <span className="badge easy">Assigned to your batch</span>
+                      <h3>{e.title}</h3>
+                      <p>{e.duration_minutes} minutes</p>
+                      <p className="muted">
+                        Starts {dateText(e.start_time)}
+                        <br />
+                        Ends {dateText(e.end_time)}
+                      </p>
+                      <p className="hint">
+                        {saved?.attempt_id
+                          ? "A saved attempt exists in this browser session."
+                          : "Your answers will be saved as you work."}
+                      </p>
+                      <button className="primary" onClick={() => setSelectedExam(e)}>
+                        {saved?.attempt_id ? "Continue exam" : "Start exam"}
+                      </button>
+                    </article>
+                  );
+                })}
               </div>
             )}
           </section>
