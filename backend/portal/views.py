@@ -362,7 +362,7 @@ class SubmitAttempt(APIView):
             student=request.user,
         )
         if attempt.submitted_at is not None:
-            return Response({"attempt_id": str(attempt.id), "submitted": True, "score": str(attempt.score)})
+            return Response({"attempt_id": str(attempt.id), "submitted": True})
         now = timezone.now()
         deadline = min(
             attempt.started_at + timedelta(minutes=attempt.exam.duration_minutes),
