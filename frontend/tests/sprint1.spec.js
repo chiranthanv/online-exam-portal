@@ -195,3 +195,87 @@ test("students see eligible exams only; API rejects admin access; mobile layout"
     page.getByText("No exams are available right now.", { exact: false }),
   ).toBeVisible();
 });
+
+test("email reset is usable once and lockout appears in the browser", async ({
+  page,
+}) => {
+  const { readdir, readFile } = await import("node:fs/promises");
+  await login(page);
+  await page.getByRole("button", { name: "03 Students & batches" }).click();
+  const suffix = Date.now(),
+    email = `reset${suffix}@example.test`;
+  await page
+    .getByLabel("Roster file")
+    .setInputFiles({
+      name: "reset-fixture.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(
+        `name,email,usn,batch\nReset Browser,${email},R${suffix},DEMO-CSE-A\n`,
+      ),
+    });
+  await page
+    .getByRole("button", { name: "Import roster", exact: true })
+    .click();
+  await expect(
+    page.getByText("1 student imported. 0 rows rejected.", { exact: true }),
+  ).toBeVisible();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page
+    .getByRole("row")
+    .filter({ hasText: email })
+    .getByRole("button", { name: "Send reset email" })
+    .click();
+  await expect(
+    page.getByText(
+      "Password-reset email sent. The link is valid for one hour.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  let token;
+  for (const file of await readdir("../backend/.dev-emails")) {
+    const message = await readFile(`../backend/.dev-emails/${file}`, "utf8");
+    if (message.includes(email))
+      token = message.match(/token=([A-Za-z0-9_-]+)/)?.[1];
+  }
+  expect(Boolean(token)).toBe(true);
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await page.goto(`/reset-password?token=${token}`);
+  await expect(page).toHaveURL(/\/reset-password$/);
+  const newPassword = "Browser-Reset-Passphrase-924!";
+  await page.getByLabel("New password", { exact: true }).fill(newPassword);
+  await page.getByLabel("Confirm password", { exact: true }).fill(newPassword);
+  await page.getByRole("button", { name: "Set password", exact: true }).click();
+  await expect(
+    page.getByText("Password updated. You can now sign in.", { exact: true }),
+  ).toBeVisible();
+  await page.goto(`/reset-password?token=${token}`);
+  await page.getByLabel("New password", { exact: true }).fill(newPassword);
+  await page.getByLabel("Confirm password", { exact: true }).fill(newPassword);
+  await page.getByRole("button", { name: "Set password", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Invalid or expired reset link",
+  );
+  await page.goto("/");
+  await page.getByLabel("Email address").fill(email);
+  await page.getByLabel("Password", { exact: true }).fill(newPassword);
+  await page.getByRole("button", { name: "Sign in →" }).click();
+  await expect(
+    page.getByRole("heading", { name: "[DEMO] Available practice exam" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await page.getByLabel("Email address").fill(email);
+  await page.getByLabel("Password", { exact: true }).fill("wrong-password");
+  for (let i = 0; i < 5; i++) {
+    const response = page.waitForResponse(
+      (r) => r.url().endsWith("/auth/login") && r.request().method() === "POST",
+    );
+    await page.getByRole("button", { name: "Sign in →" }).click();
+    expect((await response).status()).toBe(401);
+    await expect(page.getByRole("button", { name: "Sign in →" })).toBeEnabled();
+  }
+  await page.getByLabel("Password", { exact: true }).fill(newPassword);
+  await page.getByRole("button", { name: "Sign in →" }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Account temporarily locked",
+  );
+});
