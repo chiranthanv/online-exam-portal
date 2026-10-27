@@ -1,6 +1,6 @@
 # Team 15 — Sprint 1 handoff
 
-Sprint 1 implementation is merged into `main` at commit [`ae010108`](https://github.com/chiranthanv/online-exam-portal/commit/ae0101088c61e676180362673250fc647ffb9a75). Backend PR [#29](https://github.com/chiranthanv/online-exam-portal/pull/29), frontend/integration PR [#30](https://github.com/chiranthanv/online-exam-portal/pull/30), and final integration PR [#28](https://github.com/chiranthanv/online-exam-portal/pull/28) are merged. The implementation and automation were completed through Chiranthan's account at his request; no teammate-authored code or independent reviews are claimed.
+Sprint 1 implementation is merged into `main`. Backend PR [#29](https://github.com/chiranthanv/online-exam-portal/pull/29), frontend/integration PR [#30](https://github.com/chiranthanv/online-exam-portal/pull/30), and final integration PR [#28](https://github.com/chiranthanv/online-exam-portal/pull/28) delivered the integrated product. Genuine teammate follow-up PR [#31](https://github.com/chiranthanv/online-exam-portal/pull/31) then added SQL-injection and stored-XSS regression coverage. Its merge commit [`8550754`](https://github.com/chiranthanv/online-exam-portal/commit/8550754a2c4a496e75316804c882c8cc526b8ad5) passed both final workflows. PR #31 was opened from Harkirat's account and contains commit/merge activity attributed by GitHub to Dwijesh; no additional independent review is claimed.
 
 ## Dwijesh — @Dwijesh60
 
@@ -23,8 +23,8 @@ Harkirat has repository write access and his planned GitHub stories are assigned
 
 Completed:
 
-- Merged PRs #29, #30, and #28.
-- Verified the final `main` commit with successful backend and frontend/browser workflows.
+- Merged PRs #29, #30, and #28; teammate follow-up PR #31 is also merged.
+- Verified merge commit `8550754` with successful [backend](https://github.com/chiranthanv/online-exam-portal/actions/runs/40454219108) and [frontend/browser](https://github.com/chiranthanv/online-exam-portal/actions/runs/40454219273) workflows.
 - Linked the integration report, demo, CI evidence, backlog, and RTM.
 - Assigned GitHub stories to collaborators whose access is available.
 
