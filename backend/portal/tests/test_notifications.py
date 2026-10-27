@@ -12,7 +12,6 @@ from portal.models import (
     Attempt,
     Batch,
     Exam,
-    ExamBatch,
     ExamNotification,
     StudentBatch,
     User,
