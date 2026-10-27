@@ -294,7 +294,6 @@ class AuditList(generics.ListAPIView):
     queryset = AuditLog.objects.all()
 
 
-
 class StartAttempt(APIView):
     """Start an eligible exam without returning answer-key fields."""
 
@@ -518,7 +517,6 @@ class AdminAttemptOverride(APIView):
         action = "ATTEMPT_DISQUALIFIED" if disqualified else "ATTEMPT_REPERMITTED"
         AuditLog.objects.create(actor=request.user, action=action, target=str(attempt.id))
         return Response({"attempt_id": str(attempt.id), "is_disqualified": attempt.is_disqualified})
-
 
 
 class AdminClassReport(APIView):
