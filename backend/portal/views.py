@@ -590,8 +590,14 @@ class AdminClassReport(APIView):
             )
         if request.query_params.get("format") == "pdf":
             fields = [
-                "question_id", "difficulty", "subject", "topic",
-                "submitted_attempts", "correct", "incorrect", "unanswered",
+                "question_id",
+                "difficulty",
+                "subject",
+                "topic",
+                "submitted_attempts",
+                "correct",
+                "incorrect",
+                "unanswered",
             ]
             return _pdf_report(
                 f"Question report — {exam.title}",
