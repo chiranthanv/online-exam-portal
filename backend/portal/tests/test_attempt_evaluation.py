@@ -149,7 +149,7 @@ class AttemptEvaluationTests(TestCase):
         self.assertEqual(response.status_code, 200, response.content)
         self.assertEqual(self.client.get(result_url).status_code, 200)
         self.assertEqual(
-            list(AuditLog.objects.filter(target=attempt_id).values_list("action", flat=True)),
+            list(AuditLog.objects.filter(target=attempt_id).order_by("timestamp").values_list("action", flat=True)),
             ["ATTEMPT_STARTED", "ATTEMPT_SUBMITTED", "ATTEMPT_DISQUALIFIED", "ATTEMPT_REPERMITTED"],
         )
 
