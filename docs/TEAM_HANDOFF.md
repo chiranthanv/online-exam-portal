@@ -1,6 +1,6 @@
 # Team 15 — Sprint 1 handoff
 
-Chiranthan's implementation is on `sprint1/chiranthan-backend`, based on the already-created `planning/product-backlog` branch. Planning PR: [#28](https://github.com/chiranthanv/online-exam-portal/pull/28). Do not restart planning or duplicate issues. Story numbers in the Project match GitHub issue numbers.
+Chiranthan's Sprint 1 backend PR [#29](https://github.com/chiranthanv/online-exam-portal/pull/29) has been merged into `planning/product-backlog`. Integration PR [#28](https://github.com/chiranthanv/online-exam-portal/pull/28) remains open into `main`. Use `planning/product-backlog` as the current shared base; switch to `main` once #28 is merged. Do not restart planning or duplicate issues. Story numbers in the Project match GitHub issue numbers.
 
 ## Dwijesh — @Dwijesh60
 
@@ -15,23 +15,23 @@ Build the **React Sprint 1 frontend** on top of these APIs. Own issues [#4](http
 7. Add meaningful component/API integration tests: login/error/lockout, role navigation, partial import, MCQ validation/in-use state, exam setup, eligibility and refresh recovery. Include responsive layouts, labels and keyboard/focus behavior.
 8. Commit through **your own GitHub account**, open your own PR, link issues and include run commands, test output and actual screenshots. Request Chiranthan/Harkirat review. Report any backend mismatch with route, sanitized request, expected/actual response and steps.
 
-Branch setup while backend PR is open:
+Branch setup while integration PR #28 is open:
 
 ```bash
 git fetch origin
-git switch -c sprint1/dwijesh-frontend origin/sprint1/chiranthan-backend
+git switch -c sprint1/dwijesh-frontend origin/planning/product-backlog
 # Implement, test and commit with your own configured identity.
 git push -u origin sprint1/dwijesh-frontend
 ```
 
-Open a PR targeting `sprint1/chiranthan-backend` until that branch is merged; then retarget/rebase to `main`. Coordinate before rebasing shared work. If write access is still unavailable, fork the repository and make a PR from your fork. Chiranthan has authorized a collaborator invitation, but it must actually be completed/accepted before assuming direct push access.
+Open a PR targeting `planning/product-backlog` until #28 is merged; then retarget/rebase to `main`. Coordinate before rebasing shared work. If write access is still unavailable, fork the repository and make a PR from your fork. Chiranthan has authorized a collaborator invitation, but it must actually be completed/accepted before assuming direct push access.
 
 ## Harkirat — @h4ki06
 
 Own independent **system/security verification** and CI/review evidence: issues [#20](https://github.com/chiranthanv/online-exam-portal/issues/20) and [#26](https://github.com/chiranthanv/online-exam-portal/issues/26). Your repository write access was verified.
 
 1. Read the Test Plan PDF and `docs/testing/SPRINT1_REPORT.md`. Run the backend suite against PostgreSQL, not only SQLite. Inspect actual GitHub Actions logs/artifacts, including concurrency and TLS tests.
-2. Review Chiranthan's backend PR for authorization, account lockout, single-use reset/revocation, import atomicity, question/exam integrity, migrations, and design deviations. Leave a genuine review from your account; do not approve solely because checks are green.
+2. Review Chiranthan's backend changes in #29 and integration PR #28 for authorization, account lockout, single-use reset/revocation, import atomicity, question/exam integrity, migrations, and design deviations. Leave a genuine review from your account; do not approve solely because checks are green.
 3. Independently exercise injection inputs, CSRF, JWT expiry/refresh/replay, student-to-admin requests, answer-key leakage and login lockout. Add meaningful regression tests for any gaps; log real defects with reproducible details.
 4. Once React is ready, test stored-XSS payloads in the browser, role transitions/data clearing, all error states, reset flow, pagination and eligibility boundaries. Verify network responses contain no keys for students.
 5. Add frontend build/lint/test jobs to CI using the actual frontend package manager/lockfile. Keep the PostgreSQL/backend/TLS jobs. Run system tests on the integrated app.
@@ -40,7 +40,7 @@ Own independent **system/security verification** and CI/review evidence: issues 
 
 ```bash
 git fetch origin
-git switch -c sprint1/harkirat-security-ci origin/sprint1/chiranthan-backend
+git switch -c sprint1/harkirat-security-ci origin/planning/product-backlog
 ```
 
 Use the same temporary PR-base convention as Dwijesh. Do not change other members' author identity or create placeholder reviews.
@@ -51,7 +51,7 @@ Prepared: backlog/estimates/two-sprint plan; backend database/migrations; auth/R
 
 After teammate work arrives, the remaining lead duties are:
 
-1. Address genuine review findings; merge planning first, then reviewed backend, then reviewed frontend/security PRs with green checks. Do not mark UI-dependent stories Done before integration passes.
+1. Address genuine review findings on integration PR #28 (which now includes backend PR #29), then merge it and the reviewed frontend/security PRs with green checks. Do not mark UI-dependent stories Done before integration passes.
 2. Verify the integrated application from a clean clone on PostgreSQL. Test a real controlled SMTP mailbox and deployed HTTPS frontend/API together. Record any real configuration dependency.
 3. Record and upload the **actual combined product** demo following `docs/DEMO.md`; an API-only backend recording is supporting evidence, not a substitute for the final React product demo.
 4. Attach PRs, CI runs, teammate reviews and demo links to the relevant issues/Project. Confirm evaluator access to the private Project/repository if required by the course.
@@ -61,6 +61,10 @@ These integration duties depend on teammate deliverables; they cannot truthfully
 
 ## Suggested messages Chiranthan can send
 
-**To Dwijesh:** Please take the React frontend for Sprint 1 using my backend branch `sprint1/chiranthan-backend`. Read `docs/API.md` and your checklist in `docs/TEAM_HANDOFF.md`. Finish login/reset, student/batch import screens, question bank, exam setup/selection/assignment and the eligible-exams page. Add integration tests, open your own PR for #4/#5/#7/#9, and ask us to review it. Send me any blocker with exact steps and the error.
+**To Dwijesh:** Please take the React frontend for Sprint 1 using my integration branch `planning/product-backlog`. Read `docs/API.md` and your checklist in `docs/TEAM_HANDOFF.md`. Finish login/reset, student/batch import screens, question bank, exam setup/selection/assignment and the eligible-exams page. Add integration tests, open your own PR for #4/#5/#7/#9, and ask us to review it. Send me any blocker with exact steps and the error.
 
-**To Harkirat:** Please review my backend PR and independently test the security/system flows on PostgreSQL. Follow your checklist in `docs/TEAM_HANDOFF.md`, handle #20/#26, add regression tests and frontend CI once Dwijesh's app is ready, then update the RTM/test report with actual evidence. Open your own PR and review Dwijesh's PR too. Tell me which tests fail and how to reproduce them.
+**To Harkirat:** Please review the backend changes in PR #29 and integration PR #28 and independently test the security/system flows on PostgreSQL. Follow your checklist in `docs/TEAM_HANDOFF.md`, handle #20/#26, add regression tests and frontend CI once Dwijesh's app is ready, then update the RTM/test report with actual evidence. Open your own PR and review Dwijesh's PR too. Tell me which tests fail and how to reproduce them.
+
+## Sprint 1 only
+
+Do not implement Sprint 2 while completing this handoff. Attempt management, autosave, timers, submission, evaluation, reports, proctoring and notifications stay in the Sprint 2 backlog. The immediate goal is the administrative Sprint 1 UI, independent verification, reviews and actual integrated demonstration.

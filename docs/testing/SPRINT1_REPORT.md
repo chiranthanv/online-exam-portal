@@ -33,7 +33,15 @@ Evidence: [local test log](../evidence/backend-local-tests.txt), [local coverage
 
 The workflow runs all 45 tests on PostgreSQL (including three concurrent-request/row-lock regressions), builds the Python 3.11 runtime image, repeats seed creation and performs a CA/hostname-verified TLS 1.2 login through Caddy. The TLS probe checks Secure/HttpOnly/SameSite/path flags and HSTS without logging JWTs.
 
-CI run link and final result will be recorded after the branch push. Until then, local success does not establish PostgreSQL/concurrency/container/TLS success.
+**Verified CI result: SUCCESS.** [Backend verification run #6](https://github.com/chiranthanv/online-exam-portal/actions/runs/40373915846), commit `dcf55c5f79af7785f0c4fda596e1cfb3ab1a3b57`, executed 26 October 2026.
+
+- All **45 tests passed on PostgreSQL**, including the three concurrency regressions; 98% implemented-backend coverage.
+- Lint/format, migration drift, system checks, fresh migrations and repeated demo seeding passed.
+- Python 3.11 Docker image built successfully.
+- The temporary Caddy deployment passed CA/hostname-verified TLS 1.2 health and login checks, plus Secure/HttpOnly/SameSite/path cookie and HSTS checks.
+- Run artifacts: `backend-coverage` and `backend-tls-verification`. These are actual execution artifacts, not planned results.
+
+PR #29 has been merged into `planning/product-backlog`. PR #28 remains the integration PR into `main`; a merge itself does not establish independent teammate review or complete frontend acceptance.
 
 ## Ownership and acceptance boundaries
 
@@ -48,3 +56,7 @@ Pending dependencies:
 - Sprint 2 features and their performance/availability/accessibility acceptance are planned, not implemented by this change.
 
 See [RTM.md](RTM.md) for all 35 SRS requirements and [TEAM_HANDOFF.md](../TEAM_HANDOFF.md) for exact member tasks. No teammate authorship, reviews, public deployment or future test outcomes are claimed.
+
+## Sprint 1 scope lock — 27 October 2026
+
+Only Sprint 1 administrative functionality is implemented. Sprint 2 remains a plan: attempts, autosave, server timer/auto-submit, scoring/results, response locking, reporting, proctoring, notifications and their performance/availability/accessibility acceptance are deferred. Existing cross-cutting authentication, confidentiality, validation and audit controls are required for the Sprint 1 APIs themselves.
