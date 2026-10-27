@@ -1,8 +1,8 @@
 """Queue and deliver exam notifications; schedule this command at least once per minute."""
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
 from django.core.mail import send_mail
+from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
