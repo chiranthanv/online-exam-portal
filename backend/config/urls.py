@@ -2,11 +2,12 @@ from django.urls import path
 from portal import auth_views as auth
 from portal import views
 
-from .frontend import entry
+from .frontend import asset, entry
 
 urlpatterns = [
     path("", entry),
     path("reset-password", entry),
+    path("assets/<path:filename>", asset),
     path("health", views.HealthView.as_view()),
     path("api/v1/auth/csrf", auth.CsrfView.as_view()),
     path("api/v1/auth/login", auth.LoginView.as_view()),
