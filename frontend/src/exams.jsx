@@ -542,7 +542,10 @@ function TakeExam({ exam, attempt, onExit }) {
       api
         .request(`/attempts/${attempt.attempt_id}/proctoring-events`, {
           method: "POST",
-          body: { event_type: eventType, occurred_at: new Date().toISOString() },
+          body: {
+            event_type: eventType,
+            occurred_at: new Date().toISOString(),
+          },
         })
         .catch(() => {});
     };
@@ -607,20 +610,17 @@ function TakeExam({ exam, attempt, onExit }) {
           className="primary"
           disabled={action.busy}
           onClick={() =>
-            action.run(
-              async () => {
-                await api.request(`/attempts/${attempt.attempt_id}/submit`, {
-                  method: "POST",
-                  body: {
-                    answers: Object.entries(answers).map(
-                      ([question_id, option_id]) => ({ question_id, option_id }),
-                    ),
-                  },
-                });
-                setSubmitted(true);
-              },
-              "Submission saved. Your score stays hidden until results are released.",
-            )
+            action.run(async () => {
+              await api.request(`/attempts/${attempt.attempt_id}/submit`, {
+                method: "POST",
+                body: {
+                  answers: Object.entries(answers).map(
+                    ([question_id, option_id]) => ({ question_id, option_id }),
+                  ),
+                },
+              });
+              setSubmitted(true);
+            }, "Submission saved. Your score stays hidden until results are released.")
           }
         >
           Submit answers
