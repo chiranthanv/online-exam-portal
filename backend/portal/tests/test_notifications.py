@@ -83,7 +83,7 @@ class ExamNotificationTests(TestCase):
         self.assertEqual(notice.status, "SENT")
         self.assertEqual(notice.attempts, 1)
         self.assertEqual(send_mail_mock.call_count, 1)
-        self.assertEqual(send_mail_mock.call_args.kwargs["recipient_list"], [self.student.email])
+        self.assertEqual(send_mail_mock.call_args.args[3], [self.student.email])
         call_command("process_exam_notifications")
         self.assertEqual(send_mail_mock.call_count, 1)
         self.assertEqual(Attempt.objects.get(pk=attempt.pk).score, 2)
