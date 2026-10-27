@@ -28,7 +28,7 @@ export function createApi(fetcher = (...args) => fetch(...args)) {
     expired = () => {};
   async function raw(
     path,
-    { method = "GET", body, auth = true, withCsrf = false } = {},
+    { method = "GET", body, auth = true, withCsrf = false, responseType = "json" } = {},
   ) {
     const headers = { Accept: "application/json" };
     if (access && auth) headers.Authorization = `Bearer ${access}`;
