@@ -303,14 +303,12 @@ class StartAttempt(APIView):
     def post(self, request, pk):
         now = timezone.now()
         exam = get_object_or_404(
-            Exam.objects.select_for_update()
-            .filter(
-                batches__students=request.user,
+            Exam.objects.select_for_update().filter(
+                pk__in=ExamBatch.objects.filter(batch__students=request.user).values("exam_id"),
                 start_time__lte=now,
                 end_time__gt=now,
                 total_marks__gt=0,
-            )
-            .distinct(),
+            ),
             pk=pk,
         )
         if not ExamQuestion.objects.filter(exam=exam).exists():
