@@ -225,6 +225,16 @@ class ExamBatches(APIView):
         # Replace the assignment set atomically, matching question selection semantics.
         ExamBatch.objects.filter(exam=exam).delete()
         ExamBatch.objects.bulk_create([ExamBatch(exam=exam, batch=b) for b in batches])
+        student_ids = set(
+            User.objects.filter(role="STUDENT", is_active=True, batches__in=batches).values_list("id", flat=True)
+        )
+        ExamNotification.objects.bulk_create(
+            [
+                ExamNotification(student_id=student_id, exam=exam, notification_type="SCHEDULED")
+                for student_id in student_ids
+            ],
+            ignore_conflicts=True,
+        )
         AuditLog.objects.create(actor=request.user, action="EXAM_BATCHES_SET", target=str(pk))
         return Response({"exam_id": str(pk), "batches_assigned": len(batches)})
 
