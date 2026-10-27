@@ -1,9 +1,9 @@
 import uuid
-import django.utils.timezone
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.functions import Lower
+from django.utils import timezone
 
 
 class User(AbstractUser):
@@ -136,7 +136,7 @@ class ExamAttempt(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.PROTECT, related_name="attempts")
     student = models.ForeignKey(User, on_delete=models.PROTECT, related_name="exam_attempts")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=IN_PROGRESS)
-    started_at = models.DateTimeField(default=django.utils.timezone.now)
+    started_at = models.DateTimeField(default=timezone.now)
     deadline_at = models.DateTimeField()
     submitted_at = models.DateTimeField(null=True, blank=True)
     last_saved_at = models.DateTimeField(null=True, blank=True)
