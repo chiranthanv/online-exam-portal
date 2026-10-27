@@ -582,7 +582,10 @@ class AdminClassReport(APIView):
             return _pdf_report(
                 f"Class report — {exam.title}",
                 ["student_id", "student_name", "usn", "score", "total_marks"],
-                [[row[key] for key in ["student_id", "student_name", "usn", "score", "total_marks"]] for row in rows],
+                [
+                    [row[key] for key in ["student_id", "student_name", "usn", "score", "total_marks"]]
+                    for row in rows
+                ],
                 "class-report.pdf",
             )
         if request.query_params.get("format") == "pdf":
