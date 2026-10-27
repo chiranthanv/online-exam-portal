@@ -7,6 +7,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.core import mail
+from django.core.management import call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import DatabaseError, IntegrityError, connection, transaction
 from django.test import TestCase, override_settings
@@ -619,9 +620,10 @@ class PortalTests(TestCase):
         logged_in = self.login(self.student)
         self.assertEqual(logged_in.status_code, 200, logged_in.content)
         session_id = uuid.uuid4()
+        self.student_access_header = "Bearer " + logged_in.json()["access_token"]
         self.client.credentials(
             HTTP_X_CSRFTOKEN=self.csrf,
-            HTTP_AUTHORIZATION="Bearer " + logged_in.json()["access_token"],
+            HTTP_AUTHORIZATION=self.student_access_header,
             HTTP_X_EXAM_SESSION=str(session_id),
         )
         result = self.post(f"exams/{self.exam.id}/attempt", {"session_id": str(session_id)})
@@ -640,9 +642,7 @@ class PortalTests(TestCase):
         other_session = uuid.uuid4()
         self.client.credentials(
             HTTP_X_CSRFTOKEN=self.csrf,
-            HTTP_AUTHORIZATION="Bearer " + self.client._credentials["HTTP_AUTHORIZATION"].decode()
-            if isinstance(self.client._credentials.get("HTTP_AUTHORIZATION"), bytes)
-            else self.client._credentials["HTTP_AUTHORIZATION"],
+            HTTP_AUTHORIZATION=self.student_access_header,
             HTTP_X_EXAM_SESSION=str(other_session),
         )
         rejected = self.post(f"exams/{self.exam.id}/attempt", {"session_id": str(other_session)})
@@ -690,6 +690,22 @@ class PortalTests(TestCase):
             format="json",
         )
         self.assertEqual(late.status_code, 409)
+
+    def test_expiry_worker_auto_submits_without_browser_request(self):
+        result, _ = self.create_student_attempt()
+        self.assertEqual(result.status_code, 201, result.content)
+        attempt_id = result.json()["attempt_id"]
+        ExamAttempt.objects.filter(pk=attempt_id).update(deadline_at=timezone.now() - timedelta(seconds=1))
+        call_command("expire_exam_attempts")
+        attempt = ExamAttempt.objects.get(pk=attempt_id)
+        self.assertEqual(attempt.status, ExamAttempt.AUTO_SUBMITTED)
+        self.assertIsNotNone(attempt.submitted_at)
+        self.assertEqual(
+            AuditLog.objects.filter(
+                action="EXAM_ATTEMPT_AUTO_SUBMITTED", target=attempt_id
+            ).count(),
+            1,
+        )
 
     def test_manual_submission_is_idempotent(self):
         result, _ = self.create_student_attempt()
