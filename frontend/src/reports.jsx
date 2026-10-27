@@ -27,9 +27,7 @@ export function Reports() {
   const attempts = useLoad(
     () =>
       examId
-        ? api.request(
-            "/admin/attempts?exam_id=" + encodeURIComponent(examId),
-          )
+        ? api.request("/admin/attempts?exam_id=" + encodeURIComponent(examId))
         : Promise.resolve({ results: [] }),
     [examId],
   );
@@ -126,9 +124,7 @@ export function Reports() {
                   </thead>
                   <tbody>
                     {rows.map((row, index) => (
-                      <tr
-                        key={row.student_id || row.question_id || index}
-                      >
+                      <tr key={row.student_id || row.question_id || index}>
                         {columns.map((column) => (
                           <td key={column}>{row[column] ?? "—"}</td>
                         ))}
@@ -214,7 +210,9 @@ export function Reports() {
                           ) : (
                             <div>
                               <input
-                                aria-label={"Review reason for " + item.student_name}
+                                aria-label={
+                                  "Review reason for " + item.student_name
+                                }
                                 placeholder="Reason required"
                                 value={reason}
                                 onChange={(event) =>
