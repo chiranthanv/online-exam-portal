@@ -96,7 +96,8 @@ class AttemptEvaluationTests(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 200, response.content)
-        self.assertEqual(response.json()["score"], "1.50")
+        self.assertNotIn("score", response.json())
+        self.assertEqual(Attempt.objects.get(pk=started["attempt_id"]).score, "1.50")
         self.assertEqual(Attempt.objects.get(pk=attempt_id).answers.count(), 2)
 
     def test_unanswered_questions_score_zero_and_duplicate_submit_is_idempotent(self):
@@ -117,8 +118,9 @@ class AttemptEvaluationTests(TestCase):
         )
         self.assertEqual(first.status_code, 200, first.content)
         self.assertEqual(second.status_code, 200, second.content)
-        self.assertEqual(first.json()["score"], "2.00")
-        self.assertEqual(second.json()["score"], "2.00")
+        self.assertNotIn("score", first.json())
+        self.assertNotIn("score", second.json())
+        self.assertEqual(Attempt.objects.get(pk=started["attempt_id"]).score, "2.00")
         self.assertEqual(Attempt.objects.get(pk=attempt_id).answers.count(), 2)
 
     def test_results_hidden_until_release_and_admin_override_is_audited(self):
