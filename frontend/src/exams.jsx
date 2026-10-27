@@ -539,10 +539,12 @@ function TakeExam({ exam, attempt, onExit }) {
   useEffect(() => {
     if (submitted) return undefined;
     const record = (eventType) => {
-      api.request(`/attempts/${attempt.attempt_id}/proctoring-events`, {
-        method: "POST",
-        body: { event_type: eventType, occurred_at: new Date().toISOString() },
-      }).catch(() => {});
+      api
+        .request(`/attempts/${attempt.attempt_id}/proctoring-events`, {
+          method: "POST",
+          body: { event_type: eventType, occurred_at: new Date().toISOString() },
+        })
+        .catch(() => {});
     };
     const visibility = () => {
       if (document.visibilityState === "hidden") record("TAB_SWITCH");
@@ -563,13 +565,20 @@ function TakeExam({ exam, attempt, onExit }) {
           <p className="eyebrow">ASSESSMENT IN PROGRESS</p>
           <h2>{exam.title}</h2>
         </div>
-        <button className="quiet" onClick={onExit}>Back to exams</button>
+        <button className="quiet" onClick={onExit}>
+          Back to exams
+        </button>
       </div>
-      <p className="hint">Focus-change events may be recorded for review. They are not, by themselves, proof of misconduct.</p>
+      <p className="hint">
+        Focus-change events may be recorded for review. They are not, by
+        themselves, proof of misconduct.
+      </p>
       <ActionNotice action={action} />
       {attempt.questions.map((question, index) => (
         <fieldset className="card padded" key={question.question_id}>
-          <legend>Question {index + 1} · {question.marks} marks</legend>
+          <legend>
+            Question {index + 1} · {question.marks} marks
+          </legend>
           <p>{question.text}</p>
           {question.options.map((option) => (
             <label className="field" key={option.option_id}>
@@ -580,9 +589,14 @@ function TakeExam({ exam, attempt, onExit }) {
                   value={option.option_id}
                   checked={answers[question.question_id] === option.option_id}
                   disabled={submitted}
-                  onChange={() => setAnswers((old) => ({ ...old, [question.question_id]: option.option_id }))}
-                />
-                {" "}{option.text}
+                  onChange={() =>
+                    setAnswers((old) => ({
+                      ...old,
+                      [question.question_id]: option.option_id,
+                    }))
+                  }
+                />{" "}
+                {option.text}
               </span>
             </label>
           ))}
@@ -592,31 +606,51 @@ function TakeExam({ exam, attempt, onExit }) {
         <button
           className="primary"
           disabled={action.busy}
-          onClick={() => action.run(async () => {
-            await api.request(`/attempts/${attempt.attempt_id}/submit`, {
-              method: "POST",
-              body: { answers: Object.entries(answers).map(([question_id, option_id]) => ({ question_id, option_id })) },
-            });
-            setSubmitted(true);
-          }, "Submission saved. Your score stays hidden until results are released.")}
+          onClick={() =>
+            action.run(
+              async () => {
+                await api.request(`/attempts/${attempt.attempt_id}/submit`, {
+                  method: "POST",
+                  body: {
+                    answers: Object.entries(answers).map(
+                      ([question_id, option_id]) => ({ question_id, option_id }),
+                    ),
+                  },
+                });
+                setSubmitted(true);
+              },
+              "Submission saved. Your score stays hidden until results are released.",
+            )
+          }
         >
           Submit answers
         </button>
       ) : (
         <div className="card padded">
           <h3>Submission received</h3>
-          <p>Your answers have been saved. The score is hidden until the scheduled result release.</p>
+          <p>
+            Your answers have been saved. The score is hidden until the
+            scheduled result release.
+          </p>
           <button
             className="secondary"
             disabled={action.busy}
-            onClick={() => action.run(async () => {
-              const data = await api.request(`/attempts/${attempt.attempt_id}/result`);
-              setResult(data);
-            })}
+            onClick={() =>
+              action.run(async () => {
+                const data = await api.request(
+                  `/attempts/${attempt.attempt_id}/result`,
+                );
+                setResult(data);
+              })
+            }
           >
             Check released result
           </button>
-          {result && <p><strong>Score:</strong> {result.score} / {result.total_marks}</p>}
+          {result && (
+            <p>
+              <strong>Score:</strong> {result.score} / {result.total_marks}
+            </p>
+          )}
         </div>
       )}
     </section>
@@ -633,7 +667,10 @@ export function AvailableExams() {
         key={activeExam.attempt.attempt_id}
         exam={activeExam.exam}
         attempt={activeExam.attempt}
-        onExit={() => { setActiveExam(null); state.reload(); }}
+        onExit={() => {
+          setActiveExam(null);
+          state.reload();
+        }}
       />
     );
   }
@@ -644,17 +681,25 @@ export function AvailableExams() {
         title="A clear view of what’s ahead."
         description="Start an assigned exam during its scheduled window. Your answers are scored by the server."
       >
-        <button className="secondary" onClick={state.reload}>Refresh list</button>
+        <button className="secondary" onClick={state.reload}>
+          Refresh list
+        </button>
       </Heading>
       <ActionNotice action={action} />
       <LoadState state={state}>
         {state.data && (
           <section className="card">
             <div className="section-title padded">
-              <h2>Available exams <span className="count">{state.data.results.length}</span></h2>
+              <h2>
+                Available exams{" "}
+                <span className="count">{state.data.results.length}</span>
+              </h2>
             </div>
             {!state.data.results.length ? (
-              <Empty>No exams are available right now. Check back during your scheduled exam window.</Empty>
+              <Empty>
+                No exams are available right now. Check back during your
+                scheduled exam window.
+              </Empty>
             ) : (
               <div className="exam-grid">
                 {state.data.results.map((exam) => (
@@ -662,15 +707,24 @@ export function AvailableExams() {
                     <span className="badge easy">Assigned to your batch</span>
                     <h3>{exam.title}</h3>
                     <p>{exam.duration_minutes} minutes</p>
-                    <p className="muted">Starts {dateText(exam.start_time)}<br />Ends {dateText(exam.end_time)}</p>
+                    <p className="muted">
+                      Starts {dateText(exam.start_time)}
+                      <br />
+                      Ends {dateText(exam.end_time)}
+                    </p>
                     <div className="row-actions">
                       <button
                         className="primary"
                         disabled={action.busy}
-                        onClick={() => action.run(async () => {
-                          const attempt = await api.request(`/exams/${exam.exam_id}/attempt`, { method: "POST", body: {} });
-                          setActiveExam({ exam, attempt });
-                        })}
+                        onClick={() =>
+                          action.run(async () => {
+                            const attempt = await api.request(
+                              `/exams/${exam.exam_id}/attempt`,
+                              { method: "POST", body: {} },
+                            );
+                            setActiveExam({ exam, attempt });
+                          })
+                        }
                       >
                         Start exam
                       </button>
