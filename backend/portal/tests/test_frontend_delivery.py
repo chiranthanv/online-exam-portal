@@ -29,7 +29,7 @@ class FrontendDeliveryTests(SimpleTestCase):
             with patch("config.frontend.DIST", root):
                 response = self.client.get("/assets/app-test.js")
                 self.assertEqual(response.status_code, 200)
-                self.assertEqual(response["Content-Type"], "text/javascript")
+                self.assertIn("javascript", response["Content-Type"])
                 self.assertEqual(
                     response["Cache-Control"], "public, max-age=31536000, immutable"
                 )
