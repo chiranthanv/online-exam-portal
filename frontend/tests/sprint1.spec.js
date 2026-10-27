@@ -156,6 +156,14 @@ test("students see eligible exams only; API rejects admin access; mobile layout"
   await expect(
     page.getByRole("heading", { name: "[DEMO] Available practice exam" }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Start exam" }).click();
+  await expect(page.getByRole("heading", { name: "[DEMO] Available practice exam" })).toBeVisible();
+  await expect(page.getByText("ASSESSMENT IN PROGRESS")).toBeVisible();
+  const option = page.getByRole("radio").first();
+  await option.check();
+  await page.getByRole("button", { name: "Submit answers" }).click();
+  await expect(page.getByText("Submission received")).toBeVisible();
+  await expect(page.getByText(/score stays hidden until results are released/i)).toBeVisible();
   await expect(page.getByRole("button", { name: "Question bank" })).toHaveCount(
     0,
   );
