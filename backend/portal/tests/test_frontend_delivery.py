@@ -30,9 +30,7 @@ class FrontendDeliveryTests(SimpleTestCase):
                 response = self.client.get("/assets/app-test.js")
                 self.assertEqual(response.status_code, 200)
                 self.assertIn("javascript", response["Content-Type"])
-                self.assertEqual(
-                    response["Cache-Control"], "public, max-age=31536000, immutable"
-                )
+                self.assertEqual(response["Cache-Control"], "public, max-age=31536000, immutable")
                 self.assertEqual(b"".join(response.streaming_content), b'console.log("ok");')
 
     def test_missing_build_is_explicit(self):
