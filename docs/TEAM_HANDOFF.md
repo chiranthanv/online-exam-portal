@@ -2,6 +2,10 @@
 
 Chiranthan's Sprint 1 backend PR [#29](https://github.com/chiranthanv/online-exam-portal/pull/29) has been merged into `planning/product-backlog`. Integration PR [#28](https://github.com/chiranthanv/online-exam-portal/pull/28) remains open into `main`. Use `planning/product-backlog` as the current shared base; switch to `main` once #28 is merged. Do not restart planning or duplicate issues. Story numbers in the Project match GitHub issue numbers.
 
+## Current implementation status — 27 October 2026
+
+At Chiranthan’s request, the remaining Sprint 1 React and automated testing work is now implemented through his account in PR #30 (`sprint1/frontend-integration`). The original task breakdown below remains a review checklist, not a claim that teammates authored these commits. Dwijesh and Harkirat should run, understand and genuinely review the implementation, raise any real fixes through their own accounts, and supply any member-specific contribution evidence required by the course. Sprint 2 remains deferred.
+
 ## Dwijesh — @Dwijesh60
 
 Build the **React Sprint 1 frontend** on top of these APIs. Own issues [#4](https://github.com/chiranthanv/online-exam-portal/issues/4), [#5](https://github.com/chiranthanv/online-exam-portal/issues/5), [#7](https://github.com/chiranthanv/online-exam-portal/issues/7), [#9](https://github.com/chiranthanv/online-exam-portal/issues/9), plus shared frontend integration for Chiranthan's backend stories.

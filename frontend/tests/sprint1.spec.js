@@ -204,15 +204,13 @@ test("email reset is usable once and lockout appears in the browser", async ({
   await page.getByRole("button", { name: "03 Students & batches" }).click();
   const suffix = Date.now(),
     email = `reset${suffix}@example.test`;
-  await page
-    .getByLabel("Roster file")
-    .setInputFiles({
-      name: "reset-fixture.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(
-        `name,email,usn,batch\nReset Browser,${email},R${suffix},DEMO-CSE-A\n`,
-      ),
-    });
+  await page.getByLabel("Roster file").setInputFiles({
+    name: "reset-fixture.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(
+      `name,email,usn,batch\nReset Browser,${email},R${suffix},DEMO-CSE-A\n`,
+    ),
+  });
   await page
     .getByRole("button", { name: "Import roster", exact: true })
     .click();
