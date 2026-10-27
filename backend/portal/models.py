@@ -146,9 +146,7 @@ class ExamAttempt(models.Model):
         db_table = "exam_attempts"
         ordering = ["-started_at"]
         constraints = [
-            models.UniqueConstraint(
-                fields=["exam", "student"], name="unique_exam_attempt_per_student"
-            )
+            models.UniqueConstraint(fields=["exam", "student"], name="unique_exam_attempt_per_student")
         ]
 
 
@@ -162,9 +160,7 @@ class AttemptAnswer(models.Model):
     class Meta:
         db_table = "attempt_answers"
         constraints = [
-            models.UniqueConstraint(
-                fields=["attempt", "question"], name="unique_answer_per_attempt_question"
-            )
+            models.UniqueConstraint(fields=["attempt", "question"], name="unique_answer_per_attempt_question")
         ]
 
 
