@@ -1,4 +1,5 @@
 import uuid
+import django.utils.timezone
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -119,6 +120,52 @@ class ExamBatch(models.Model):
 
     class Meta:
         db_table = "exam_batches"
+
+
+class ExamAttempt(models.Model):
+    IN_PROGRESS = "IN_PROGRESS"
+    SUBMITTED = "SUBMITTED"
+    AUTO_SUBMITTED = "AUTO_SUBMITTED"
+    STATUS_CHOICES = [
+        (IN_PROGRESS, "In progress"),
+        (SUBMITTED, "Submitted"),
+        (AUTO_SUBMITTED, "Automatically submitted"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    exam = models.ForeignKey(Exam, on_delete=models.PROTECT, related_name="attempts")
+    student = models.ForeignKey(User, on_delete=models.PROTECT, related_name="exam_attempts")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=IN_PROGRESS)
+    started_at = models.DateTimeField(default=django.utils.timezone.now)
+    deadline_at = models.DateTimeField()
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    last_saved_at = models.DateTimeField(null=True, blank=True)
+    session_key = models.UUIDField(default=uuid.uuid4)
+
+    class Meta:
+        db_table = "exam_attempts"
+        ordering = ["-started_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["exam", "student"], name="unique_exam_attempt_per_student"
+            )
+        ]
+
+
+class AttemptAnswer(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    attempt = models.ForeignKey(ExamAttempt, on_delete=models.CASCADE, related_name="answers")
+    question = models.ForeignKey(Question, on_delete=models.PROTECT)
+    selected_option_id = models.UUIDField(null=True, blank=True)
+    saved_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "attempt_answers"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["attempt", "question"], name="unique_answer_per_attempt_question"
+            )
+        ]
 
 
 class ImmutableAuditQuerySet(models.QuerySet):
