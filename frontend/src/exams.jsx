@@ -574,7 +574,10 @@ function ExamAttemptRunner({ exam, onBack }) {
           setSessionId(saved.session_id);
           deadlineMonotonicAt.current =
             window.performance.now() +
-            Math.max(0, Date.parse(data.deadline_at) - Date.parse(data.server_now));
+            Math.max(
+              0,
+              Date.parse(data.deadline_at) - Date.parse(data.server_now),
+            );
           setAttempt(data);
         }
       } catch (e) {
@@ -590,7 +593,10 @@ function ExamAttemptRunner({ exam, onBack }) {
   }, [storageKey, exam.exam_id]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(window.performance.now()), 250);
+    const timer = window.setInterval(
+      () => setNow(window.performance.now()),
+      250,
+    );
     return () => window.clearInterval(timer);
   }, []);
 
@@ -632,14 +638,20 @@ function ExamAttemptRunner({ exam, onBack }) {
         lastError = e;
         const retryable = e.status === 0 || e.status === 429 || e.status >= 500;
         if (!retryable || attempt === 2) throw e;
-        await new Promise((resolve) => window.setTimeout(resolve, 250 * 2 ** attempt));
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, 250 * 2 ** attempt),
+        );
       }
     }
     throw lastError;
   }
 
   async function saveAnswer(questionId, optionId) {
-    if (!attempt || attempt.status !== "IN_PROGRESS" || savingAnswers[questionId]) {
+    if (
+      !attempt ||
+      attempt.status !== "IN_PROGRESS" ||
+      savingAnswers[questionId]
+    ) {
       return;
     }
     const question = attempt.questions.find((item) => item.id === questionId);
@@ -649,16 +661,21 @@ function ExamAttemptRunner({ exam, onBack }) {
     setAttempt((current) => ({
       ...current,
       questions: current.questions.map((item) =>
-        item.id === questionId ? { ...item, selected_option_id: optionId } : item,
+        item.id === questionId
+          ? { ...item, selected_option_id: optionId }
+          : item,
       ),
       answers: { ...current.answers, [questionId]: optionId },
     }));
     try {
-      const result = await requestWithRetry(`/attempts/${attempt.attempt_id}/answers`, {
-        method: "PATCH",
-        body: { question_id: questionId, option_id: optionId },
-        headers: { "X-Exam-Session": sessionId },
-      });
+      const result = await requestWithRetry(
+        `/attempts/${attempt.attempt_id}/answers`,
+        {
+          method: "PATCH",
+          body: { question_id: questionId, option_id: optionId },
+          headers: { "X-Exam-Session": sessionId },
+        },
+      );
       setAttempt((current) => ({ ...current, last_saved_at: result.saved_at }));
     } catch (e) {
       setAttempt((current) => ({
@@ -711,9 +728,13 @@ function ExamAttemptRunner({ exam, onBack }) {
       <section className="card padded">
         <div className="section-title">
           <h2>{exam.title}</h2>
-          <button className="quiet" onClick={onBack}>Back to exams</button>
+          <button className="quiet" onClick={onBack}>
+            Back to exams
+          </button>
         </div>
-        <p className="notice error" role="alert">{error}</p>
+        <p className="notice error" role="alert">
+          {error}
+        </p>
         <button className="secondary" onClick={() => window.location.reload()}>
           Retry this session
         </button>
@@ -729,14 +750,26 @@ function ExamAttemptRunner({ exam, onBack }) {
         <div>
           <p className="eyebrow">EXAM IN PROGRESS</p>
           <h1>{attempt.exam_title}</h1>
-          <p className="muted">Answers save to the server as you choose each option.</p>
+          <p className="muted">
+            Answers save to the server as you choose each option.
+          </p>
         </div>
-        <div className={remainingSeconds <= 60 && isOpen ? "timer urgent" : "timer"}>
+        <div
+          className={
+            remainingSeconds <= 60 && isOpen ? "timer urgent" : "timer"
+          }
+        >
           <span>Time remaining</span>
-          <strong aria-label={`Time remaining ${timerLabel}`}>{isOpen ? timerLabel : "—"}</strong>
+          <strong aria-label={`Time remaining ${timerLabel}`}>
+            {isOpen ? timerLabel : "—"}
+          </strong>
         </div>
       </div>
-      {saveError && <p className="notice error" role="alert">{saveError}</p>}
+      {saveError && (
+        <p className="notice error" role="alert">
+          {saveError}
+        </p>
+      )}
       <p className="hint" role="status" aria-live="polite">
         {Object.keys(savingAnswers).length
           ? "Saving answer…"
@@ -750,17 +783,28 @@ function ExamAttemptRunner({ exam, onBack }) {
           {attempt.status === "AUTO_SUBMITTED"
             ? "Time expired. Your attempt was automatically submitted."
             : "Your attempt has been submitted."}
-          <p>Answer editing is now locked. Evaluation and results will be provided in a later release.</p>
-          <button className="secondary" onClick={onBack}>Back to exams</button>
+          <p>
+            Answer editing is now locked. Evaluation and results will be
+            provided in a later release.
+          </p>
+          <button className="secondary" onClick={onBack}>
+            Back to exams
+          </button>
         </div>
       ) : (
         <>
           <div className="attempt-progress">
-            <strong>{attempt.questions.filter((q) => q.selected_option_id).length}</strong>
+            <strong>
+              {attempt.questions.filter((q) => q.selected_option_id).length}
+            </strong>
             <span>of {attempt.questions.length} answered</span>
           </div>
           {attempt.questions.map((question, index) => (
-            <fieldset className="attempt-question" key={question.id} disabled={!isOpen || !!savingAnswers[question.id]}>
+            <fieldset
+              className="attempt-question"
+              key={question.id}
+              disabled={!isOpen || !!savingAnswers[question.id]}
+            >
               <legend>
                 <span>Question {index + 1}</span>
                 <small>{question.marks} marks</small>
@@ -768,7 +812,14 @@ function ExamAttemptRunner({ exam, onBack }) {
               <p>{question.text}</p>
               <div className="attempt-options">
                 {question.options.map((option) => (
-                  <label key={option.id} className={question.selected_option_id === option.id ? "attempt-option selected" : "attempt-option"}>
+                  <label
+                    key={option.id}
+                    className={
+                      question.selected_option_id === option.id
+                        ? "attempt-option selected"
+                        : "attempt-option"
+                    }
+                  >
                     <input
                       type="radio"
                       name={`answer-${question.id}`}
@@ -781,25 +832,47 @@ function ExamAttemptRunner({ exam, onBack }) {
                 ))}
               </div>
               {question.selected_option_id && (
-                <button className="quiet" type="button" onClick={() => saveAnswer(question.id, null)}>
+                <button
+                  className="quiet"
+                  type="button"
+                  onClick={() => saveAnswer(question.id, null)}
+                >
                   Clear answer
                 </button>
               )}
             </fieldset>
           ))}
           {!submitPending ? (
-            <button className="primary" onClick={() => setSubmitPending(true)} disabled={submitting || Object.keys(savingAnswers).length > 0}>
+            <button
+              className="primary"
+              onClick={() => setSubmitPending(true)}
+              disabled={submitting || Object.keys(savingAnswers).length > 0}
+            >
               Submit exam
             </button>
           ) : (
-            <div className="notice" role="alertdialog" aria-labelledby="submit-confirm-title">
+            <div
+              className="notice"
+              role="alertdialog"
+              aria-labelledby="submit-confirm-title"
+            >
               <strong id="submit-confirm-title">Submit this exam?</strong>
-              <p>You will not be able to change your answers after submission.</p>
+              <p>
+                You will not be able to change your answers after submission.
+              </p>
               <div className="row-actions">
-                <button className="primary" onClick={submitAttempt} disabled={submitting}>
+                <button
+                  className="primary"
+                  onClick={submitAttempt}
+                  disabled={submitting}
+                >
                   {submitting ? "Submitting…" : "Confirm submission"}
                 </button>
-                <button className="secondary" onClick={() => setSubmitPending(false)} disabled={submitting}>
+                <button
+                  className="secondary"
+                  onClick={() => setSubmitPending(false)}
+                  disabled={submitting}
+                >
                   Keep working
                 </button>
               </div>
@@ -855,7 +928,10 @@ export function AvailableExams() {
                 {state.data.results.map((e) => {
                   let saved = null;
                   try {
-                    saved = JSON.parse(sessionStorage.getItem(`oep:attempt:${e.exam_id}`) || "null");
+                    saved = JSON.parse(
+                      sessionStorage.getItem(`oep:attempt:${e.exam_id}`) ||
+                        "null",
+                    );
                   } catch {
                     saved = null;
                   }
@@ -874,7 +950,10 @@ export function AvailableExams() {
                           ? "A saved attempt exists in this browser session."
                           : "Your answers will be saved as you work."}
                       </p>
-                      <button className="primary" onClick={() => setSelectedExam(e)}>
+                      <button
+                        className="primary"
+                        onClick={() => setSelectedExam(e)}
+                      >
                         {saved?.attempt_id ? "Continue exam" : "Start exam"}
                       </button>
                     </article>
