@@ -92,9 +92,7 @@ class ExamNotificationTests(TestCase):
         side_effect=[RuntimeError("provider secret must not be persisted"), None],
     )
     def test_failed_delivery_is_retried_without_storing_provider_message(self, send_mail_mock):
-        ExamNotification.objects.create(
-            student=self.student, exam=self.exam, notification_type="SCHEDULED"
-        )
+        ExamNotification.objects.create(student=self.student, exam=self.exam, notification_type="SCHEDULED")
         call_command("process_exam_notifications")
         notice = ExamNotification.objects.get(notification_type="SCHEDULED")
         self.assertEqual(notice.status, "FAILED")
