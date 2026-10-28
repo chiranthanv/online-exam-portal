@@ -411,7 +411,7 @@ class ExamAttemptAnswers(APIView):
             # commit the AUTO_SUBMITTED transition even though this write is rejected.
             return Response(
                 {
-                    "detail": "This attempt is already submitted; answers can no longer be changed.",
+                    "detail": "This attempt is closed; answers can no longer be changed.",
                     "status": attempt.status,
                 },
                 status=409,
