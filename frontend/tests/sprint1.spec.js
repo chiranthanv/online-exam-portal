@@ -284,3 +284,22 @@ test("email reset is usable once and lockout appears in the browser", async ({
     "Account temporarily locked",
   );
 });
+
+
+test("starting an exam does not trigger automatic submission before its server deadline", async ({ page }) => {
+  await login(page, "student");
+  const submissions = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && /\/api\/v1\/attempts\/[^/]+\/submit$/.test(request.url())) {
+      submissions.push(request.url());
+    }
+  });
+
+  await page.getByRole("button", { name: "Start exam", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Submit exam", exact: true })).toBeVisible();
+  const timer = page.locator(".timer strong");
+  await expect(timer).not.toHaveText("00:00");
+  await page.waitForTimeout(1200);
+  await expect(timer).not.toHaveText("00:00");
+  expect(submissions).toHaveLength(0);
+});
