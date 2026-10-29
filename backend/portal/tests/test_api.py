@@ -724,6 +724,71 @@ class PortalTests(TestCase):
             AuditLog.objects.filter(action="EXAM_ATTEMPT_SUBMITTED", target=attempt_id).count(), 1
         )
 
+    def test_terminal_attempts_preserve_saved_answers_and_timestamps(self):
+        result, _ = self.create_student_attempt()
+        data = result.json()
+        question = data["questions"][0]
+        url = f"/api/v1/attempts/{data['attempt_id']}/answers"
+        self.assertEqual(
+            self.client.patch(
+                url, {"question_id": question["id"], "option_id": question["options"][0]["id"]}, format="json"
+            ).status_code,
+            200,
+        )
+        before = AttemptAnswer.objects.get(attempt_id=data["attempt_id"])
+        saved_at = ExamAttempt.objects.get(pk=data["attempt_id"]).last_saved_at
+        for terminal in (ExamAttempt.SUBMITTED, ExamAttempt.AUTO_SUBMITTED, ExamAttempt.DISQUALIFIED):
+            with self.subTest(status=terminal):
+                ExamAttempt.objects.filter(pk=data["attempt_id"]).update(status=terminal)
+                for option in (None, question["options"][1]["id"]):
+                    rejected = self.client.patch(
+                        url, {"question_id": question["id"], "option_id": option}, format="json"
+                    )
+                    self.assertEqual(rejected.status_code, 409, rejected.content)
+                after = AttemptAnswer.objects.get(pk=before.pk)
+                self.assertEqual(after.selected_option_id, before.selected_option_id)
+                self.assertEqual(after.saved_at, before.saved_at)
+                attempt = ExamAttempt.objects.get(pk=data["attempt_id"])
+                self.assertEqual(attempt.last_saved_at, saved_at)
+                self.assertEqual(attempt.status, terminal)
+
+    def test_attempt_write_routes_reject_other_students_and_admins(self):
+        result, session = self.create_student_attempt()
+        data = result.json()
+        for user, expected in ((self.other, 404), (self.admin, 403)):
+            with self.subTest(role=user.role):
+                login = self.login(user)
+                self.client.credentials(
+                    HTTP_X_CSRFTOKEN=self.csrf,
+                    HTTP_AUTHORIZATION="Bearer " + login.json()["access_token"],
+                    HTTP_X_EXAM_SESSION=str(session),
+                )
+                rejected = self.client.patch(
+                    f"/api/v1/attempts/{data['attempt_id']}/answers",
+                    {
+                        "question_id": data["questions"][0]["id"],
+                        "option_id": None,
+                    },
+                    format="json",
+                )
+                self.assertEqual(rejected.status_code, expected, rejected.content)
+                rejected = self.client.post(
+                    f"/api/v1/attempts/{data['attempt_id']}/submit", {}, format="json"
+                )
+                self.assertEqual(rejected.status_code, expected, rejected.content)
+        self.assertFalse(AttemptAnswer.objects.filter(attempt_id=data["attempt_id"]).exists())
+        self.assertEqual(ExamAttempt.objects.get(pk=data["attempt_id"]).status, ExamAttempt.IN_PROGRESS)
+
+    def test_disqualified_attempt_cannot_be_reopened_by_student(self):
+        result, session = self.create_student_attempt()
+        pk = result.json()["attempt_id"]
+        ExamAttempt.objects.filter(pk=pk).update(status=ExamAttempt.DISQUALIFIED)
+        resumed = self.post(f"exams/{self.exam.id}/attempt", {"session_id": str(session)})
+        self.assertEqual(resumed.json()["status"], ExamAttempt.DISQUALIFIED)
+        submitted = self.client.post(f"/api/v1/attempts/{pk}/submit", {}, format="json")
+        self.assertEqual(submitted.json()["status"], ExamAttempt.DISQUALIFIED)
+        self.assertFalse(AuditLog.objects.filter(action="EXAM_ATTEMPT_SUBMITTED", target=pk).exists())
+
     def test_readiness_endpoint(self):
         self.assertEqual(self.client.get("/health").json(), {"status": "ok"})
 

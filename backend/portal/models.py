@@ -123,6 +123,7 @@ class ExamBatch(models.Model):
 
 
 class ExamAttempt(models.Model):
+    DISQUALIFIED = "DISQUALIFIED"
     IN_PROGRESS = "IN_PROGRESS"
     SUBMITTED = "SUBMITTED"
     AUTO_SUBMITTED = "AUTO_SUBMITTED"
@@ -130,6 +131,7 @@ class ExamAttempt(models.Model):
         (IN_PROGRESS, "In progress"),
         (SUBMITTED, "Submitted"),
         (AUTO_SUBMITTED, "Automatically submitted"),
+        (DISQUALIFIED, "Disqualified"),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
