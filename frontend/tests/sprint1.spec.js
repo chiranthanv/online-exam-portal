@@ -285,7 +285,6 @@ test("email reset is usable once and lockout appears in the browser", async ({
   );
 });
 
-
 test(
   "starting an exam does not trigger automatic submission before its server deadline",
   async ({ page }) => {
@@ -317,7 +316,9 @@ test(
   async ({ page }) => {
     await login(page, "student");
     let saveRequests = 0;
-    await page.route(/\/api\/v1\/attempts\/[^/]+\/answers$/, async (route) => {
+    await page.route(
+      /\/api\/v1\/attempts\/[^/]+\/answers$/,
+      async (route) => {
       if (route.request().method() === "PATCH" && saveRequests++ === 0) {
         await route.fulfill({
           status: 503,
@@ -341,9 +342,15 @@ test(
     await expect(
       page.getByRole("button", { name: "Continue exam", exact: true }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Continue exam", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Continue exam", exact: true })
+      .click();
     await expect(
-      page.locator("fieldset.attempt-question").first().getByRole("radio").first(),
+      page
+        .locator("fieldset.attempt-question")
+        .first()
+        .getByRole("radio")
+        .first(),
     ).toBeChecked();
   },
 );
