@@ -17,3 +17,6 @@ dist/
 frontend/test-results/
 frontend/playwright-report/
 frontend/demo-results/
+
+# Disposable benchmark output contains temporary credentials; never commit it.
+/performance-output/

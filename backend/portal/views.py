@@ -385,7 +385,7 @@ class ExamAttemptDetail(APIView):
     @transaction.atomic
     def get(self, request, pk):
         attempt = get_object_or_404(
-            ExamAttempt.objects.select_for_update().select_related("exam"),
+            ExamAttempt.objects.select_for_update(of=("self",)).select_related("exam"),
             pk=pk,
             student=request.user,
         )
@@ -400,7 +400,7 @@ class ExamAttemptAnswers(APIView):
     @transaction.atomic
     def patch(self, request, pk):
         attempt = get_object_or_404(
-            ExamAttempt.objects.select_for_update().select_related("exam"),
+            ExamAttempt.objects.select_for_update(of=("self",)).select_related("exam"),
             pk=pk,
             student=request.user,
         )
@@ -458,7 +458,7 @@ class ExamAttemptSubmit(APIView):
     @transaction.atomic
     def post(self, request, pk):
         attempt = get_object_or_404(
-            ExamAttempt.objects.select_for_update().select_related("exam"),
+            ExamAttempt.objects.select_for_update(of=("self",)).select_related("exam"),
             pk=pk,
             student=request.user,
         )
