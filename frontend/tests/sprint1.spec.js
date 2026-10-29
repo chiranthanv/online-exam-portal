@@ -311,3 +311,39 @@ test(
     expect(submissions).toHaveLength(0);
   },
 );
+
+test(
+  "retries a transient autosave failure and restores the saved answer after refresh",
+  async ({ page }) => {
+    await login(page, "student");
+    let saveRequests = 0;
+    await page.route(/\/api\/v1\/attempts\/[^/]+\/answers$/, async (route) => {
+      if (route.request().method() === "PATCH" && saveRequests++ === 0) {
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ detail: "Temporary test outage" }),
+        });
+        return;
+      }
+      await route.continue();
+    });
+
+    await page.getByRole("button", { name: "Start exam", exact: true }).click();
+    const firstQuestion = page.locator("fieldset.attempt-question").first();
+    await firstQuestion.getByRole("radio").first().check();
+    await expect(page.getByRole("status")).toContainText("Last saved", {
+      timeout: 10000,
+    });
+    expect(saveRequests).toBeGreaterThanOrEqual(2);
+
+    await page.reload();
+    await expect(
+      page.getByRole("button", { name: "Continue exam", exact: true }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Continue exam", exact: true }).click();
+    await expect(
+      page.locator("fieldset.attempt-question").first().getByRole("radio").first(),
+    ).toBeChecked();
+  },
+);
