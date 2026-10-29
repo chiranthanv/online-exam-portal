@@ -350,7 +350,7 @@ test("exam timer avoids premature submission and autosave survives a retry and r
   await page
     .getByRole("button", { name: "Confirm submission", exact: true })
     .click();
-  await expect(
-    page.getByText("Your attempt has been submitted.", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("status").last()).toContainText(
+    "Your attempt has been submitted.",
+  );
 });
