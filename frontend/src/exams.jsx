@@ -541,7 +541,7 @@ function ExamAttemptRunner({ exam, onBack }) {
   const [savingAnswers, setSavingAnswers] = useState({});
   const [submitPending, setSubmitPending] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => window.performance.now());
   const autoSubmitting = useRef(false);
   const deadlineMonotonicAt = useRef(null);
 
