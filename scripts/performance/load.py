@@ -71,6 +71,8 @@ def main():
             start = time.perf_counter()
             status, result, error = 0, None, None
             try:
+                # Explicit new transport per request: no retry and no stale idle socket.
+                clients[node].close()
                 clients[node].request(
                     method,
                     "/api/v1" + path,
@@ -79,6 +81,7 @@ def main():
                         "Authorization": "Bearer " + identity["token"],
                         "X-Exam-Session": identity["session"],
                         "Content-Type": "application/json",
+                        "Connection": "close",
                     },
                 )
                 response = clients[node].getresponse()

@@ -337,8 +337,13 @@ def _attempt_payload(attempt):
 class StudentExamAttempt(APIView):
     permission_classes = [IsStudent]
 
-    @transaction.atomic
     def post(self, request, pk):
+        attempt, response_status = self._open_attempt(request, pk)
+        # Serialize immutable exam content after releasing the shared exam lock.
+        return Response(_attempt_payload(attempt), status=response_status)
+
+    @transaction.atomic
+    def _open_attempt(self, request, pk):
         try:
             session_key = uuid.UUID(str(request.data.get("session_id", "")))
             header_session = uuid.UUID(request.headers.get("X-Exam-Session", ""))
@@ -359,7 +364,7 @@ class StudentExamAttempt(APIView):
             if session_key != attempt.session_key:
                 raise Conflict("An attempt already exists in another session for this exam.")
             _expire_attempt_if_due(attempt, now)
-            return Response(_attempt_payload(attempt))
+            return attempt, 200
 
         if not exam.start_time <= now < exam.end_time:
             raise ValidationError("This exam is outside its scheduled availability window.")
@@ -376,7 +381,7 @@ class StudentExamAttempt(APIView):
             deadline_at=deadline,
         )
         AuditLog.objects.create(actor=request.user, action="EXAM_ATTEMPT_STARTED", target=str(attempt.id))
-        return Response(_attempt_payload(attempt), status=201)
+        return attempt, 201
 
 
 class ExamAttemptDetail(APIView):

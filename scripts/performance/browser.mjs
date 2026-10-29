@@ -13,11 +13,16 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath));
 const browser = await chromium.launch({ headless: true });
 const samples = [];
 try {
-  for (const account of manifest.browser_accounts) {
+  await Promise.all(manifest.browser_accounts.map(async (account) => {
     const context = await browser.newContext(); // cold browser context, no cached credentials/assets
     const page = await context.newPage();
     const failures = [];
+    const unexpectedSubmissions = [];
+    page.on("request", (r) => {
+      if (new URL(r.url()).pathname.endsWith("/submit")) unexpectedSubmissions.push("UI submitted without a user submit action");
+    });
     page.on("pageerror", (e) => failures.push(e.message));
+    let beganAt = null;
     try {
       await page.goto(baseURL);
       await page.getByLabel("Email address").fill(account.email);
@@ -26,19 +31,21 @@ try {
       const card = page.locator("article").filter({ hasText: "[PERF] Current class" });
       const start = card.getByRole("button", { name: "Start exam", exact: true });
       await start.waitFor();
+      beganAt = new Date().toISOString();
       const began = performance.now();
       await start.click();
       await page.locator(".attempt-question").last().waitFor();
       await page.waitForFunction(() => document.querySelectorAll(".attempt-question").length === 50);
       const seconds = (performance.now() - began) / 1000;
+      await page.waitForTimeout(300); // reject transient render followed by premature auto-submit
       const count = await page.locator(".attempt-question").count();
-      samples.push({ seconds, question_count: count, errors: failures, ok: seconds < 2 && count === 50 && failures.length === 0 });
+      samples.push({ began_at_utc: beganAt, seconds, question_count: count, errors: failures, unexpected_submissions: unexpectedSubmissions, ok: seconds < 2 && count === 50 && failures.length === 0 && unexpectedSubmissions.length === 0 });
     } catch (e) {
-      samples.push({ ok: false, error: e.message, errors: failures });
+      samples.push({ began_at_utc: beganAt, ok: false, error: e.message, errors: failures, unexpected_submissions: unexpectedSubmissions, visible_status: await page.locator(".attempt-shell").innerText().catch(() => "No attempt UI") });
     } finally {
       await context.close();
     }
-  }
+  }));
 } finally {
   await browser.close();
   fs.writeFileSync(output, JSON.stringify({
