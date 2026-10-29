@@ -285,35 +285,21 @@ test("email reset is usable once and lockout appears in the browser", async ({
   );
 });
 
-test("starting an exam does not trigger automatic submission before its server deadline", async ({
+test("exam timer avoids premature submission and autosave survives a retry and refresh", async ({
   page,
 }) => {
   await login(page, "student");
   const submissions = [];
+  let captureSubmissions = true;
   page.on("request", (request) => {
     if (
+      captureSubmissions &&
       request.method() === "POST" &&
       /\/api\/v1\/attempts\/[^/]+\/submit$/.test(request.url())
     ) {
       submissions.push(request.url());
     }
   });
-
-  await page.getByRole("button", { name: "Start exam", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Submit exam", exact: true }),
-  ).toBeVisible();
-  const timer = page.locator(".timer strong");
-  await expect(timer).not.toHaveText("00:00");
-  await page.waitForTimeout(1200);
-  await expect(timer).not.toHaveText("00:00");
-  expect(submissions).toHaveLength(0);
-});
-
-test("retries a transient autosave failure and restores the saved answer after refresh", async ({
-  page,
-}) => {
-  await login(page, "student");
   let saveRequests = 0;
   await page.route(/\/api\/v1\/attempts\/[^/]+\/answers$/, async (route) => {
     if (route.request().method() === "PATCH" && saveRequests++ === 0) {
@@ -328,8 +314,17 @@ test("retries a transient autosave failure and restores the saved answer after r
   });
 
   await page.getByRole("button", { name: "Start exam", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Submit exam", exact: true }),
+  ).toBeVisible();
+  const timer = page.locator(".timer strong");
+  await expect(timer).not.toHaveText("00:00");
+  await page.waitForTimeout(1200);
+  await expect(timer).not.toHaveText("00:00");
+  expect(submissions).toHaveLength(0);
+
   const firstQuestion = page.locator("fieldset.attempt-question").first();
-  await firstQuestion.getByRole("radio").first().check();
+  await firstQuestion.getByRole("radio").first().click();
   await expect(page.getByRole("status")).toContainText("Last saved", {
     timeout: 10000,
   });
@@ -349,4 +344,13 @@ test("retries a transient autosave failure and restores the saved answer after r
       .getByRole("radio")
       .first(),
   ).toBeChecked();
+
+  captureSubmissions = false;
+  await page.getByRole("button", { name: "Submit exam", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Confirm submission", exact: true })
+    .click();
+  await expect(
+    page.getByText("Your attempt has been submitted.", { exact: true }),
+  ).toBeVisible();
 });
