@@ -293,7 +293,7 @@ test("starting an exam does not trigger automatic submission before its server d
   page.on("request", (request) => {
     if (
       request.method() === "POST" &&
-      /\\/api\\/v1\\/attempts\\/[^/]+\\/submit$/.test(request.url())
+      /\/api\/v1\/attempts\/[^/]+\/submit$/.test(request.url())
     ) {
       submissions.push(request.url());
     }
@@ -315,7 +315,7 @@ test("retries a transient autosave failure and restores the saved answer after r
 }) => {
   await login(page, "student");
   let saveRequests = 0;
-  await page.route(/\\/api\\/v1\\/attempts\\/[^/]+\\/answers$/, async (route) => {
+  await page.route(/\/api\/v1\/attempts\/[^/]+\/answers$/, async (route) => {
     if (route.request().method() === "PATCH" && saveRequests++ === 0) {
       await route.fulfill({
         status: 503,
