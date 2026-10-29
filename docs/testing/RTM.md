@@ -26,8 +26,8 @@ The authoritative sources are the committed SRS/SAD/Test Plan PDFs. Status disti
 | OEP-F-020 | #17 | Planned — Sprint 2; not implemented/tested | Future implementation and execution required |
 | OEP-F-021 | #17 | Planned — Sprint 2; not implemented/tested | Future implementation and execution required |
 | OEP-F-022 | #18 | Planned — Sprint 2; not implemented/tested | Future implementation and execution required |
-| OEP-NF-001 | #21 | Harness implemented; measured acceptance and review pending | [TC-Perf-01](performance/README.md), 200-student HTTP + real SPA timing |
-| OEP-NF-002 | #21 | Lock contention fix and two-node harness; measured acceptance/review pending | [Index/EXPLAIN and shared-state review](performance/README.md) |
+| OEP-NF-001 | #21 | API p95 passes; page acceptance blocked by premature UI submit; review pending | [TC-Perf-01](performance/README.md), 200-student HTTP + real SPA timing |
+| OEP-NF-002 | #21 | Two-instance persistence and attempt/response EXPLAIN pass; review pending | [Index/EXPLAIN and shared-state review](performance/README.md) |
 | OEP-NF-003 | #22 | Planned — Sprint 2; not implemented/tested | Future implementation and execution required |
 | OEP-NF-004 | #12 | Planned — Sprint 2; not implemented/tested | Future implementation and execution required |
 | OEP-NF-005 | #23 | Planned — Sprint 2; not implemented/tested | Future implementation and execution required |

@@ -8,8 +8,8 @@ and lookup index review. This benchmark measures those criteria separately and
 fails if any student fails a workflow, any operation's p95 exceeds 3 seconds,
 or any of five browser attempt openings takes 2 seconds or longer.
 
-Status on 29 October 2026: harness implemented; actual PostgreSQL/browser results
-must be read from the linked CI run and evidence, not inferred from unit tests.
+Status on 29 October 2026: measured API target passed; browser acceptance failed
+on a pre-existing premature-submit UI defect. See [actual results](RESULTS.md).
 Independent human review remains required. Day 1 PR #36 is still open; this branch
 starts at main 37812e6 and does not copy Day 1 changes. No availability claim is
 made by this short performance experiment.
@@ -52,11 +52,12 @@ credentials. Raw synthetic request timings contain no bearer tokens/passwords.
 - Requests alternate between two independent Gunicorn instances (each two worker
   processes, four threads each). A save on one node is read from the other.
   Both instances use the same PostgreSQL database and signing configuration.
-- Five additional browser identities open the actual built SPA using real login.
+- Five additional browser identities concurrently open the actual built SPA using real login.
   Chromium measures Start exam click until all 50 question fieldsets render.
   Login and initial shell navigation are excluded; this is the SPA's exam-opening
   interaction, not a cold full-page URL navigation. All five samples must be <2s.
-  Fresh browser contexts avoid persisted credentials/assets between probes.
+  Fresh browser contexts avoid persisted credentials/assets between probes. A 300ms
+  stability check rejects transient question rendering followed by unexpected submission.
 - The browser probes begin five seconds into the active load. Local HTTP excludes
   TLS, reverse-proxy overhead, WAN latency, mobile CPU, throttling and real client
   geography. Shared-runner variability makes a passing CI run evidence for this
@@ -93,7 +94,8 @@ only the attempt, preserving serialization for the same attempt while avoiding
 exam-wide contention between different students. A PostgreSQL regression holds
 an exam lock while a different connection reads an attempt, with a 500ms lock
 timeout; the old query fails that regression. Initial attempt creation still
-locks the exam to coordinate readiness/configuration and uniqueness. Its burst
+locks the exam to coordinate readiness/configuration and uniqueness, but payload
+serialization now happens after that transaction releases the exam lock. Its burst
 latency is measured separately; do not remove that safety boundary casually.
 
 Durable attempts, answers, session UUIDs, expiry and token blacklist/auth versions
@@ -111,7 +113,8 @@ failover and exam-window availability belong to Day 3, not this benchmark.
 ## Local verification and limitations
 
 Local run: 58 backend tests discovered, 54 passed and 4 PostgreSQL-only tests
-skipped. Ruff lint/format and migration consistency checks passed. Those skips
+skipped. Ruff lint/format and migration consistency checks passed. PostgreSQL CI then passed all 58 tests
+with 96% backend coverage. Those local skips
 are not concurrency/performance evidence. The local container has no PostgreSQL
 or Docker executable; its identity/group permissions prevent package installation.
 The dedicated GitHub CI service is the execution path for genuine PostgreSQL
