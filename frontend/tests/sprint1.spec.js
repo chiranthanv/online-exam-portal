@@ -319,16 +319,17 @@ test(
     await page.route(
       /\/api\/v1\/attempts\/[^/]+\/answers$/,
       async (route) => {
-      if (route.request().method() === "PATCH" && saveRequests++ === 0) {
-        await route.fulfill({
-          status: 503,
-          contentType: "application/json",
-          body: JSON.stringify({ detail: "Temporary test outage" }),
-        });
-        return;
-      }
-      await route.continue();
-    });
+        if (route.request().method() === "PATCH" && saveRequests++ === 0) {
+          await route.fulfill({
+            status: 503,
+            contentType: "application/json",
+            body: JSON.stringify({ detail: "Temporary test outage" }),
+          });
+          return;
+        }
+        await route.continue();
+      },
+    );
 
     await page.getByRole("button", { name: "Start exam", exact: true }).click();
     const firstQuestion = page.locator("fieldset.attempt-question").first();
