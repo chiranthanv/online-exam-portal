@@ -22,7 +22,7 @@ jobs:
           POSTGRES_DB: oep_perf_ci
         ports: ['5432:5432']
         options: >-
-          --health-cmd 'pg_isready -U portal -d oep_perf_ci'
+          --health-cmd "pg_isready -U portal -d oep_perf_ci"
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgres://portal:disposable-ci-only@localhost:5432/oep_perf_ci

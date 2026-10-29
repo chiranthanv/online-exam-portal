@@ -50,5 +50,6 @@ node scripts/performance/browser.mjs "$manifest" http://127.0.0.1:8001 "$out/bro
 load_status=0
 wait "$load_pid" || load_status=$?
 python backend/manage.py performance_explain --output "$out/explain.json"
+cat "$out/load-summary.log" "$out/browser.json"
 # Fail truthfully if either target failed. Evidence is still uploaded by CI.
 test "$load_status" -eq 0 && test "$browser_status" -eq 0
