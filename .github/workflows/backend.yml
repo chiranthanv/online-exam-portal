@@ -31,6 +31,8 @@ jobs:
           cache: pip
       - run: python -m pip install -r requirements-dev.txt
       - run: ruff check . && ruff format --check .
+      - name: Availability monitor accounting and HTTP probes
+        run: python -m unittest discover -s scripts -p 'test_monitor*.py' -v
       - run: python backend/manage.py makemigrations --check --dry-run
       - run: python backend/manage.py check
       - run: python backend/manage.py migrate --noinput

@@ -1,0 +1,16 @@
+{
+  "duration_seconds": 15.0,
+  "interval_seconds": 5.0,
+  "timeout_seconds": 2.0,
+  "samples": 3,
+  "failed_samples": 0,
+  "estimated_downtime_seconds": 0.0,
+  "sampled_availability_percent": 100.0,
+  "elapsed_seconds": 15.000134,
+  "maintenance_excluded_seconds": 0,
+  "scope": "External HTTP health probes; slot-weighted estimate, not continuous uptime or exam-flow proof",
+  "url": "http://127.0.0.1:8873/health",
+  "started_at_utc": "2026-10-30T05:56:10.843978+00:00",
+  "finished_at_utc": "2026-10-30T05:56:25.844311+00:00",
+  "meets_99_5_percent": true
+}
