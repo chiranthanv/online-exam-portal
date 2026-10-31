@@ -1,0 +1,58 @@
+{
+  "measured_at_utc": "2026-10-29T03:23:58.986Z",
+  "definition": "Start exam click to all 50 question fieldsets rendered in real SPA; login and initial shell navigation excluded",
+  "environment": "headless Chromium, desktop, loopback, no network/CPU throttling, no video",
+  "samples": [
+    {
+      "began_at_utc": "2026-10-29T03:23:28.912Z",
+      "seconds": 0.13751966399999993,
+      "question_count": 0,
+      "errors": [],
+      "unexpected_submissions": [
+        "UI submitted without a user submit action"
+      ],
+      "ok": false
+    },
+    {
+      "began_at_utc": "2026-10-29T03:23:28.908Z",
+      "seconds": 0.144680742,
+      "question_count": 0,
+      "errors": [],
+      "unexpected_submissions": [
+        "UI submitted without a user submit action"
+      ],
+      "ok": false
+    },
+    {
+      "began_at_utc": "2026-10-29T03:23:28.908Z",
+      "seconds": 0.15014563599999997,
+      "question_count": 0,
+      "errors": [],
+      "unexpected_submissions": [
+        "UI submitted without a user submit action"
+      ],
+      "ok": false
+    },
+    {
+      "began_at_utc": "2026-10-29T03:23:28.915Z",
+      "ok": false,
+      "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('.attempt-question').last() to be visible\n",
+      "errors": [],
+      "unexpected_submissions": [
+        "UI submitted without a user submit action"
+      ],
+      "visible_status": "EXAM IN PROGRESS\n\n[PERF] Current class\n\nAnswers save to the server as you choose each option.\n\nTime remaining\n—\n\nNo answers saved yet.\n\nYour attempt has been submitted.\n\nAnswer editing is now locked. Evaluation and results will be provided in a later release.\n\nBack to exams"
+    },
+    {
+      "began_at_utc": "2026-10-29T03:23:28.933Z",
+      "ok": false,
+      "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('.attempt-question').last() to be visible\n",
+      "errors": [],
+      "unexpected_submissions": [
+        "UI submitted without a user submit action"
+      ],
+      "visible_status": "EXAM IN PROGRESS\n\n[PERF] Current class\n\nAnswers save to the server as you choose each option.\n\nTime remaining\n—\n\nNo answers saved yet.\n\nYour attempt has been submitted.\n\nAnswer editing is now locked. Evaluation and results will be provided in a later release.\n\nBack to exams"
+    }
+  ],
+  "page_target_met": false
+}

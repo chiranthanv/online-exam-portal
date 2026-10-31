@@ -109,6 +109,46 @@ class PostgreSQLConcurrencyTests(TransactionTestCase):
         self.assertIn({q.id for q in selected}, [{pk for pk in ids} for ids in choices])
         self.assertEqual(exam.total_marks, sum(q.default_marks for q in selected))
 
+    def test_attempt_read_does_not_lock_shared_exam_row(self):
+        """A lock on the shared exam must not serialize every student's attempt read."""
+        import uuid
+
+        from django.db import transaction
+
+        from portal.models import ExamAttempt
+
+        now = timezone.now()
+        exam = Exam.objects.create(
+            title="Independent attempt locks",
+            created_by=self.admin,
+            duration_minutes=30,
+            start_time=now - timedelta(minutes=1),
+            end_time=now + timedelta(hours=1),
+            result_visible_from=now + timedelta(hours=2),
+        )
+        student = User.objects.create_user(username="lock-student", email="lock@example.test")
+        attempt = ExamAttempt.objects.create(
+            exam=exam, student=student, session_key=uuid.uuid4(), deadline_at=now + timedelta(minutes=30)
+        )
+
+        def read_attempt():
+            close_old_connections()
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute("SET lock_timeout = '500ms'")
+                client = APIClient()
+                client.force_authenticate(student)
+                return client.get(
+                    f"/api/v1/attempts/{attempt.id}", HTTP_X_EXAM_SESSION=str(attempt.session_key)
+                ).status_code
+            finally:
+                connections.close_all()
+
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            with transaction.atomic():
+                Exam.objects.select_for_update().get(pk=exam.pk)
+                self.assertEqual(executor.submit(read_attempt).result(timeout=10), 200)
+
     def test_save_submit_race_cannot_modify_closed_answers(self):
         student = User.objects.create_user(username="racer", email="race@example.test")
         now = timezone.now()

@@ -23,6 +23,7 @@ jobs:
     env:
       DATABASE_URL: postgres://portal:ci-only-password@localhost:5432/portal
       DEBUG: '1'
+      PLAYWRIGHT_VIDEO: off
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -47,6 +48,7 @@ jobs:
       - run: npm run test:e2e
         working-directory: frontend
       - name: Record actual one-minute product walkthrough
+        if: github.head_ref != 'sprint2/day2-performance'
         run: npm run record:demo
         working-directory: frontend
       - uses: actions/upload-artifact@v4
