@@ -1,6 +1,7 @@
 """Measure /health over a declared window; sampled availability is not an SLA."""
 
 import argparse
+import http.client
 import json
 import math
 import time
@@ -17,12 +18,17 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def health_url(base):
+    if any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in base):
+        raise ValueError("URL must not contain whitespace or control characters")
     parts = urllib.parse.urlsplit(base)
+    # Accessing port validates numeric syntax and range before evidence is created.
+    port = parts.port
     if (
         parts.scheme not in {"http", "https"}
         or not parts.hostname
-        or parts.username
-        or parts.password
+        or parts.username is not None
+        or parts.password is not None
+        or port == 0
         or parts.query
         or parts.fragment
     ):
@@ -38,7 +44,7 @@ def probe(url, timeout):
             body = response.read(4097)
             ok = response.status == 200 and len(body) <= 4096 and json.loads(body) == {"status": "ok"}
             return ok, "ok" if ok else "invalid_health_response"
-    except (OSError, ValueError, urllib.error.URLError) as exc:
+    except (OSError, ValueError, urllib.error.URLError, http.client.HTTPException) as exc:
         # Do not log response bodies, exception messages, credentials or headers.
         return False, type(exc).__name__
 
@@ -59,7 +65,8 @@ def measure(url, duration, interval, timeout, emit, clock=time.monotonic, sleep=
         ok, reason = check(url, budget) if budget > 0 else (False, "missed_sample")
         latency = clock() - before
         # A probe that overruns its slot cannot establish that slot's availability.
-        ok = ok and clock() <= start + offset + weight
+        if ok and clock() > start + offset + weight:
+            ok, reason = False, "slot_overrun"
         if not ok:
             downtime += weight
             failures += 1
@@ -122,7 +129,8 @@ def main():
             "meets_99_5_percent": result["sampled_availability_percent"] >= 99.5,
         }
     )
-    (args.output / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
+    with (args.output / "summary.json").open("x", encoding="utf-8") as summary:
+        summary.write(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
     return 0 if result["meets_99_5_percent"] else 1
 
