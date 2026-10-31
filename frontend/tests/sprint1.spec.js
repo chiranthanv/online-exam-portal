@@ -284,3 +284,73 @@ test("email reset is usable once and lockout appears in the browser", async ({
     "Account temporarily locked",
   );
 });
+
+test("exam timer avoids premature submission and autosave survives a retry and refresh", async ({
+  page,
+}) => {
+  await login(page, "student");
+  const submissions = [];
+  let captureSubmissions = true;
+  page.on("request", (request) => {
+    if (
+      captureSubmissions &&
+      request.method() === "POST" &&
+      /\/api\/v1\/attempts\/[^/]+\/submit$/.test(request.url())
+    ) {
+      submissions.push(request.url());
+    }
+  });
+  let saveRequests = 0;
+  await page.route(/\/api\/v1\/attempts\/[^/]+\/answers$/, async (route) => {
+    if (route.request().method() === "PATCH" && saveRequests++ === 0) {
+      await route.fulfill({
+        status: 503,
+        contentType: "application/json",
+        body: JSON.stringify({ detail: "Temporary test outage" }),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.getByRole("button", { name: "Start exam", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Submit exam", exact: true }),
+  ).toBeVisible();
+  const timer = page.locator(".timer strong");
+  await expect(timer).not.toHaveText("00:00");
+  await page.waitForTimeout(1200);
+  await expect(timer).not.toHaveText("00:00");
+  expect(submissions).toHaveLength(0);
+
+  const firstQuestion = page.locator("fieldset.attempt-question").first();
+  await firstQuestion.getByRole("radio").first().click();
+  await expect(page.getByRole("status")).toContainText("Last saved", {
+    timeout: 10000,
+  });
+  expect(saveRequests).toBeGreaterThanOrEqual(2);
+
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: "Continue exam", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Continue exam", exact: true })
+    .click();
+  await expect(
+    page
+      .locator("fieldset.attempt-question")
+      .first()
+      .getByRole("radio")
+      .first(),
+  ).toBeChecked();
+
+  captureSubmissions = false;
+  await page.getByRole("button", { name: "Submit exam", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Confirm submission", exact: true })
+    .click();
+  await expect(page.getByRole("status").last()).toContainText(
+    "Your attempt has been submitted.",
+  );
+});
