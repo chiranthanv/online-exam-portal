@@ -8,11 +8,16 @@ and lookup index review. This benchmark measures those criteria separately and
 fails if any student fails a workflow, any operation's p95 exceeds 3 seconds,
 or any of five browser attempt openings takes 2 seconds or longer.
 
-Status on 29 October 2026: measured API target passed; browser acceptance failed
-on a pre-existing premature-submit UI defect. See [actual results](RESULTS.md).
-Independent human review remains required. Day 1 PR #36 is still open; this branch
-starts at main 37812e6 and does not copy Day 1 changes. No availability claim is
-made by this short performance experiment.
+Status on 1 November 2026 IST: API and real-browser benchmark targets pass on the
+repaired branch. The earlier 29 October failure is retained as history. See
+[actual results](RESULTS.md) for measured revisions and environment limits.
+Independent human review remains required. The recovery update merges verified
+main 3ae652a, including response-integrity PR #36 and timer fixes #38/#39. Both
+the shared-exam-lock regression and the save/submit terminal-state race regression
+are retained. The 29 October results remain historical evidence, not a passing
+result for the updated code. See [recovery verification](RECOVERY.md) for current
+validation and outstanding acceptance. No availability claim is made by this
+short performance experiment.
 
 ## Reproduce on a disposable machine
 

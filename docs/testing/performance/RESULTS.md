@@ -1,4 +1,49 @@
-# Actual measurements — 29 October 2026
+# Actual performance measurements
+
+## Recovery run — 1 November 2026 IST
+
+**API and real-browser targets passed in the measured CI environment. Independent
+review, merge and final integrated-release verification remain pending.**
+
+- PR head: `ff666788a3fa795e2e19ce537f2bca1743d6b0e8`, incorporating main `3ae652a`.
+- Actual tested GitHub merge revision: `58d7e35d8f83b1ff297f70d388fc5863575ab0a8`.
+- [Passing benchmark run](https://github.com/chiranthanv/online-exam-portal/actions/runs/41229698332).
+- [Raw artifact](https://github.com/chiranthanv/online-exam-portal/actions/runs/41229698332/artifacts/13053127471), expires 30 November 2026, 18:32 UTC. ZIP SHA-256: `c28c998fa8404c50a5bba769a08eae464cade019afd406cf736d88d0aa683cb3`.
+- Workload began 31 October at 18:30:59 UTC / **1 November at 00:00:59 IST** and lasted 63.012 seconds.
+- **200/200 students completed, 3,000 HTTP requests, zero unexpected outcomes**;
+  50 questions, six save/recovery cycles, two independent loopback Gunicorn
+  instances sharing PostgreSQL 16.15, Python 3.11.17. Authentication throughput
+  excluded (pre-issued real JWTs); final closed writes correctly returned 409.
+
+| Operation | Requests | p95 seconds |
+|---|---:|---:|
+| Start | 200 | 1.761 |
+| Save | 1,200 | 0.153 |
+| Resume | 1,200 | 0.170 |
+| Submit | 200 | 0.285 |
+| Reject closed write | 200 | 0.240 |
+
+All five real Chromium attempt openings rendered all 50 questions in **0.123–0.140
+seconds**, with no page errors or unexpected submissions. The measurement is
+Start exam click to rendered questions; login and initial shell navigation are
+excluded. Browser probes run during the active workload, on desktop loopback
+without network/CPU throttling or video. This is not a full cold-site navigation
+measurement, a 200-real-browser test or a production-network capacity guarantee.
+
+The committed [API summary](evidence/2026-11-01/load-summary.json) and
+[browser samples](evidence/2026-11-01/browser.json) were extracted from the
+timestamped completed job log; they are not manually reconstructed success states.
+The raw artifact includes individual HTTP samples, query plans/index definitions,
+hardware and server logs; obtain it before expiry.
+
+[Backend CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/41229698342)
+passed **62 PostgreSQL tests, 96% portal coverage**, migration/deployment/TLS checks.
+[Frontend CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/41229698340)
+passed lint/build, **13 unit tests and six browser scenarios**. No demo video was
+recorded by that frontend run. These results bind to the measured revision above,
+not to future evaluation/reporting integration.
+
+## Historical run — 29 October 2026
 
 **Backend performance target passed in this environment. Overall BL-21 acceptance
 is blocked by a pre-existing exam UI timer defect and independent review.**
