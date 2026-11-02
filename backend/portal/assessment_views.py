@@ -45,11 +45,12 @@ def _export(request, title, fields, rows, filename):
         return response
     if kind == "pdf":
         try:
+            from xml.sax.saxutils import escape
+
             from reportlab.lib import colors
             from reportlab.lib.pagesizes import landscape, letter
             from reportlab.lib.styles import getSampleStyleSheet
             from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-            from xml.sax.saxutils import escape
         except ImportError as exc:
             raise ValidationError("PDF export dependency is not installed.") from exc
         buffer = BytesIO()
