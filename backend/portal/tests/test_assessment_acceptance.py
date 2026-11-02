@@ -207,3 +207,38 @@ class AssessmentAcceptanceTests(TestCase):
         audit = AuditLog.objects.filter(target=str(attempt.id)).latest("timestamp")
         self.assertEqual(audit.actor, self.admin)
         self.assertEqual(audit.action, "ATTEMPT_REPERMITTED")
+
+
+    def test_disqualified_result_and_report_are_hidden_until_repermitted(self):
+        attempt = self.make_attempt(self.students[0], status=ExamAttempt.SUBMITTED)
+        admin = self.admin_client()
+        override_url = f"/api/v1/admin/attempts/{attempt.id}/override"
+        disqualified = admin.post(
+            override_url,
+            {"disqualified": True, "reason": "Admin review pending"},
+            format="json",
+        )
+        self.assertEqual(disqualified.status_code, 200)
+        student = APIClient()
+        student.force_authenticate(self.students[0])
+        hidden_result = student.get(f"/api/v1/attempts/{attempt.id}/result")
+        self.assertEqual(hidden_result.status_code, 403)
+        hidden_report = admin.get(f"/api/v1/reports/class?exam_id={self.exam.id}")
+        self.assertNotIn(
+            str(attempt.id),
+            {row["attempt_id"] for row in hidden_report.data["results"]},
+        )
+
+        restored = admin.post(
+            override_url,
+            {"disqualified": False, "reason": ""},
+            format="json",
+        )
+        self.assertEqual(restored.status_code, 200)
+        visible_result = student.get(f"/api/v1/attempts/{attempt.id}/result")
+        self.assertEqual(visible_result.status_code, 200)
+        visible_report = admin.get(f"/api/v1/reports/class?exam_id={self.exam.id}")
+        self.assertIn(
+            str(attempt.id),
+            {row["attempt_id"] for row in visible_report.data["results"]},
+        )
