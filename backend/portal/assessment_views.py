@@ -41,27 +41,25 @@ def _report_rows(exam):
     ]
 
 
-def _csv_text(value):
-    if isinstance(value, str) and value.lstrip().startswith(("=", "+", "-", "@")):
-        return "'" + value
+def _safe_csv_cell(field, value):
+    """Neutralize spreadsheet formulas in untrusted textual report columns."""
+    if field not in {"student_name", "usn", "difficulty", "subject", "topic"}:
+        return value
+    text_value = str(value or "")
+    if text_value.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
+        return "'" + text_value
     return value
 
 
-def _export(request, title, fields, rows, filename, *, text_fields=()):
+def _export(request, title, fields, rows, filename):
     kind = request.query_params.get("export", "").lower()
     if kind == "csv":
         response = HttpResponse(content_type="text/csv; charset=utf-8")
         response["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
         writer = csv.DictWriter(response, fieldnames=fields)
         writer.writeheader()
-        # Escape user-controlled text only. Numeric scores/counts (including
-        # negative scores) and the shared JSON/PDF source rows stay unchanged.
         writer.writerows(
-            {
-                field: _csv_text(row.get(field, "")) if field in text_fields else row.get(field, "")
-                for field in fields
-            }
-            for row in rows
+            {field: _safe_csv_cell(field, row.get(field, "")) for field in fields} for row in rows
         )
         return response
     if kind == "pdf":
@@ -273,14 +271,7 @@ class AdminClassReport(APIView):
             raise ValidationError("Reports are unavailable until the scheduled result release.")
         fields = ["attempt_id", "student_id", "student_name", "usn", "score", "total_marks", "submitted_at"]
         rows = _report_rows(exam)
-        exported = _export(
-            request,
-            "Class report — " + exam.title,
-            fields,
-            rows,
-            "class-report",
-            text_fields=("student_name", "usn"),
-        )
+        exported = _export(request, "Class report — " + exam.title, fields, rows, "class-report")
         return exported or Response({"exam_id": str(exam.id), "results": rows})
 
 
@@ -338,12 +329,5 @@ class AdminQuestionReport(APIView):
             "incorrect",
             "unanswered",
         ]
-        exported = _export(
-            request,
-            "Question report — " + exam.title,
-            fields,
-            rows,
-            "question-report",
-            text_fields=("difficulty", "subject", "topic"),
-        )
+        exported = _export(request, "Question report — " + exam.title, fields, rows, "question-report")
         return exported or Response({"exam_id": str(exam.id), "results": rows})

@@ -74,6 +74,28 @@ PR #43 head's backend, frontend and benchmark passed separately:
 
 ## Remaining external/final gates
 
+### Concurrent main updates
+
+During the review, other authorized work merged PR #43 and subsequent fixes into
+main through `e053bc0dabe44b761fc38bb5fd39350a708f91e6`. That main now contains an
+equivalent CSV guard and baseline restoration, the post-fix Lighthouse CI runner,
+and Dwijesh's Clear-answer-during-save regression. The lead branch incorporates
+those updates, preserves main's canonical CSV implementation and both sets of
+regressions, and retains the new score-capacity migration and recording controls.
+The current audit-tool README includes main's newer CI usage notes; the original
+raw baseline data remains preserved. New CI is required on this reconciled head;
+the earlier 95-test result belongs to the pre-reconciliation lead head.
+
+That pre-reconciliation head `1afed21d7b5738309a6f98f001e12f182d658b00`
+passed [PostgreSQL/backend verification](https://github.com/chiranthanv/online-exam-portal/actions/runs/41481819748)
+(95 tests, including the maximum-penalty regression),
+[browser verification](https://github.com/chiranthanv/online-exam-portal/actions/runs/41481819778)
+and the [200-student benchmark](https://github.com/chiranthanv/online-exam-portal/actions/runs/41481819812).
+The recording step was explicitly skipped. After reconciliation, all 23 local
+assessment tests passed, Ruff lint/format passed (67 files), and both main's
+canonical CSV guard and the extra regression cases are retained. The combined
+head must receive its own CI rather than inheriting these earlier outcomes.
+
 - A real HTTPS/PostgreSQL deployment URL and published representative exam window
   have not been provided. SCRUM-31 remains blocked on those inputs; no >=99.5%
   representative acceptance is claimed.

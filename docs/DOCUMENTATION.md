@@ -2,7 +2,10 @@
 
 Checked 2 November 2026 against main `9ca18cdd021152d9b0822caf195712ae253aa437`,
 live GitHub PR/check metadata and the Jira backlog. This update covers repository
-documentation, not feature integration or release closeout. Closeout remains paused.
+documentation, not feature integration or release closeout. The later lead
+review resumed non-video closeout against main `e053bc0`; see the
+[lead review record](testing/LEAD_REVIEW_2026-11-02.md). The final recording and
+freeze remain pending actual readiness and operator approval.
 
 ## Current guides
 
@@ -10,7 +13,8 @@ documentation, not feature integration or release closeout. Closeout remains pau
 | --- | --- |
 | [Repository README](../README.md) | Project overview, interface preview, features, quick start, architecture and team |
 | [Development and deployment](DEVELOPMENT.md) | Detailed local/Docker setup, fixtures, workers, checks, browser launcher limits and deployment configuration |
-| [API contract](API.md) | Routes actually in main; proposed PR #43 APIs remain branch-specific |
+| [API contract](API.md) | Administrative, attempt and merged assessment/result/report/proctoring routes |
+| [Lead integration review](testing/LEAD_REVIEW_2026-11-02.md) | Review inputs, reproduced defects/fixes, exact verification scope and pre-video gates |
 | [Implementation deviations](DEVIATIONS.md) | Historical decisions plus current schema/lock/scoring/measurement differences from submitted baselines |
 | [Team handoff](TEAM_HANDOFF.md) | Current responsibilities and resolved Jira assignments; original Sprint 1 handoff retained below |
 | [Sprint 2 status](testing/SPRINT2_STATUS.md) | Exact merged revisions, inspected PR #43 head/checks, all 13 stories and remaining acceptance |
@@ -24,7 +28,7 @@ documentation, not feature integration or release closeout. Closeout remains pau
 | [Performance results](testing/performance/RESULTS.md) | Latest completed lead workflow outcomes plus preserved dated passing/failed measurements |
 | [Recovery record](testing/performance/RECOVERY.md) | Historical conflict/lock-regression recovery, with current merged-state note |
 | [Two-minute Sprint 2 run sheet](SPRINT2_DEMO.md) | Prepared final recording sequence; no final recording claimed or run during this update |
-| [Sprint 2 release procedure](SPRINT2_RELEASE.md) | Integration/acceptance prerequisites and future freeze procedure; currently paused |
+| [Sprint 2 release procedure](SPRINT2_RELEASE.md) | Acceptance prerequisites, explicit recording hold and final freeze procedure |
 | [This index](DOCUMENTATION.md) | Coverage of current guides, historical records and unchanged baseline/evidence files |
 
 ## Historical reports and recordings

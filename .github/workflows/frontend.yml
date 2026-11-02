@@ -54,6 +54,17 @@ jobs:
         working-directory: frontend
       - run: npm run test:e2e
         working-directory: frontend
+      - name: Run authenticated exam Lighthouse audit on disposable SQLite data
+        run: bash tools/accessibility/run-ci.sh
+        env:
+          AUDIT_OUTPUT: ${{ runner.temp }}/oep-authenticated-exam-accessibility
+      - name: Upload authenticated exam accessibility evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authenticated-exam-accessibility
+          path: ${{ runner.temp }}/oep-authenticated-exam-accessibility/
+          if-no-files-found: warn
       - name: Record actual one-minute product walkthrough
         if: github.event_name == 'workflow_dispatch' && inputs.record_demo
         run: npm run record:demo

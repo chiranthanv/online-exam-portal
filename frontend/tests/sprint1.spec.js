@@ -380,6 +380,34 @@ test("exam attempt keeps its timer visible, meets contrast and recovers pending 
     path: testInfo.outputPath("exam-attempt-desktop.png"),
   });
 
+  // Moving the device wall clock must not shorten or extend the server deadline.
+  const timer = page.locator(".attempt-sticky-bar .timer strong");
+  const toSeconds = (value) => {
+    const [minutes, seconds] = value.trim().split(":").map(Number);
+    return minutes * 60 + seconds;
+  };
+  const beforeClockChange = toSeconds(await timer.innerText());
+  await page.evaluate(() => {
+    const originalNow = Date.now.bind(Date);
+    Object.defineProperty(window, "__oepRestoreDateNow", {
+      configurable: true,
+      value: () => {
+        Date.now = originalNow;
+        delete window.__oepRestoreDateNow;
+      },
+    });
+    Date.now = () => originalNow() + 24 * 60 * 60 * 1000;
+  });
+  await page.waitForTimeout(350);
+  await expect(timer).not.toHaveText("00:00");
+  expect(submissions).toHaveLength(0);
+  await page.evaluate(() => window.__oepRestoreDateNow());
+  await expect
+    .poll(async () => toSeconds(await timer.innerText()), { timeout: 5000 })
+    .toBeLessThan(beforeClockChange);
+  await expect(timer).not.toHaveText("00:00");
+  expect(submissions).toHaveLength(0);
+
   // Focus/visibility events remain client-reported review signals.
   await page.evaluate(() => {
     Object.defineProperty(document, "visibilityState", {
@@ -396,6 +424,29 @@ test("exam attempt keeps its timer visible, meets contrast and recovers pending 
   const status = page.locator(".attempt-save-status [role='status']");
   const questions = page.locator("fieldset.attempt-question");
   const firstRadio = questions.nth(0).getByRole("radio").first();
+
+  // The clear control is outside the disabled fieldset; keep it disabled while
+  // the corresponding answer PATCH is in flight rather than silently dropping clicks.
+  const answerRoute = /\/api\/v1\/attempts\/[^/]+\/answers$/;
+  let releaseFirstSave;
+  const firstSaveGate = new Promise((resolve) => {
+    releaseFirstSave = resolve;
+  });
+  await page.route(answerRoute, async (route) => {
+    await firstSaveGate;
+    await route.continue();
+  });
+  await firstRadio.focus();
+  await page.keyboard.press("Space");
+  const clearButton = questions.nth(0).getByRole("button", {
+    name: "Clear answer",
+  });
+  await expect(clearButton).toBeVisible();
+  await expect(clearButton).toBeDisabled();
+  releaseFirstSave();
+  await expect(status).toContainText("Last saved", { timeout: 10000 });
+  await expect(clearButton).toBeEnabled();
+  await page.unroute(answerRoute);
 
   // Keyboard interaction is supported by the labelled radio group.
   await firstRadio.focus();

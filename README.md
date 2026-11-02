@@ -218,6 +218,7 @@ Follow the [deployment configuration guide](docs/DEVELOPMENT.md#deployment-confi
 | [API reference](docs/API.md) | Authentication, administrative routes and student attempt contract |
 | [Design decisions](docs/DEVIATIONS.md) | Implementation decisions and differences from the submitted baselines |
 | [Requirements traceability](docs/testing/RTM.md) | SRS requirements mapped to implementation and evidence |
+| [Dwijesh Sprint 2 acceptance evidence](docs/testing/SPRINT2_DWIJESH_ACCEPTANCE.md) | Current implementation, CI evidence and remaining acceptance limits for SCRUM-22/23/24/32 |
 | [Demonstration](docs/DEMO.md) | Recorded one-minute walkthrough with source and environment details |
 | [Implementation & release status](docs/testing/SPRINT2_STATUS.md) | Integrated scope, pending feature integration and acceptance requirements |
 
