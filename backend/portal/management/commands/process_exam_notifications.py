@@ -112,6 +112,6 @@ class Command(BaseCommand):
                 except Exception as exc:
                     item.status = ScheduledExamNotification.FAILED
                     item.last_error = type(exc).__name__[:120]
-                    item.due_at = timezone.now() + timedelta(minutes=min(2 ** item.attempts, 60))
+                    item.due_at = timezone.now() + timedelta(minutes=min(2**item.attempts, 60))
                 item.save(update_fields=["attempts", "status", "sent_at", "last_error", "due_at"])
         self.stdout.write(self.style.SUCCESS(f"Delivered {delivered}; failed {failed}."))
