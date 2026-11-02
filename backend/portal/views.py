@@ -488,9 +488,11 @@ class ExamAttemptSubmit(APIView):
             for answer in attempt.answers.select_related("question"):
                 if answer.selected_option_id is None:
                     continue
-                selected = Option.objects.filter(
-                    pk=answer.selected_option_id, question_id=answer.question_id
-                ).only("is_correct").first()
+                selected = (
+                    Option.objects.filter(pk=answer.selected_option_id, question_id=answer.question_id)
+                    .only("is_correct")
+                    .first()
+                )
                 if selected and selected.is_correct:
                     score += answer.question.default_marks
                 else:
@@ -501,7 +503,11 @@ class ExamAttemptSubmit(APIView):
             from .models import NotificationOutbox
             NotificationOutbox.objects.get_or_create(
                 dedupe_key="result:" + str(attempt.id),
-                defaults={"attempt": attempt, "recipient": request.user.email, "due_at": attempt.exam.result_visible_from},
+                defaults={
+                    "attempt": attempt,
+                    "recipient": request.user.email,
+                    "due_at": attempt.exam.result_visible_from,
+                },
             )
         return Response(_attempt_payload(attempt))
 
