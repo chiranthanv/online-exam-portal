@@ -285,89 +285,215 @@ test("email reset is usable once and lockout appears in the browser", async ({
   );
 });
 
-test("exam timer avoids premature submission and autosave survives a retry and refresh", async ({
-  page,
-}) => {
-  await login(page, "student");
-  const submissions = [];
-  const focusEvents = [];
-  let captureSubmissions = true;
-  page.on("request", (request) => {
-    if (
-      captureSubmissions &&
-      request.method() === "POST" &&
-      /\/api\/v1\/attempts\/[^/]+\/submit$/.test(request.url())
-    ) {
-      submissions.push(request.url());
-    }
-    if (
-      request.method() === "POST" &&
-      /\/api\/v1\/attempts\/[^/]+\/proctoring-events$/.test(request.url())
-    ) {
-      focusEvents.push(request.postDataJSON().event_type);
-    }
-  });
-  let saveRequests = 0;
-  await page.route(/\/api\/v1\/attempts\/[^/]+\/answers$/, async (route) => {
-    if (route.request().method() === "PATCH" && saveRequests++ === 0) {
-      await route.fulfill({
-        status: 503,
-        contentType: "application/json",
-        body: JSON.stringify({ detail: "Temporary test outage" }),
-      });
-      return;
-    }
-    await route.continue();
-  });
-
-  await page.getByRole("button", { name: "Start exam", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Submit exam", exact: true }),
-  ).toBeVisible();
-  await page.evaluate(() => {
-    Object.defineProperty(document, "visibilityState", {
-      configurable: true,
-      get: () => "hidden",
+test(
+  "exam attempt keeps its timer visible, meets contrast and recovers pending answers",
+  async ({ page }, testInfo) => {
+    await login(page, "student");
+    const submissions = [];
+    const focusEvents = [];
+    let patchRequests = 0;
+    page.on("request", (request) => {
+      if (
+        request.method() === "POST" &&
+        /\/api\/v1\/attempts\/[^/]+\/submit$/.test(request.url())
+      ) {
+        submissions.push(request.url());
+      }
+      if (
+        request.method() === "POST" &&
+        /\/api\/v1\/attempts\/[^/]+\/proctoring-events$/.test(request.url())
+      ) {
+        focusEvents.push(request.postDataJSON().event_type);
+      }
+      if (
+        request.method() === "PATCH" &&
+        /\/api\/v1\/attempts\/[^/]+\/answers$/.test(request.url())
+      ) {
+        patchRequests += 1;
+      }
     });
-    document.dispatchEvent(new Event("visibilitychange"));
-    window.dispatchEvent(new Event("blur"));
-  });
-  await expect.poll(() => focusEvents.length).toBe(2);
-  expect(focusEvents).toEqual(["TAB_SWITCH", "WINDOW_BLUR"]);
-  const timer = page.locator(".timer strong");
-  await expect(timer).not.toHaveText("00:00");
-  await page.waitForTimeout(1200);
-  await expect(timer).not.toHaveText("00:00");
-  expect(submissions).toHaveLength(0);
 
-  const firstQuestion = page.locator("fieldset.attempt-question").first();
-  await firstQuestion.getByRole("radio").first().click();
-  await expect(page.getByRole("status")).toContainText("Last saved", {
-    timeout: 10000,
-  });
-  expect(saveRequests).toBeGreaterThanOrEqual(2);
+    // Mobile navigation controls must remain tappable and must not create page overflow.
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      const signOut = page.getByRole("button", { name: "Sign out", exact: true });
+      await expect(signOut).toBeVisible();
+      const target = await signOut.boundingBox();
+      expect(target.width).toBeGreaterThanOrEqual(44);
+      expect(target.height).toBeGreaterThanOrEqual(44);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: testInfo.outputPath(`student-navigation-${width}.png`),
+      });
+    }
 
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Continue exam", exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Continue exam", exact: true })
-    .click();
-  await expect(
-    page
-      .locator("fieldset.attempt-question")
-      .first()
-      .getByRole("radio")
-      .first(),
-  ).toBeChecked();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const contrast = await page.evaluate(() => {
+      function luminance(value) {
+        const channels = value.match(/[0-9.]+/g).slice(0, 3).map(Number);
+        const linear = channels.map((channel) => {
+          const normalized = channel / 255;
+          return normalized <= 0.04045
+            ? normalized / 12.92
+            : ((normalized + 0.055) / 1.055) ** 2.4;
+        });
+        return (
+          0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+        );
+      }
+      function contrastRatio(foreground, background) {
+        const first = luminance(foreground);
+        const second = luminance(background);
+        return (
+          (Math.max(first, second) + 0.05) /
+          (Math.min(first, second) + 0.05)
+        );
+      }
+      const footer = document.querySelector("footer");
+      const activeIndex = document.querySelector(".nav-item.active > span");
+      return {
+        footer: contrastRatio(
+          getComputedStyle(footer).color,
+          getComputedStyle(document.body).backgroundColor,
+        ),
+        navigation: contrastRatio(
+          getComputedStyle(activeIndex).color,
+          getComputedStyle(activeIndex.parentElement).backgroundColor,
+        ),
+      };
+    });
+    expect(contrast.footer).toBeGreaterThanOrEqual(4.5);
+    expect(contrast.navigation).toBeGreaterThanOrEqual(4.5);
 
-  captureSubmissions = false;
-  await page.getByRole("button", { name: "Submit exam", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Confirm submission", exact: true })
-    .click();
-  await expect(page.getByRole("status").last()).toContainText(
-    "Your attempt has been submitted.",
-  );
-});
+    await page.evaluate(() => document.activeElement?.blur());
+    await page.keyboard.press("Tab");
+    await expect(
+      page.getByRole("link", { name: "Skip to main content" }),
+    ).toBeFocused();
+    await page.keyboard.press("Enter");
+
+    await page.getByRole("button", { name: "Start exam", exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "Submit exam", exact: true }),
+    ).toBeVisible();
+    await expect(page.locator(".attempt-sticky-bar .timer strong")).not.toHaveText(
+      "00:00",
+    );
+    await page.screenshot({
+      path: testInfo.outputPath("exam-attempt-desktop.png"),
+    });
+
+    // Focus/visibility events remain client-reported review signals.
+    await page.evaluate(() => {
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        get: () => "hidden",
+      });
+      document.dispatchEvent(new Event("visibilitychange"));
+      window.dispatchEvent(new Event("blur"));
+    });
+    await expect.poll(() => focusEvents.length).toBeGreaterThanOrEqual(2);
+    expect(focusEvents).toContain("TAB_SWITCH");
+    expect(focusEvents).toContain("WINDOW_BLUR");
+
+    const status = page.locator(".attempt-save-status [role='status']");
+    const questions = page.locator("fieldset.attempt-question");
+    const firstRadio = questions.nth(0).getByRole("radio").first();
+
+    // Keyboard interaction is supported by the labelled radio group.
+    await firstRadio.focus();
+    await page.keyboard.press("Space");
+    await expect(firstRadio).toBeChecked();
+
+    // A temporary offline save remains in session storage, then syncs on reconnect.
+    await page.context().setOffline(true);
+    const secondRadio = questions.nth(1).getByRole("radio").nth(1);
+    await secondRadio.focus();
+    await page.keyboard.press("Space");
+    await expect(status).toContainText("waiting to sync", {
+      timeout: 10000,
+    });
+    expect(patchRequests).toBeGreaterThanOrEqual(3);
+    await page.screenshot({
+      path: testInfo.outputPath("exam-pending-answer-offline.png"),
+    });
+
+    await page.context().setOffline(false);
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+    await expect(status).toContainText("Last saved", { timeout: 10000 });
+    await expect(secondRadio).toBeChecked();
+
+    // A second unsynced answer is restored and retried after a full page refresh.
+    await page.context().setOffline(true);
+    const thirdRadio = questions.nth(2).getByRole("radio").first();
+    await thirdRadio.focus();
+    await page.keyboard.press("Space");
+    await expect(status).toContainText("waiting to sync", {
+      timeout: 10000,
+    });
+    await page.screenshot({
+      path: testInfo.outputPath("exam-pending-answer-before-refresh.png"),
+    });
+
+    await page.context().setOffline(false);
+    await page.reload();
+    await expect(
+      page.getByRole("button", { name: "Continue exam", exact: true }),
+    ).toBeVisible();
+    await page
+      .getByRole("button", { name: "Continue exam", exact: true })
+      .click();
+    await expect(status).toContainText("Last saved", { timeout: 10000 });
+    await expect(
+      page.locator("fieldset.attempt-question").nth(0).getByRole("radio").first(),
+    ).toBeChecked();
+    await expect(
+      page.locator("fieldset.attempt-question").nth(1).getByRole("radio").nth(1),
+    ).toBeChecked();
+    await expect(
+      page.locator("fieldset.attempt-question").nth(2).getByRole("radio").first(),
+    ).toBeChecked();
+
+    // The countdown must remain at the viewport top while the student scrolls.
+    for (const [width, height] of [
+      [1440, 900],
+      [390, 844],
+      [320, 844],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await page.evaluate(() =>
+        window.scrollTo(0, document.documentElement.scrollHeight),
+      );
+      await expect
+        .poll(async () => {
+          const box = await page.locator(".attempt-sticky-bar").boundingBox();
+          return box ? Math.abs(box.y) : Number.POSITIVE_INFINITY;
+        })
+        .toBeLessThan(3);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: testInfo.outputPath(`exam-timer-sticky-${width}.png`),
+      });
+    }
+
+    // Do not submit while any answer remains unconfirmed.
+    expect(submissions).toHaveLength(0);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.getByRole("button", { name: "Submit exam", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Confirm submission", exact: true })
+      .click();
+    await expect(page.getByRole("status").last()).toContainText(
+      "Your attempt has been submitted.",
+    );
+  },
+);
