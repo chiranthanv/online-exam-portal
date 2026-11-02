@@ -427,7 +427,7 @@ test("exam attempt keeps its timer visible, meets contrast and recovers pending 
 
   // The clear control is outside the disabled fieldset; keep it disabled while
   // the corresponding answer PATCH is in flight rather than silently dropping clicks.
-  const answerRoute = /\\/api\\/v1\\/attempts\\/[^/]+\\/answers$/;
+  const answerRoute = /\/api\/v1\/attempts\/[^/]+\/answers$/;
   let releaseFirstSave;
   const firstSaveGate = new Promise((resolve) => {
     releaseFirstSave = resolve;
