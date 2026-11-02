@@ -41,6 +41,16 @@ def _report_rows(exam):
     ]
 
 
+def _safe_csv_cell(field, value):
+    """Neutralize spreadsheet formulas in untrusted textual report columns."""
+    if field not in {"student_name", "usn", "difficulty", "subject", "topic"}:
+        return value
+    text_value = str(value or "")
+    if text_value.lstrip(" \\t\\r\\n").startswith(("=", "+", "-", "@")):
+        return "'" + text_value
+    return value
+
+
 def _export(request, title, fields, rows, filename):
     kind = request.query_params.get("export", "").lower()
     if kind == "csv":
@@ -48,7 +58,10 @@ def _export(request, title, fields, rows, filename):
         response["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
         writer = csv.DictWriter(response, fieldnames=fields)
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(
+            {field: _safe_csv_cell(field, row.get(field, "")) for field in fields}
+            for row in rows
+        )
         return response
     if kind == "pdf":
         try:
