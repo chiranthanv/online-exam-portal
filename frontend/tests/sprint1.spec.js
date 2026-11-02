@@ -178,11 +178,11 @@ test("students see eligible exams only; API rejects admin access; mobile layout"
       })
     ).json();
     const forbidden = await fetch("/api/v1/questions", {
-      headers: { Authorization: `*** },
+      headers: { Authorization: `Bearer ${r.access_token}` },
     });
     const list = await (
       await fetch("/api/v1/exams/available", {
-        headers: { Authorization: `*** },
+        headers: { Authorization: `Bearer ${r.access_token}` },
       })
     ).json();
     return {
