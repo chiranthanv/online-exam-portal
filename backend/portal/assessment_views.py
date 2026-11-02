@@ -94,6 +94,8 @@ class AttemptResult(APIView):
             raise ValidationError("This attempt has not been submitted.")
         if attempt.status == ExamAttempt.DISQUALIFIED or attempt.disqualification_reason:
             return Response({"detail": "This result is withheld by an administrator."}, status=403)
+        if attempt.evaluated_at is None:
+            return Response({"detail": "The result is still being evaluated."}, status=409)
         if timezone.now() < attempt.exam.result_visible_from:
             return Response(
                 {

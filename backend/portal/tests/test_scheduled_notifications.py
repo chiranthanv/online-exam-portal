@@ -9,7 +9,6 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 from portal.models import (
-    AttemptAnswer,
     Batch,
     Exam,
     ExamAttempt,
