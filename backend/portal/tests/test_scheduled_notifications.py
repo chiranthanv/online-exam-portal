@@ -188,3 +188,48 @@ class ScheduledExamNotificationTests(TestCase):
             with self.assertRaises(KeyboardInterrupt):
                 call_command("run_notification_scheduler", interval=60)
         sleep.assert_called_once_with(59.0)
+
+
+    def test_repermit_requeues_result_notice_suppressed_during_disqualification(self):
+        now = timezone.now()
+        self.exam.result_visible_from = now - timedelta(minutes=1)
+        self.exam.save(update_fields=["result_visible_from"])
+        attempt = ExamAttempt.objects.create(
+            exam=self.exam,
+            student=self.students[0],
+            status=ExamAttempt.DISQUALIFIED,
+            deadline_at=now,
+            submitted_at=now,
+            evaluated_at=now,
+            score="10.00",
+            disqualification_reason="Reviewed proctoring evidence",
+            status_before_disqualification=ExamAttempt.SUBMITTED,
+        )
+        notice = NotificationOutbox.objects.create(
+            attempt=attempt,
+            recipient=self.students[0].email,
+            dedupe_key=f"result:{attempt.id}",
+            due_at=now,
+        )
+        call_command("process_exam_notifications")
+        notice.refresh_from_db()
+        self.assertEqual(notice.status, NotificationOutbox.SENT)
+        self.assertIn("Suppressed", notice.last_error)
+        self.assertEqual(mail.outbox, [])
+
+        client = APIClient()
+        client.force_authenticate(self.admin)
+        response = client.post(
+            f"/api/v1/admin/attempts/{attempt.id}/override",
+            {"disqualified": False, "reason": ""},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        notice.refresh_from_db()
+        self.assertEqual(notice.status, NotificationOutbox.PENDING)
+        self.assertEqual(notice.last_error, "")
+
+        call_command("process_exam_notifications")
+        notice.refresh_from_db()
+        self.assertEqual(notice.status, NotificationOutbox.SENT)
+        self.assertEqual(len(mail.outbox), 1)
