@@ -24,7 +24,7 @@ class Command(BaseCommand):
         for candidate in candidates:
             with transaction.atomic():
                 item = (
-                    NotificationOutbox.objects.select_for_update()
+                    NotificationOutbox.objects.select_for_update(of=("self",))
                     .select_related("attempt__exam", "attempt__student")
                     .get(pk=candidate.pk)
                 )
