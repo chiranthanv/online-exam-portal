@@ -171,3 +171,22 @@ class ScheduledExamNotificationTests(TestCase):
         with patch("portal.management.commands.run_notification_scheduler.call_command") as run_batch:
             call_command("run_notification_scheduler", once=True, interval=60)
         run_batch.assert_called_once_with("process_exam_notifications")
+
+
+    def test_notification_scheduler_uses_one_minute_start_cadence(self):
+        from unittest.mock import patch
+
+        with (
+            patch("portal.management.commands.run_notification_scheduler.call_command"),
+            patch(
+                "portal.management.commands.run_notification_scheduler.time.monotonic",
+                side_effect=[100.0, 101.0],
+            ),
+            patch(
+                "portal.management.commands.run_notification_scheduler.time.sleep",
+                side_effect=KeyboardInterrupt,
+            ) as sleep,
+        ):
+            with self.assertRaises(KeyboardInterrupt):
+                call_command("run_notification_scheduler", interval=60)
+        sleep.assert_called_once_with(59.0)
