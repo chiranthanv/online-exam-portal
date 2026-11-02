@@ -1,7 +1,7 @@
 name: Sprint 1 integrated frontend
 on:
   push:
-    branches: [main, 'sprint1/**']
+    branches: [main, 'sprint1/**', 'sprint2/**']
   pull_request:
     branches: [main, 'planning/**']
 permissions:
