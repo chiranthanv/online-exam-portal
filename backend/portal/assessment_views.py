@@ -213,8 +213,11 @@ class AdminAttemptOverride(APIView):
             attempt.overridden_by = request.user
             attempt.save(
                 update_fields=[
-                    "status", "status_before_disqualification", "disqualification_reason",
-                    "overridden_at", "overridden_by"
+                    "status",
+                    "status_before_disqualification",
+                    "disqualification_reason",
+                    "overridden_at",
+                    "overridden_by",
                 ]
             )
             AuditLog.objects.create(actor=request.user, action=action, target=str(attempt.id))
