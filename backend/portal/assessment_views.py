@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 
 from .models import AuditLog, Exam, ExamAttempt, ExamQuestion, NotificationOutbox, Option, ProctoringEvent
 from .permissions import IsAdmin, IsStudent
+from .views import _expire_attempt_if_due
 
 
 def _report_rows(exam):
@@ -126,8 +127,12 @@ class AttemptProctoringEvent(APIView):
         )
         if request.headers.get("X-Exam-Session") != str(attempt.session_key):
             return Response({"detail": "Invalid exam session."}, status=409)
+        _expire_attempt_if_due(attempt)
         if attempt.status != ExamAttempt.IN_PROGRESS:
-            raise ValidationError("Proctoring events are accepted only during an active attempt.")
+            return Response(
+                {"detail": "Proctoring events are accepted only during an active attempt."},
+                status=409,
+            )
         event_type = request.data.get("event_type")
         if event_type not in {ProctoringEvent.TAB_SWITCH, ProctoringEvent.WINDOW_BLUR}:
             raise ValidationError({"event_type": "Use TAB_SWITCH or WINDOW_BLUR."})
