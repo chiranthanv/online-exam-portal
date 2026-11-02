@@ -1,9 +1,11 @@
+from datetime import timedelta
+
 from django.core.mail import send_mail
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from portal.models import NotificationOutbox
+from portal.models import ExamBatch, NotificationOutbox, ScheduledExamNotification
 
 
 class Command(BaseCommand):
@@ -54,7 +56,53 @@ class Command(BaseCommand):
                     delivered += 1
                 except Exception as exc:
                     item.status = NotificationOutbox.FAILED
-                    item.last_error = str(exc)[:500]
+                    item.last_error = type(exc).__name__[:120]
+                    item.due_at = timezone.now() + timedelta(minutes=min(2 ** item.attempts, 60))
                     failed += 1
                 item.save(update_fields=["attempts", "status", "sent_at", "last_error"])
+
+        schedule_candidates = ScheduledExamNotification.objects.filter(
+            status__in=[ScheduledExamNotification.PENDING, ScheduledExamNotification.FAILED],
+            due_at__lte=timezone.now(),
+            attempts__lt=5,
+        ).order_by("due_at", "created_at")[:max(1, min(options["limit"], 500))]
+        for candidate in schedule_candidates:
+            with transaction.atomic():
+                item = (
+                    ScheduledExamNotification.objects.select_for_update()
+                    .select_related("exam", "student")
+                    .get(pk=candidate.pk)
+                )
+                if item.status in {ScheduledExamNotification.SENT, ScheduledExamNotification.CANCELLED}:
+                    continue
+                if item.due_at > timezone.now() or item.attempts >= 5:
+                    continue
+                if not ExamBatch.objects.filter(exam=item.exam, batch__students=item.student).exists():
+                    item.status = ScheduledExamNotification.CANCELLED
+                    item.last_error = "Suppressed: student is no longer assigned to this exam."
+                    item.save(update_fields=["status", "last_error"])
+                    continue
+                item.attempts += 1
+                try:
+                    send_mail(
+                        subject=f"Exam scheduled: {item.exam.title}",
+                        message=(
+                            f"An exam has been scheduled: {item.exam.title}.\\n"
+                            f"Start: {item.exam.start_time.isoformat()}\\n"
+                            f"End: {item.exam.end_time.isoformat()}\\n"
+                            f"Duration: {item.exam.duration_minutes} minutes.\\n"
+                            "Sign in to the exam portal for details."
+                        ),
+                        from_email=None,
+                        recipient_list=[item.recipient],
+                        fail_silently=False,
+                    )
+                    item.status = ScheduledExamNotification.SENT
+                    item.sent_at = timezone.now()
+                    item.last_error = ""
+                except Exception as exc:
+                    item.status = ScheduledExamNotification.FAILED
+                    item.last_error = type(exc).__name__[:120]
+                    item.due_at = timezone.now() + timedelta(minutes=min(2 ** item.attempts, 60))
+                item.save(update_fields=["attempts", "status", "sent_at", "last_error", "due_at"])
         self.stdout.write(self.style.SUCCESS(f"Delivered {delivered}; failed {failed}."))

@@ -249,3 +249,32 @@ class NotificationOutbox(models.Model):
     class Meta:
         db_table = "notification_outbox"
         ordering = ["due_at", "id"]
+
+
+class ScheduledExamNotification(models.Model):
+    PENDING = "PENDING"
+    SENT = "SENT"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+    STATUS_CHOICES = [
+        (PENDING, "Pending"),
+        (SENT, "Sent"),
+        (FAILED, "Failed"),
+        (CANCELLED, "Cancelled"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="scheduled_notifications")
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="scheduled_exam_notifications")
+    recipient = models.EmailField(max_length=150)
+    dedupe_key = models.CharField(max_length=200, unique=True)
+    due_at = models.DateTimeField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PENDING)
+    attempts = models.PositiveIntegerField(default=0)
+    last_error = models.CharField(max_length=500, blank=True, default="")
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "scheduled_exam_notifications"
+        ordering = ["due_at", "id"]

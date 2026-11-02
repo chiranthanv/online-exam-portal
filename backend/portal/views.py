@@ -25,6 +25,7 @@ from .models import (
     StudentBatch,
     User,
 )
+from .notifications import queue_scheduled_exam_notifications
 from .permissions import IsAdmin, IsStudent
 from .roster import import_roster
 from .serializers import (
@@ -105,9 +106,17 @@ class BatchStudents(APIView):
         if len(students) != len(ids):
             raise ValidationError("Every ID must identify an active student.")
         mapped = 0
+        newly_added = []
         for student in students:
             _, created = StudentBatch.objects.get_or_create(batch=batch, student=student)
             mapped += int(created)
+            if created:
+                newly_added.append(student)
+        now = timezone.now()
+        for assignment in ExamBatch.objects.filter(
+            batch=batch, exam__start_time__gt=now, exam__end_time__gt=now
+        ).select_related("exam"):
+            queue_scheduled_exam_notifications(assignment.exam, newly_added)
         AuditLog.objects.create(actor=request.user, action="BATCH_STUDENTS_ADDED", target=str(pk))
         return Response({"batch_id": str(pk), "mapped": mapped})
 
@@ -188,6 +197,10 @@ class ExamDetail(generics.RetrieveUpdateAPIView):
         if payload.validated_data.get("start_time", exam.start_time) <= timezone.now():
             raise ValidationError("Start time must remain in the future.")
         payload.save()
+        for batch in exam.batches.all():
+            queue_scheduled_exam_notifications(
+                exam, batch.students.filter(role="STUDENT", is_active=True)
+            )
         AuditLog.objects.create(actor=request.user, action="EXAM_UPDATED", target=str(exam.id))
         return Response(payload.data)
 
@@ -239,6 +252,10 @@ class ExamBatches(APIView):
         # Replace the assignment set atomically, matching question selection semantics.
         ExamBatch.objects.filter(exam=exam).delete()
         ExamBatch.objects.bulk_create([ExamBatch(exam=exam, batch=b) for b in batches])
+        for batch in batches:
+            queue_scheduled_exam_notifications(
+                exam, batch.students.filter(role="STUDENT", is_active=True)
+            )
         AuditLog.objects.create(actor=request.user, action="EXAM_BATCHES_SET", target=str(pk))
         return Response({"exam_id": str(pk), "batches_assigned": len(batches)})
 

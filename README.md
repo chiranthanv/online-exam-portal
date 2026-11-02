@@ -61,7 +61,7 @@ docker compose run --rm api python manage.py seed_demo
 docker compose up -d api worker
 ```
 
-Open **http://localhost:8000** for the compiled application. The `worker` service polls expired attempts once per second, scores and auto-submits them even if a browser is closed. Schedule `python backend/manage.py process_exam_notifications` at least once per minute after configuring SMTP to deliver result-release emails. For a non-Docker local run, start `python backend/manage.py expire_exam_attempts --loop --interval 1` in another terminal after migrations. `docker compose logs api` shows API startup status. `docker compose down` preserves the database volume. `docker compose down -v` deletes development data; use it only deliberately.
+Open **http://localhost:8000** for the compiled application. The `worker` service polls expired attempts once per second, scores and auto-submits them even if a browser is closed. Schedule `python backend/manage.py process_exam_notifications` at least once per minute after configuring SMTP to deliver scheduled-exam and result-release emails. For a non-Docker local run, start `python backend/manage.py expire_exam_attempts --loop --interval 1` in another terminal after migrations. `docker compose logs api` shows API startup status. `docker compose down` preserves the database volume. `docker compose down -v` deletes development data; use it only deliberately.
 
 ## Run checks
 
