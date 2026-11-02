@@ -20,12 +20,14 @@ class Command(BaseCommand):
             status__in=[NotificationOutbox.PENDING, NotificationOutbox.FAILED],
             due_at__lte=now,
             attempts__lt=5,
-        ).order_by("due_at")[:max(1, min(options["limit"], 500))]
+        ).order_by("due_at")[: max(1, min(options["limit"], 500))]
         for candidate in candidates:
             with transaction.atomic():
-                item = NotificationOutbox.objects.select_for_update().select_related(
-                    "attempt__exam", "attempt__student"
-                ).get(pk=candidate.pk)
+                item = (
+                    NotificationOutbox.objects.select_for_update()
+                    .select_related("attempt__exam", "attempt__student")
+                    .get(pk=candidate.pk)
+                )
                 if item.status == NotificationOutbox.SENT or item.due_at > timezone.now():
                     continue
                 item.attempts += 1
