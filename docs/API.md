@@ -143,8 +143,7 @@ The database enforces one attempt per exam/student and one saved answer per atte
 Answer PATCH is permitted only while status is `IN_PROGRESS`. `SUBMITTED`,
 `AUTO_SUBMITTED` and `DISQUALIFIED` reject answer changes with HTTP 409 and retain
 stored answers/timestamps. A repeated submit does not reopen a closed attempt.
-The performance candidate locks only the attempt row for detail/save/submit, not
-the joined shared exam row; retain that scope when adding evaluation.
+The integrated evaluator retains the narrow attempt-row lock for detail/save/submit/expiry; it does not lock the shared exam row during evaluation. The exam row is locked only while creating the one-per-student attempt. This preserves the PostgreSQL contention/race guarantees.
 
 For automatic submission when the browser is closed, keep the deadline worker running:
 
@@ -153,6 +152,8 @@ python backend/manage.py expire_exam_attempts --loop --interval 1
 ```
 
 The Docker Compose `worker` service runs that command for container deployments. It persists auto-submission even without a browser request. The poll interval means scheduled closure can lag the exact deadline by up to approximately one poll interval plus processing delay. An environment that does not run this worker (or an equivalent scheduler) can still enforce the deadline on a subsequent API request, but cannot promise immediate database state transition while all clients are disconnected.
+
+Migration `0005` backfills scores and `evaluated_at` for pre-existing `SUBMITTED`, `AUTO_SUBMITTED` and `DISQUALIFIED` attempts using their persisted answers. It queues a deduplicated result notification for previously submitted attempts that are not disqualified; disqualified attempts remain withheld. Migrations `0006`–`0007` add scheduled notifications and the prior-status field used by re-permission.
 
 Scoring and timed result release are implemented against `ExamAttempt` in [PR #43](https://github.com/chiranthanv/online-exam-portal/pull/43). The notification batch command is `python backend/manage.py process_exam_notifications`. Docker Compose wires the `scheduler` service to run it every 60 seconds using `python backend/manage.py run_notification_scheduler --interval 60`; for non-Docker deployments, run that scheduler command under the process supervisor. The default local file-email backend only writes files and does not prove SMTP delivery. Configure real SMTP and verify a controlled mailbox before claiming delivery. PR #41 already records a real-browser Lighthouse audit
 (96 desktop, 91 at both mobile widths); contrast and countdown visibility fail.
