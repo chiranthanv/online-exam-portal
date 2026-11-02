@@ -133,10 +133,10 @@ These endpoints were integrated through PR #35 and subsequent response-lock/time
 | POST `/attempts/{attempt_id}/proctoring-events` | Record a focus/visibility signal | Student owner + `X-Exam-Session`; event type `TAB_SWITCH` or `WINDOW_BLUR`. Each observation is stored separately; these client-reported signals are not proof of misconduct. A late event triggers the normal expiry/evaluation path and is rejected with HTTP 409. |
 | GET `/admin/attempts?exam_id={id}` | Review attempts and proctoring events | Admin only; returns status, score and attributable client-reported events. |
 | POST `/admin/attempts/{attempt_id}/override` | Disqualify or re-permit a terminal attempt | Admin only; JSON `{disqualified:boolean,reason:string}`; a reason is required for disqualification and every action is audited. |
- 
-A disqualification hides the result from the student and excludes the attempt from both reports. Re-permission restores the prior `SUBMITTED`/`AUTO_SUBMITTED` state and makes the result/report eligible again; a result notification suppressed while disqualified is requeued, while an already delivered notification is not resent.
 | GET `/reports/class?exam_id={id}` | Class-level results | Admin only; scheduled release required. `export=csv` or `export=pdf` downloads a matching export. |
 | GET `/reports/questions?exam_id={id}` | Question-level performance summary | Admin only; scheduled release required. `export=csv` or `export=pdf` downloads a matching export. |
+
+A disqualification hides the result from the student and excludes the attempt from both reports. Re-permission restores the prior `SUBMITTED`/`AUTO_SUBMITTED` state and makes the result/report eligible again; a result notification suppressed while disqualified is requeued, while an already delivered notification is not resent.
 
 The database enforces one attempt per exam/student and one saved answer per attempt/question. The exam row is locked when creating an attempt; the attempt row is locked during answer writes, resume/expiry and submission. A new browser session ID cannot resume an existing attempt. The deadline is calculated by the server as the earlier of `started_at + duration_minutes` and `exam.end_time`. Browser time is only used to render a countdown; writes after the deadline are rejected by the server.
 
