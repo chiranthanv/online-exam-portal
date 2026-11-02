@@ -1,7 +1,7 @@
 name: Disposable 200-student performance
 on:
   pull_request:
-    branches: [main]
+    branches: [main, 'sprint2/**']
     paths:
       - 'scripts/performance/**'
       - 'backend/**'

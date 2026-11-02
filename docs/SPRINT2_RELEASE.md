@@ -1,10 +1,12 @@
 # Sprint 2 lead release procedure
 
-This procedure is ready to execute once the remaining owners deliver. It does not
-declare a freeze. The candidate includes Chiranthan's response integrity,
-performance and availability tools plus Harkirat's current-schema feature
-integration in PR #43. Independent review, Dwijesh's accessibility/recovery
-handoff, real SMTP verification and lead-owned release gates remain open.
+This procedure does not declare a freeze. Harkirat's current-schema PR #43 and
+Dwijesh's existing UI/verification work are now integrated in main. The lead
+review adds the score-capacity migration, extra report regressions, retained
+historical evidence and explicit recording controls; see the [review record](testing/LEAD_REVIEW_2026-11-02.md).
+Representative deployment availability, controlled-mailbox SMTP and remaining
+manual/independent acceptance are still separate gates. The final video is held
+at Chiranthan's explicit request: report readiness before starting any recording.
 See [current status](testing/SPRINT2_STATUS.md) and [teammate tasks](planning/SPRINT2_TEAM_TASKS.md).
 
 ## Integration prerequisites
@@ -12,8 +14,9 @@ See [current status](testing/SPRINT2_STATUS.md) and [teammate tasks](planning/SP
 - Teammate PRs target the current attempt schema, preserve existing rows and include
   required migrations. Harkirat's current-schema feature integration is in PR #43;
   independent review and final integrated UI acceptance remain required.
-- Real reviewers record findings/approval. PR #37 and #40 currently have no submitted
-  reviews. Use a reviewed isolated candidate; do not touch another checkout's active merge.
+- Real reviewers record findings/approval. Existing review comments are evidence
+  of their stated scope, not automatic full-product approval. Use a reviewed
+  isolated candidate; do not touch another checkout's active merge.
 - Run only against a fresh disposable database for demo/verification. Back up any real
   database before migrations. Never seed or reset production data for a demo.
 - Keep an exact source revision, environment record and source patch if uncommitted.

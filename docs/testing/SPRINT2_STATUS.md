@@ -1,6 +1,13 @@
 # Sprint 2 implementation and release status
 
 Owner: Chiranthan V. This is a closeout candidate, not a frozen release.
+
+Latest lead review reconciles main `e053bc0dabe44b761fc38bb5fd39350a708f91e6`,
+including Harkirat's integration and Dwijesh's existing Clear-answer fix. The
+[review record](LEAD_REVIEW_2026-11-02.md) tracks the additional score-capacity
+migration, CSV regressions and video-free verification. The final recording is
+explicitly held until Chiranthan is informed that the preceding work is ready.
+Older revision/check statements below remain snapshots for their named heads.
 Lead closeout [PR #42](https://github.com/chiranthanv/online-exam-portal/pull/42), current-schema integration [PR #43](https://github.com/chiranthanv/online-exam-portal/pull/43), CSV/historical-evidence follow-up [PR #48](https://github.com/chiranthanv/online-exam-portal/pull/48), and Dwijesh closeout/accessibility CI PRs [#50](https://github.com/chiranthanv/online-exam-portal/pull/50), [#51](https://github.com/chiranthanv/online-exam-portal/pull/51) and [#52](https://github.com/chiranthanv/online-exam-portal/pull/52) are merged. Current main is `8f9aaf131e4b4d719bfd445ff1d5f2a2bfbba6ee`; its backend and integrated frontend workflows pass: [backend](https://github.com/chiranthanv/online-exam-portal/actions/runs/41468322173), [frontend](https://github.com/chiranthanv/online-exam-portal/actions/runs/41468322243).
 The supplied course screenshot confirms Sprint 2 as **26–30 October 2026** and
 requires implemented sprint items, a two-minute working-product video, complete

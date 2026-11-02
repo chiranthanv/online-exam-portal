@@ -4,6 +4,13 @@ on:
     branches: [main, 'sprint1/**', 'sprint2/**']
   pull_request:
     branches: [main, 'planning/**', 'sprint2/**']
+  workflow_dispatch:
+    inputs:
+      record_demo:
+        description: 'Record the historical one-minute walkthrough (only after operator approval)'
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: read
 jobs:
@@ -23,7 +30,7 @@ jobs:
     env:
       DATABASE_URL: postgres://portal:ci-only-password@localhost:5432/portal
       DEBUG: '1'
-      PLAYWRIGHT_VIDEO: off
+      PLAYWRIGHT_VIDEO: 'off'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -59,7 +66,7 @@ jobs:
           path: ${{ runner.temp }}/oep-authenticated-exam-accessibility/
           if-no-files-found: warn
       - name: Record actual one-minute product walkthrough
-        if: github.head_ref != 'sprint2/day2-performance'
+        if: github.event_name == 'workflow_dispatch' && inputs.record_demo
         run: npm run record:demo
         working-directory: frontend
       - uses: actions/upload-artifact@v4
