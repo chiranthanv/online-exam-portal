@@ -487,5 +487,17 @@ test(
     await expect(page.getByRole("status").last()).toContainText(
       "Your attempt has been submitted.",
     );
+
+    const resultRequest = page.waitForResponse(
+      (response) =>
+        /\/api\/v1\/attempts\/[^/]+\/result$/.test(response.url()) &&
+        response.request().method() === "GET",
+    );
+    await page.getByRole("button", { name: "Check result", exact: true }).click();
+    const resultResponse = await resultRequest;
+    expect(resultResponse.status()).toBe(403);
+    await expect(page.getByRole("status").last()).toContainText(
+      "Results are not released yet.",
+    );
   },
 );
