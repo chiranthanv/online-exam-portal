@@ -533,6 +533,7 @@ export function Exams() {
 
 function ExamAttemptRunner({ exam, onBack }) {
   const storageKey = `oep:attempt:${exam.exam_id}`;
+  const pendingStorageKey = `oep:pending:${exam.exam_id}`;
   const [attempt, setAttempt] = useState(null);
   const [sessionId, setSessionId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -541,11 +542,30 @@ function ExamAttemptRunner({ exam, onBack }) {
   const [result, setResult] = useState(null);
   const [resultMessage, setResultMessage] = useState("");
   const [savingAnswers, setSavingAnswers] = useState({});
+  const [pendingAnswers, setPendingAnswers] = useState({});
   const [submitPending, setSubmitPending] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [now, setNow] = useState(() => window.performance.now());
   const autoSubmitting = useRef(false);
   const deadlineMonotonicAt = useRef(null);
+  const pendingAnswersRef = useRef({});
+  const savingAnswersRef = useRef(new Set());
+  const syncingPendingRef = useRef(false);
+
+  function storePendingAnswers(nextOrUpdate) {
+    const next =
+      typeof nextOrUpdate === "function"
+        ? nextOrUpdate(pendingAnswersRef.current)
+        : nextOrUpdate;
+    pendingAnswersRef.current = next;
+    setPendingAnswers(next);
+    if (Object.keys(next).length) {
+      sessionStorage.setItem(pendingStorageKey, JSON.stringify(next));
+    } else {
+      sessionStorage.removeItem(pendingStorageKey);
+    }
+    return next;
+  }
 
   useEffect(() => {
     let active = true;
@@ -572,7 +592,33 @@ function ExamAttemptRunner({ exam, onBack }) {
             });
         saved.attempt_id = data.attempt_id;
         sessionStorage.setItem(storageKey, JSON.stringify(saved));
+        let pending = {};
+        try {
+          const parsed = JSON.parse(
+            sessionStorage.getItem(pendingStorageKey) || "{}",
+          );
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            pending = parsed;
+          }
+        } catch {
+          pending = {};
+        }
+        const validPending = Object.fromEntries(
+          Object.entries(pending).filter(([questionId, optionId]) => {
+            const question = data.questions.find(
+              (item) => item.id === questionId,
+            );
+            return (
+              question &&
+              (optionId === null ||
+                question.options.some((option) => option.id === optionId))
+            );
+          }),
+        );
         if (active) {
+          storePendingAnswers(
+            data.status === "IN_PROGRESS" ? validPending : {},
+          );
           setSessionId(saved.session_id);
           deadlineMonotonicAt.current =
             window.performance.now() +
@@ -580,7 +626,33 @@ function ExamAttemptRunner({ exam, onBack }) {
               0,
               Date.parse(data.deadline_at) - Date.parse(data.server_now),
             );
-          setAttempt(data);
+          const restored =
+            data.status === "IN_PROGRESS" && Object.keys(validPending).length
+              ? {
+                  ...data,
+                  questions: data.questions.map((question) =>
+                    Object.prototype.hasOwnProperty.call(
+                      validPending,
+                      question.id,
+                    )
+                      ? {
+                          ...question,
+                          selected_option_id: validPending[question.id],
+                        }
+                      : question,
+                  ),
+                  answers: { ...data.answers, ...validPending },
+                }
+              : data;
+          setAttempt(restored);
+          if (
+            data.status !== "IN_PROGRESS" &&
+            Object.keys(pending).length
+          ) {
+            setSaveError(
+              "The exam is closed. An answer that was waiting to sync was not saved.",
+            );
+          }
         }
       } catch (e) {
         if (active) setError(e.message);
