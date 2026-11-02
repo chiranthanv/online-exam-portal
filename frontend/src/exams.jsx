@@ -825,26 +825,32 @@ function ExamAttemptRunner({ exam, onBack }) {
             {
               method: "PATCH",
               body: { question_id: questionId, option_id: optionId },
-                },
+            },
           );
-          storePendingAnswers((current) => {
-            if (
-              !Object.prototype.hasOwnProperty.call(current, questionId) ||
-              current[questionId] !== optionId
-            ) {
-              return current;
-            }
-            const next = { ...current };
-            delete next[questionId];
-            return next;
-          });
+          try {
+            await storePendingAnswers((current) => {
+              if (
+                !Object.prototype.hasOwnProperty.call(current, questionId) ||
+                current[questionId] !== optionId
+              ) {
+                return current;
+              }
+              const next = { ...current };
+              delete next[questionId];
+              return next;
+            });
+          } catch {
+            setSaveError(
+              "The server confirmed a pending answer, but local recovery cleanup failed. It may be retried after reopening.",
+            );
+          }
           setAttempt((current) =>
             current ? { ...current, last_saved_at: result.saved_at } : current,
           );
         } catch (e) {
           setSaveError(
             e.status === 0
-              ? "Connection unavailable. Your answer is stored in this tab and will retry when you reconnect."
+              ? "Connection unavailable. Your answer is stored on this device and will retry when you reconnect; the server has not confirmed it yet."
               : `Could not sync a pending answer: ${e.message}`,
           );
           if (e.status === 409) {
@@ -854,7 +860,7 @@ function ExamAttemptRunner({ exam, onBack }) {
               );
               setAttempt(latest);
               if (latest.status !== "IN_PROGRESS") {
-                storePendingAnswers({});
+                await storePendingAnswers({});
                 setSaveError(
                   "The exam closed before the pending answers reached the server. Those answers were not saved.",
                 );
