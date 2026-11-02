@@ -41,6 +41,13 @@ jobs:
           .venv/bin/python backend/manage.py seed_demo
       - run: npm ci
         working-directory: frontend
+      - name: Format integration UI and print encoded sources
+        run: |
+          npx prettier --write src/api.js src/exams.jsx src/reports.jsx
+          base64 -w0 src/api.js; echo __API_END__
+          base64 -w0 src/exams.jsx; echo __EXAMS_END__
+          base64 -w0 src/reports.jsx; echo __REPORTS_END__
+        working-directory: frontend
       - run: npm run lint && npm test && npm run build
         working-directory: frontend
       - run: npx playwright install --with-deps chromium
