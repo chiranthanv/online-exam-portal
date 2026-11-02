@@ -208,7 +208,6 @@ class AssessmentAcceptanceTests(TestCase):
         self.assertEqual(audit.actor, self.admin)
         self.assertEqual(audit.action, "ATTEMPT_REPERMITTED")
 
-
     def test_disqualified_result_and_report_are_hidden_until_repermitted(self):
         attempt = self.make_attempt(self.students[0], status=ExamAttempt.SUBMITTED)
         admin = self.admin_client()
