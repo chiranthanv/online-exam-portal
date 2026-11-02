@@ -29,4 +29,4 @@ class Command(BaseCommand):
                 break
             # Keep the cadence start-to-start; do not drift by adding a full
             # interval after a slow delivery batch.
-            time.sleep(max(1.0, interval - (time.monotonic() - started)))
+            time.sleep(max(0.0, interval - (time.monotonic() - started)))
