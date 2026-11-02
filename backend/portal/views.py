@@ -471,14 +471,23 @@ class ExamAttemptSubmit(APIView):
         _require_attempt_session(request, attempt)
         now = timezone.now()
         _expire_attempt_if_due(attempt, now)
-        if attempt.status == ExamAttempt.IN_PROGRESS:
+        newly_submitted = attempt.status == ExamAttempt.IN_PROGRESS
+        if newly_submitted:
             attempt.status = ExamAttempt.SUBMITTED
             attempt.submitted_at = now
+            AuditLog.objects.create(
+                actor=request.user, action="EXAM_ATTEMPT_SUBMITTED", target=str(attempt.id)
+            )
+        # Both manual submission and request-triggered expiry use the same
+        # idempotent evaluation path. The background expiry worker mirrors it.
+        if attempt.status in {ExamAttempt.SUBMITTED, ExamAttempt.AUTO_SUBMITTED} and attempt.evaluated_at is None:
             score = Decimal("0.00")
             for answer in attempt.answers.select_related("question"):
                 if answer.selected_option_id is None:
                     continue
-                selected = Option.objects.filter(pk=answer.selected_option_id, question_id=answer.question_id).only("is_correct").first()
+                selected = Option.objects.filter(
+                    pk=answer.selected_option_id, question_id=answer.question_id
+                ).only("is_correct").first()
                 if selected and selected.is_correct:
                     score += answer.question.default_marks
                 else:
@@ -490,9 +499,6 @@ class ExamAttemptSubmit(APIView):
             NotificationOutbox.objects.get_or_create(
                 dedupe_key="result:" + str(attempt.id),
                 defaults={"attempt": attempt, "recipient": request.user.email, "due_at": attempt.exam.result_visible_from},
-            )
-            AuditLog.objects.create(
-                actor=request.user, action="EXAM_ATTEMPT_SUBMITTED", target=str(attempt.id)
             )
         return Response(_attempt_payload(attempt))
 
