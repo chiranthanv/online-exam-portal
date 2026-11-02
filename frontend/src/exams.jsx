@@ -609,11 +609,16 @@ function ExamAttemptRunner({ exam, onBack }) {
       const now = Date.now();
       if (now - lastBlurAt < 1500) return;
       lastBlurAt = now;
-      api.request(`/attempts/${attempt.attempt_id}/proctoring-events`, {
-        method: "POST",
-        body: { event_type: eventType, occurred_at: new Date(now).toISOString() },
-        headers: { "X-Exam-Session": sessionId },
-      }).catch(() => {});
+      api
+        .request(`/attempts/${attempt.attempt_id}/proctoring-events`, {
+          method: "POST",
+          body: {
+            event_type: eventType,
+            occurred_at: new Date(now).toISOString(),
+          },
+          headers: { "X-Exam-Session": sessionId },
+        })
+        .catch(() => {});
     };
     const onVisibility = () => {
       if (document.visibilityState === "hidden") report("TAB_SWITCH");
@@ -626,7 +631,6 @@ function ExamAttemptRunner({ exam, onBack }) {
       window.removeEventListener("blur", onBlur);
     };
   }, [attempt?.attempt_id, attempt?.status, sessionId]);
-
 
   const remainingMs = attempt
     ? Math.max(0, (deadlineMonotonicAt.current ?? now) - now)
@@ -811,14 +815,19 @@ function ExamAttemptRunner({ exam, onBack }) {
           {attempt.status === "AUTO_SUBMITTED"
             ? "Time expired. Your attempt was automatically submitted."
             : "Your attempt has been submitted."}
-          <p>Answer editing is locked. Your score remains hidden until the scheduled result release.</p>
+          <p>
+            Answer editing is locked. Your score remains hidden until the
+            scheduled result release.
+          </p>
           <div className="row-actions">
             <button
               className="secondary"
               onClick={async () => {
                 setResultMessage("");
                 try {
-                  setResult(await api.request(`/attempts/${attempt.attempt_id}/result`));
+                  setResult(
+                    await api.request(`/attempts/${attempt.attempt_id}/result`),
+                  );
                 } catch (e) {
                   setResultMessage(e.message);
                 }
@@ -826,10 +835,20 @@ function ExamAttemptRunner({ exam, onBack }) {
             >
               Check result
             </button>
-            <button className="quiet" onClick={onBack}>Back to exams</button>
+            <button className="quiet" onClick={onBack}>
+              Back to exams
+            </button>
           </div>
-          {result && <p className="notice" role="status">Score: {result.score} / {result.total_marks}</p>}
-          {resultMessage && <p className="hint" role="status">{resultMessage}</p>}
+          {result && (
+            <p className="notice" role="status">
+              Score: {result.score} / {result.total_marks}
+            </p>
+          )}
+          {resultMessage && (
+            <p className="hint" role="status">
+              {resultMessage}
+            </p>
+          )}
         </div>
       ) : (
         <>
