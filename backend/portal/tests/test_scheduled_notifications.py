@@ -82,6 +82,10 @@ class ScheduledExamNotificationTests(TestCase):
         call_command("process_exam_notifications")
         self.assertEqual(len(mail.outbox), 2)
         self.assertEqual(
+            {address for message in mail.outbox for address in message.to},
+            {student.email for student in self.students},
+        )
+        self.assertEqual(
             ScheduledExamNotification.objects.filter(status=ScheduledExamNotification.SENT).count(), 2
         )
         call_command("process_exam_notifications")
@@ -122,6 +126,7 @@ class ScheduledExamNotificationTests(TestCase):
         )
         call_command("process_exam_notifications")
         self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.students[0].email])
         self.assertIn("Results available", mail.outbox[0].subject)
         call_command("process_exam_notifications")
         self.assertEqual(len(mail.outbox), 1)
@@ -163,6 +168,14 @@ class ScheduledExamNotificationTests(TestCase):
         self.assertEqual(notice.attempts, 1)
         self.assertNotIn("password", notice.last_error.lower())
         self.assertGreater(notice.due_at, timezone.now())
+
+        notice.due_at = timezone.now()
+        notice.save(update_fields=["due_at"])
+        call_command("process_exam_notifications")
+        notice.refresh_from_db()
+        self.assertEqual(notice.status, NotificationOutbox.SENT)
+        self.assertEqual(notice.attempts, 2)
+        self.assertEqual(mail.outbox[0].to, [self.students[0].email])
 
     def test_notification_scheduler_runs_one_batch_in_once_mode(self):
         from unittest.mock import patch
