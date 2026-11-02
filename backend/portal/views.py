@@ -46,6 +46,16 @@ class Conflict(APIException):
     default_detail = "This resource is in use."
 
 
+def _lock_exam_for_attempt_start(exam_id):
+    """Take a PostgreSQL shared row lock so starts coexist but schedule edits wait."""
+    if connection.vendor == "postgresql":
+        table = connection.ops.quote_name(Exam._meta.db_table)
+        primary_key = connection.ops.quote_name(Exam._meta.pk.column)
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT {primary_key} FROM {table} WHERE {primary_key} = %s FOR SHARE", [exam_id])
+    return get_object_or_404(Exam, pk=exam_id)
+
+
 class HealthView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
@@ -380,7 +390,12 @@ class StudentExamAttempt(APIView):
         if header_session != session_key:
             raise Conflict("The exam session header does not match the requested session.")
 
-        exam = get_object_or_404(Exam.objects.select_for_update(), pk=pk)
+        # Shared locks let all students start the same exam concurrently while
+        # still preventing an administrator from changing its schedule mid-start.
+        exam = _lock_exam_for_attempt_start(pk)
+        # Serialize only this student's starts; the unique constraint remains the
+        # final guard if another code path creates an attempt concurrently.
+        User.objects.select_for_update().only("id").get(pk=request.user.pk)
         attempt = ExamAttempt.objects.select_for_update().filter(exam=exam, student=request.user).first()
         now = timezone.now()
         if attempt:
