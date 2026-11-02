@@ -14,7 +14,7 @@ Planning record: 26 October 2026
 6. Implement Sprint 1, run tests and GitHub Actions, raise PRs through the assigned members, and obtain genuine reviews.
 7. Record and upload a one-minute demonstration of the working increment; record deviations from the SRS, SAD and Test Plan.
 
-The source screenshot specifies backlog planning on 12 October, an optional practice sprint on 12–16 October, revisions on 19 October, and Sprint 1 on 19–23 October 2026. This planning record was created on 26 October. Those course dates are retained as the planned schedule; no issue, commit, review or execution evidence is backdated. Sprint 2 dates were not visible in the supplied screenshot and remain unconfirmed.
+The course screenshots specify backlog planning on 12 October, an optional practice sprint on 12–16 October, revisions on 19 October, Sprint 1 on 19–23 October and Sprint 2 on 26–30 October 2026. This planning record was created on 26 October. Those course dates are retained as the planned schedule; no issue, commit, review or execution evidence is backdated. The later supplied screenshot confirms Sprint 2's two-minute working-product video, complete documentation and development freeze. See [current closeout status](../testing/SPRINT2_STATUS.md).
 
 ## Baselines and scope
 
@@ -50,7 +50,7 @@ Cross-cutting answer-key confidentiality, question-edit auditing, safe input han
 | Sprint | Stories | Story points | Dates |
 |---|---:|---:|---|
 | Sprint 1 | 14 | 50 | Course plan: 19–23 October 2026; actual work records use real dates |
-| Sprint 2 | 13 | 63 | Unconfirmed |
+| Sprint 2 | 13 | 63 | Course plan: 26–30 October 2026; actual work retains real timestamps |
 
 ## Sprint 1 backlog
 
@@ -143,7 +143,7 @@ Cross-cutting answer-key confidentiality, question-edit auditing, safe input han
 ## Open planning dependencies
 
 - Resolve Dwijesh's repository assignment eligibility; named ownership is already recorded.
-- Confirm the Sprint 2 calendar window from the remaining course instructions.
+- Sprint 2 course window is now confirmed as 26–30 October; actual remaining implementation/release work is tracked in the [closeout status](../testing/SPRINT2_STATUS.md).
 - Team members must raise their own required PRs and provide genuine reviews; automation through one account cannot supply their participation.
 - Verify deployment HTTPS against an actual configured deployment; local development configuration alone cannot prove TLS acceptance.
 - Record test execution, CI results and demo-video evidence only after the implementation exists.

@@ -1,6 +1,6 @@
 # Online Exam Portal — Team 15
 
-Sprint 1 application: **React + Django REST Framework + PostgreSQL**. Includes role-based sign-in, password reset, student/batch administration, question bank, exam configuration and student eligibility. The remaining team implementation and automated tests were completed through Chiranthan’s account at his request; they are not attributed to teammate accounts. The `fix/dwijesh-open-issues` branch adds the first Sprint 2 implementation increment: one attempt per student/exam, a session-bound student exam UI, durable answer autosave/recovery, and server-deadline manual/automatic submission. Evaluation/results remain unimplemented; the WCAG manual audit and Lighthouse >=90 threshold still require an actual browser run. This branch has not yet been merged.
+**React + Django REST Framework + PostgreSQL** online exam portal. Sprint 1 administration is integrated. Current main also includes Dwijesh's session-bound attempts, autosave/recovery and server-deadline submission, plus Chiranthan's terminal-response locks. This isolated Sprint 2 candidate combines the passing performance recovery and availability monitor. Harkirat's evaluation, reports, proctoring and notifications exist on an older branch and still need current-schema integration. A measured accessibility audit found timer-visibility and contrast defects requiring Dwijesh's fixes. See the [current Sprint 2 status](docs/testing/SPRINT2_STATUS.md) for exact implementation, evidence and release boundaries.
 
 - [GitHub Project: backlog and two-sprint plan](https://github.com/users/chiranthanv/projects/1)
 - [SRS-linked backlog](docs/planning/BACKLOG.md) · [structured stories](docs/planning/backlog.json)
@@ -9,6 +9,7 @@ Sprint 1 application: **React + Django REST Framework + PostgreSQL**. Includes r
 - [Verification evidence and completion boundaries](docs/testing/SPRINT1_REPORT.md)
 - [Design clarifications and deviations](docs/DEVIATIONS.md)
 - [One-minute integrated demo plan](docs/DEMO.md)
+- [Sprint 2 teammate tasks](docs/planning/SPRINT2_TEAM_TASKS.md) · [two-minute demo run sheet](docs/SPRINT2_DEMO.md) · [release procedure](docs/SPRINT2_RELEASE.md)
 
 The original SRS, SAD and Test Plan PDFs and draw.io files remain at the repository root. The previous README's SRS text is preserved in [docs/specifications/SRS-original-readme.md](docs/specifications/SRS-original-readme.md).
 
@@ -74,7 +75,7 @@ coverage report
 coverage xml
 ```
 
-The suite includes real JWT requests, CSRF enforcement and a route-by-route role matrix. The attempt lifecycle branch adds regression tests for one-attempt/session enforcement, saved-answer recovery, deadline expiry, forbidden late writes and idempotent manual submission. Three concurrency tests require PostgreSQL and are explicitly skipped on SQLite. Set `DATABASE_URL` to a disposable PostgreSQL database whose account can create test databases to run those locally. GitHub Actions uses PostgreSQL 16, builds the container, and verifies a temporary Caddy deployment over certificate-verified TLS 1.2. Coverage gates the implemented backend at 85%; it is not evidence for unimplemented Sprint 2 modules.
+The suite includes real JWT requests, CSRF enforcement and a route-by-route role matrix, plus one-attempt/session enforcement, saved-answer recovery, deadline expiry, immutable terminal answers and idempotent manual submission. Five concurrency/lock tests require PostgreSQL and are explicitly skipped on SQLite. Set `DATABASE_URL` to a disposable PostgreSQL database whose account can create test databases to run those locally. GitHub Actions uses PostgreSQL 16, builds the container, and verifies a temporary Caddy deployment over certificate-verified TLS 1.2. Coverage gates the implemented backend at 85%; it is not evidence for absent evaluation modules. Current branch-specific CI links and limits are recorded in the [Sprint 2 status](docs/testing/SPRINT2_STATUS.md).
 
 ## Frontend and integrated browser checks
 
@@ -108,4 +109,4 @@ The container serves the React build and API from the same origin, with WhiteNoi
 
 ## Verified Sprint 1 integration
 
-See the [current integration report](docs/testing/SPRINT1_INTEGRATION_REPORT.md), [actual one-minute product demo](docs/DEMO.md) and [remaining team review steps](docs/TEAM_HANDOFF.md). Sprint 2 remains deferred.
+See the [historical Sprint 1 integration report](docs/testing/SPRINT1_INTEGRATION_REPORT.md) and [actual one-minute product demo](docs/DEMO.md). Current Sprint 2 implementation and remaining integration are tracked in the [Sprint 2 status](docs/testing/SPRINT2_STATUS.md), [teammate handoff](docs/planning/SPRINT2_TEAM_TASKS.md) and [release procedure](docs/SPRINT2_RELEASE.md). The final two-minute Sprint 2 video and release freeze remain pending.

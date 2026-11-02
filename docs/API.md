@@ -1,4 +1,9 @@
-# Sprint 1 API contract
+# Online Exam Portal API contract
+
+The administrative and student attempt routes below exist in this candidate and
+current main. Evaluation, result, report, proctoring and notification APIs from
+old PR #33 are not integrated here; do not build against those old routes without
+Harkirat's current-schema PR. See [Sprint 2 status](testing/SPRINT2_STATUS.md).
 
 Base URL: `http://localhost:8000/api/v1` in development. Paths have **no trailing slash**. Dates use ISO-8601 with an explicit timezone; the server stores UTC. IDs are UUID strings; marks are decimal strings. Standard lists use `{count,next,previous,results}`, page size 50, `?page=2`. Available exams and exam-question lists use `{results:[...]}` without pagination.
 
@@ -115,11 +120,11 @@ Duration 1–1440 minutes; end strictly after start. `total_marks` is computed a
 
 Manual IDs must be unique; their order is preserved. Random mode samples without replacement; mix counts must sum to `random_count`. Filters and mix are optional. Missing IDs or insufficient pools return 400 and preserve the existing selection/total. Maximum 500 questions and 9999.99 total marks.
 
-Once an exam starts, schedule/question/batch changes are rejected. Students see only nonempty exams assigned through their batches where `start_time <= server_now < end_time`. Overlapping batch membership does not duplicate cards. Available exams contain metadata only. There is **no start-attempt endpoint in Sprint 1**; do not add a nonfunctional Start button or imply attempts work yet.
+Once an exam starts, schedule/question/batch changes are rejected. Students see only nonempty exams assigned through their batches where `start_time <= server_now < end_time`. Overlapping batch membership does not duplicate cards. Available exams contain metadata only. The current Sprint 2 start/resume endpoint is documented below.
 
-## Student exam attempt lifecycle (implementation branch)
+## Student exam attempt lifecycle
 
-These endpoints are part of the `fix/dwijesh-open-issues` implementation branch. They are student-only and use the existing bearer access token. They deliberately return option text and IDs, never the answer key.
+These endpoints were integrated through PR #35 and subsequent response-lock/timer fixes. They are student-only and use the existing bearer access token. They deliberately return option text and IDs, never the answer key.
 
 | Method and path | Purpose | Key request/response |
 |---|---|---|
@@ -130,6 +135,12 @@ These endpoints are part of the `fix/dwijesh-open-issues` implementation branch.
 
 The database enforces one attempt per exam/student and one saved answer per attempt/question. The exam row is locked when creating an attempt; the attempt row is locked during answer writes, resume/expiry and submission. A new browser session ID cannot resume an existing attempt. The deadline is calculated by the server as the earlier of `started_at + duration_minutes` and `exam.end_time`. Browser time is only used to render a countdown; writes after the deadline are rejected by the server.
 
+Answer PATCH is permitted only while status is `IN_PROGRESS`. `SUBMITTED`,
+`AUTO_SUBMITTED` and `DISQUALIFIED` reject answer changes with HTTP 409 and retain
+stored answers/timestamps. A repeated submit does not reopen a closed attempt.
+The performance candidate locks only the attempt row for detail/save/submit, not
+the joined shared exam row; retain that scope when adding evaluation.
+
 For automatic submission when the browser is closed, keep the deadline worker running:
 
 ```bash
@@ -138,10 +149,13 @@ python backend/manage.py expire_exam_attempts --loop --interval 1
 
 The Docker Compose `worker` service runs that command for container deployments. It persists auto-submission even without a browser request. The poll interval means scheduled closure can lag the exact deadline by up to approximately one poll interval plus processing delay. An environment that does not run this worker (or an equivalent scheduler) can still enforce the deadline on a subsequent API request, but cannot promise immediate database state transition while all clients are disconnected.
 
-Evaluation, scoring, results release, and proctoring are not included in this increment. A manual WCAG audit and measured Lighthouse score remain outstanding and must be recorded from a real browser run.
+Evaluation, scoring, results release and proctoring require current-schema integration
+of Harkirat's existing PR #33. PR #41 already records a real-browser Lighthouse audit
+(96 desktop, 91 at both mobile widths); contrast and countdown visibility fail.
+Focused fixes and the remaining manual accessibility checks are still outstanding.
 
 ## Errors and frontend acceptance
 
-400: field or business validation (`{field:[messages]}`, `{non_field_errors:[...]}` or `{detail:...}`); 401: missing/expired credentials; 403: wrong role or CSRF; 404: unknown UUID; 409: question in use; 423: login lockout; 503: SMTP unavailable. CSRF failures can be HTML from Django middleware; handle non-JSON errors gracefully. JSON API responses have no HTML rendering semantics.
+400: field or business validation (`{field:[messages]}`, `{non_field_errors:[...]}` or `{detail:...}`); 401: missing/expired credentials; 403: wrong role or CSRF; 404: unknown UUID or another student's attempt; 409: question in use, mismatched exam session or closed-attempt answer write; 423: login lockout; 503: SMTP unavailable. CSRF failures can be HTML from Django middleware; handle non-JSON errors gracefully. JSON API responses have no HTML rendering semantics.
 
 Check every loading/empty/error state. Keep admin lists cleared on logout/role change. Use local timezone labels but submit ISO timestamps with offsets. Preserve decimal strings. Follow all pagination pages for selectors that need the complete question bank. UI role checks are only for navigation; server authorization remains authoritative.
