@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
@@ -197,3 +198,51 @@ class AttemptAssessmentIntegrationTests(TestCase):
         attempt.refresh_from_db()
         self.assertEqual(attempt.status, ExamAttempt.SUBMITTED)
         self.assertEqual(AuditLog.objects.filter(target=str(attempt.id)).count(), 2)
+
+
+    def test_read_triggered_expiry_evaluates_and_queues_once(self):
+        attempt = self.make_attempt(option=self.wrong)
+        attempt.deadline_at = timezone.now() - timedelta(seconds=1)
+        attempt.save(update_fields=["deadline_at"])
+        client = APIClient()
+        client.force_authenticate(self.student)
+        url = f"/api/v1/attempts/{attempt.id}"
+        first = client.get(url, HTTP_X_EXAM_SESSION=str(attempt.session_key))
+        self.assertEqual(first.status_code, 200)
+        attempt.refresh_from_db()
+        self.assertEqual(attempt.status, ExamAttempt.AUTO_SUBMITTED)
+        self.assertEqual(str(attempt.score), "-0.50")
+        self.assertIsNotNone(attempt.evaluated_at)
+        self.assertEqual(NotificationOutbox.objects.filter(dedupe_key=f"result:{attempt.id}").count(), 1)
+        second = client.get(url, HTTP_X_EXAM_SESSION=str(attempt.session_key))
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(NotificationOutbox.objects.filter(dedupe_key=f"result:{attempt.id}").count(), 1)
+
+    def test_rejected_answer_write_after_deadline_still_evaluates(self):
+        attempt = self.make_attempt(option=self.wrong)
+        attempt.deadline_at = timezone.now() - timedelta(seconds=1)
+        attempt.save(update_fields=["deadline_at"])
+        client = APIClient()
+        client.force_authenticate(self.student)
+        response = client.patch(
+            f"/api/v1/attempts/{attempt.id}/answers",
+            {"question_id": str(self.question.id), "option_id": None},
+            format="json",
+            HTTP_X_EXAM_SESSION=str(attempt.session_key),
+        )
+        self.assertEqual(response.status_code, 409)
+        attempt.refresh_from_db()
+        self.assertEqual(attempt.status, ExamAttempt.AUTO_SUBMITTED)
+        self.assertEqual(str(attempt.score), "-0.50")
+        self.assertEqual(NotificationOutbox.objects.filter(dedupe_key=f"result:{attempt.id}").count(), 1)
+
+    def test_background_expiry_worker_evaluates_and_queues(self):
+        attempt = self.make_attempt(option=self.wrong)
+        attempt.deadline_at = timezone.now() - timedelta(seconds=1)
+        attempt.save(update_fields=["deadline_at"])
+        call_command("expire_exam_attempts")
+        attempt.refresh_from_db()
+        self.assertEqual(attempt.status, ExamAttempt.AUTO_SUBMITTED)
+        self.assertEqual(str(attempt.score), "-0.50")
+        self.assertIsNotNone(attempt.evaluated_at)
+        self.assertEqual(NotificationOutbox.objects.filter(dedupe_key=f"result:{attempt.id}").count(), 1)
