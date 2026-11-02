@@ -167,7 +167,9 @@ export function createApi(fetcher = (...args) => fetch(...args)) {
         response = await requestFile();
       }
       if (!response.ok) {
-        const data = await response.json().catch(() => ({ detail: "Download failed." }));
+        const data = await response
+          .json()
+          .catch(() => ({ detail: "Download failed." }));
         throw new ApiError(response.status, data);
       }
       const blob = await response.blob();
