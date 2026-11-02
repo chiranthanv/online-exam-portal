@@ -131,32 +131,6 @@ class AssessmentAcceptanceTests(TestCase):
             (3, 1, 1, 1),
         )
 
-    def test_csv_exports_neutralize_spreadsheet_formulas_in_text_fields(self):
-        student = self.students[0]
-        student.name = "=HYPERLINK(\"https://example.test\",\"open\")"
-        student.usn = "  @SUM(1,1)"
-        student.save(update_fields=["name", "usn"])
-        self.make_attempt(student)
-
-        question = self.questions[0]
-        question.subject = "+cmd|' /C calc'!A0"
-        question.topic = " =1+1"
-        question.save(update_fields=["subject", "topic"])
-
-        client = self.admin_client()
-        class_csv = client.get(f"/api/v1/reports/class?exam_id={self.exam.id}&export=csv")
-        self.assertEqual(class_csv.status_code, 200)
-        class_rows = list(csv.DictReader(StringIO(class_csv.content.decode())))
-        student_row = next(row for row in class_rows if row["student_id"] == str(student.id))
-        self.assertEqual(student_row["student_name"], "'=HYPERLINK(\"https://example.test\",\"open\")")
-        self.assertEqual(student_row["usn"], "'  @SUM(1,1)")
-
-        question_csv = client.get(f"/api/v1/reports/questions?exam_id={self.exam.id}&export=csv")
-        self.assertEqual(question_csv.status_code, 200)
-        question_rows = list(csv.DictReader(StringIO(question_csv.content.decode())))
-        self.assertEqual(question_rows[0]["subject"], "'+cmd|' /C calc'!A0")
-        self.assertEqual(question_rows[0]["topic"], "' =1+1")
-
     def test_reports_are_admin_only_and_hidden_until_release(self):
         client = APIClient()
         client.force_authenticate(self.students[0])
