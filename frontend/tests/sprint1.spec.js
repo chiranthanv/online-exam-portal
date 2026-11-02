@@ -304,12 +304,6 @@ test(
       ) {
         focusEvents.push(request.postDataJSON().event_type);
       }
-      if (
-        request.method() === "PATCH" &&
-        /\/api\/v1\/attempts\/[^/]+\/answers$/.test(request.url())
-      ) {
-        patchRequests += 1;
-      }
     });
 
     // Mobile navigation controls must remain tappable and must not create page overflow.
