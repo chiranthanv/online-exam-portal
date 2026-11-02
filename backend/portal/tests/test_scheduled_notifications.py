@@ -189,7 +189,6 @@ class ScheduledExamNotificationTests(TestCase):
                 call_command("run_notification_scheduler", interval=60)
         sleep.assert_called_once_with(59.0)
 
-
     def test_repermit_requeues_result_notice_suppressed_during_disqualification(self):
         now = timezone.now()
         self.exam.result_visible_from = now - timedelta(minutes=1)
