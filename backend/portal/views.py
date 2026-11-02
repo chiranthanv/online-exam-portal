@@ -501,6 +501,7 @@ class ExamAttemptSubmit(APIView):
             attempt.evaluated_at = now
             attempt.save(update_fields=["status", "submitted_at", "score", "evaluated_at"])
             from .models import NotificationOutbox
+
             NotificationOutbox.objects.get_or_create(
                 dedupe_key="result:" + str(attempt.id),
                 defaults={
