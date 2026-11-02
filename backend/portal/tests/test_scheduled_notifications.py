@@ -59,7 +59,6 @@ class ScheduledExamNotificationTests(TestCase):
         queue_scheduled_exam_notifications(self.exam, self.batch.students.all())
         self.assertEqual(ScheduledExamNotification.objects.filter(exam=self.exam).count(), 2)
 
-
     def test_rescheduling_cancels_obsolete_pending_notice(self):
         ExamBatch.objects.create(exam=self.exam, batch=self.batch)
         queue_scheduled_exam_notifications(self.exam, self.batch.students.all())
