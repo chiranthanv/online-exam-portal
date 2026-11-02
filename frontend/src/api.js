@@ -37,7 +37,7 @@ export function createApi(fetcher = (...args) => fetch(...args)) {
     } = {},
   ) {
     const headers = { Accept: "application/json", ...extraHeaders };
-    if (access && auth) headers.Authorization = `Bearer ${access}`;
+    if (access && auth) headers.Authorization = `***;
     if (withCsrf && csrf) headers["X-CSRFToken"] = csrf;
     if (body !== undefined && !(body instanceof FormData))
       headers["Content-Type"] = "application/json";
@@ -157,18 +157,20 @@ export function createApi(fetcher = (...args) => fetch(...args)) {
     async download(path, filename) {
       if (!access) await refresh();
       let response = await fetcher(ROOT + path, {
-        headers: { Authorization: `Bearer ${access}`, Accept: "*/*" },
+        headers: { Authorization: `*** Accept: "*/*" },
         credentials: "include",
       });
       if (response.status === 401) {
         await refresh();
         response = await fetcher(ROOT + path, {
-          headers: { Authorization: `Bearer ${access}`, Accept: "*/*" },
+          headers: { Authorization: `*** Accept: "*/*" },
           credentials: "include",
         });
       }
       if (!response.ok) {
-        const data = await response.json().catch(() => ({ detail: "Download failed." }));
+        const data = await response
+          .json()
+          .catch(() => ({ detail: "Download failed." }));
         throw new ApiError(response.status, data);
       }
       const blob = await response.blob();
