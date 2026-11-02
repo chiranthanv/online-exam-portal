@@ -699,12 +699,7 @@ function ExamAttemptRunner({ exam, onBack }) {
           }
         }
       } catch (e) {
-        if (active) {
-          setError(e.message);
-          setSaveError(
-            "Local answer recovery could not be read or written. Keep this tab open and retry; server-confirmed answers remain safe.",
-          );
-        }
+        if (active) setError(e.message);
       } finally {
         if (active) setLoading(false);
       }
