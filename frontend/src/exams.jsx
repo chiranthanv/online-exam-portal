@@ -533,6 +533,7 @@ export function Exams() {
 
 function ExamAttemptRunner({ exam, onBack }) {
   const storageKey = `oep:attempt:${exam.exam_id}`;
+  const pendingStorageKey = `oep:pending:${exam.exam_id}`;
   const [attempt, setAttempt] = useState(null);
   const [sessionId, setSessionId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -541,11 +542,30 @@ function ExamAttemptRunner({ exam, onBack }) {
   const [result, setResult] = useState(null);
   const [resultMessage, setResultMessage] = useState("");
   const [savingAnswers, setSavingAnswers] = useState({});
+  const [pendingAnswers, setPendingAnswers] = useState({});
   const [submitPending, setSubmitPending] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [now, setNow] = useState(() => window.performance.now());
   const autoSubmitting = useRef(false);
   const deadlineMonotonicAt = useRef(null);
+  const pendingAnswersRef = useRef({});
+  const savingAnswersRef = useRef(new Set());
+  const syncingPendingRef = useRef(false);
+
+  function storePendingAnswers(nextOrUpdate) {
+    const next =
+      typeof nextOrUpdate === "function"
+        ? nextOrUpdate(pendingAnswersRef.current)
+        : nextOrUpdate;
+    pendingAnswersRef.current = next;
+    setPendingAnswers(next);
+    if (Object.keys(next).length) {
+      sessionStorage.setItem(pendingStorageKey, JSON.stringify(next));
+    } else {
+      sessionStorage.removeItem(pendingStorageKey);
+    }
+    return next;
+  }
 
   useEffect(() => {
     let active = true;
@@ -572,7 +592,31 @@ function ExamAttemptRunner({ exam, onBack }) {
             });
         saved.attempt_id = data.attempt_id;
         sessionStorage.setItem(storageKey, JSON.stringify(saved));
+        let pending = {};
+        try {
+          const parsed = JSON.parse(
+            sessionStorage.getItem(pendingStorageKey) || "{}",
+          );
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            pending = parsed;
+          }
+        } catch {
+          pending = {};
+        }
+        const validPending = Object.fromEntries(
+          Object.entries(pending).filter(([questionId, optionId]) => {
+            const question = data.questions.find((item) => item.id === questionId);
+            return (
+              question &&
+              (optionId === null ||
+                question.options.some((option) => option.id === optionId))
+            );
+          }),
+        );
         if (active) {
+          storePendingAnswers(
+            data.status === "IN_PROGRESS" ? validPending : {},
+          );
           setSessionId(saved.session_id);
           deadlineMonotonicAt.current =
             window.performance.now() +
@@ -580,7 +624,30 @@ function ExamAttemptRunner({ exam, onBack }) {
               0,
               Date.parse(data.deadline_at) - Date.parse(data.server_now),
             );
-          setAttempt(data);
+          const restored =
+            data.status === "IN_PROGRESS" && Object.keys(validPending).length
+              ? {
+                  ...data,
+                  questions: data.questions.map((question) =>
+                    Object.prototype.hasOwnProperty.call(
+                      validPending,
+                      question.id,
+                    )
+                      ? {
+                          ...question,
+                          selected_option_id: validPending[question.id],
+                        }
+                      : question,
+                  ),
+                  answers: { ...data.answers, ...validPending },
+                }
+              : data;
+          setAttempt(restored);
+          if (data.status !== "IN_PROGRESS" && Object.keys(pending).length) {
+            setSaveError(
+              "The exam is closed. An answer that was waiting to sync was not saved.",
+            );
+          }
         }
       } catch (e) {
         if (active) setError(e.message);
@@ -592,7 +659,7 @@ function ExamAttemptRunner({ exam, onBack }) {
     return () => {
       active = false;
     };
-  }, [storageKey, exam.exam_id]);
+  }, [storageKey, pendingStorageKey, exam.exam_id]);
 
   useEffect(() => {
     const timer = window.setInterval(
@@ -675,16 +742,129 @@ function ExamAttemptRunner({ exam, onBack }) {
     throw lastError;
   }
 
+  async function flushPendingAnswers() {
+    if (
+      !attempt ||
+      attempt.status !== "IN_PROGRESS" ||
+      !sessionId ||
+      !navigator.onLine ||
+      syncingPendingRef.current
+    ) {
+      return;
+    }
+    const entries = Object.entries(pendingAnswersRef.current);
+    if (!entries.length) return;
+    syncingPendingRef.current = true;
+    try {
+      for (const [questionId, optionId] of entries) {
+        if (
+          savingAnswersRef.current.has(questionId) ||
+          !Object.prototype.hasOwnProperty.call(
+            pendingAnswersRef.current,
+            questionId,
+          ) ||
+          pendingAnswersRef.current[questionId] !== optionId
+        ) {
+          continue;
+        }
+        savingAnswersRef.current.add(questionId);
+        setSavingAnswers((current) => ({ ...current, [questionId]: true }));
+        try {
+          const result = await requestWithRetry(
+            `/attempts/${attempt.attempt_id}/answers`,
+            {
+              method: "PATCH",
+              body: { question_id: questionId, option_id: optionId },
+              headers: { "X-Exam-Session": sessionId },
+            },
+          );
+          storePendingAnswers((current) => {
+            if (
+              !Object.prototype.hasOwnProperty.call(current, questionId) ||
+              current[questionId] !== optionId
+            ) {
+              return current;
+            }
+            const next = { ...current };
+            delete next[questionId];
+            return next;
+          });
+          setAttempt((current) =>
+            current ? { ...current, last_saved_at: result.saved_at } : current,
+          );
+        } catch (e) {
+          setSaveError(
+            e.status === 0
+              ? "Connection unavailable. Your answer is stored in this tab and will retry when you reconnect."
+              : `Could not sync a pending answer: ${e.message}`,
+          );
+          if (e.status === 409) {
+            try {
+              const latest = await api.request(
+                `/attempts/${attempt.attempt_id}`,
+                { headers: { "X-Exam-Session": sessionId } },
+              );
+              setAttempt(latest);
+              if (latest.status !== "IN_PROGRESS") {
+                storePendingAnswers({});
+                setSaveError(
+                  "The exam closed before the pending answers reached the server. Those answers were not saved.",
+                );
+              }
+            } catch {
+              // Preserve the local pending answer until the server can be checked.
+            }
+          }
+          break;
+        } finally {
+          savingAnswersRef.current.delete(questionId);
+          setSavingAnswers((current) => {
+            const next = { ...current };
+            delete next[questionId];
+            return next;
+          });
+        }
+      }
+      if (!Object.keys(pendingAnswersRef.current).length) setSaveError("");
+    } finally {
+      syncingPendingRef.current = false;
+    }
+  }
+
+  useEffect(() => {
+    if (!attempt || attempt.status !== "IN_PROGRESS" || !sessionId) return;
+    const retry = () => {
+      if (navigator.onLine) void flushPendingAnswers();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") retry();
+    };
+    window.addEventListener("online", retry);
+    document.addEventListener("visibilitychange", onVisibility);
+    let retryOnMount;
+    if (Object.keys(pendingAnswers).length && navigator.onLine) {
+      retryOnMount = window.setTimeout(retry, 0);
+    }
+    return () => {
+      window.removeEventListener("online", retry);
+      document.removeEventListener("visibilitychange", onVisibility);
+      if (retryOnMount) window.clearTimeout(retryOnMount);
+    };
+  }, [attempt?.attempt_id, attempt?.status, sessionId, pendingAnswers]);
+
   async function saveAnswer(questionId, optionId) {
     if (
       !attempt ||
       attempt.status !== "IN_PROGRESS" ||
-      savingAnswers[questionId]
+      savingAnswersRef.current.has(questionId)
     ) {
       return;
     }
-    const question = attempt.questions.find((item) => item.id === questionId);
-    const previous = question?.selected_option_id ?? null;
+    savingAnswersRef.current.add(questionId);
+    storePendingAnswers((current) => ({
+      ...current,
+      [questionId]: optionId,
+    }));
     setSaveError("");
     setSavingAnswers((current) => ({ ...current, [questionId]: true }));
     setAttempt((current) => ({
@@ -705,19 +885,45 @@ function ExamAttemptRunner({ exam, onBack }) {
           headers: { "X-Exam-Session": sessionId },
         },
       );
-      setAttempt((current) => ({ ...current, last_saved_at: result.saved_at }));
+      storePendingAnswers((current) => {
+        if (
+          !Object.prototype.hasOwnProperty.call(current, questionId) ||
+          current[questionId] !== optionId
+        ) {
+          return current;
+        }
+        const next = { ...current };
+        delete next[questionId];
+        return next;
+      });
+      setAttempt((current) =>
+        current ? { ...current, last_saved_at: result.saved_at } : current,
+      );
     } catch (e) {
-      setAttempt((current) => ({
-        ...current,
-        questions: current.questions.map((item) =>
-          item.id === questionId
-            ? { ...item, selected_option_id: previous }
-            : item,
-        ),
-        answers: { ...current.answers, [questionId]: previous },
-      }));
-      setSaveError(`Your answer was not saved: ${e.message}`);
+      setSaveError(
+        e.status === 0
+          ? "Connection unavailable. Your answer is stored in this tab and will retry when you reconnect."
+          : `Your answer is stored in this tab but is not yet confirmed by the server: ${e.message}`,
+      );
+      if (e.status === 409) {
+        try {
+          const latest = await api.request(
+            `/attempts/${attempt.attempt_id}`,
+            { headers: { "X-Exam-Session": sessionId } },
+          );
+          setAttempt(latest);
+          if (latest.status !== "IN_PROGRESS") {
+            storePendingAnswers({});
+            setSaveError(
+              "The exam closed before the pending answers reached the server. Those answers were not saved.",
+            );
+          }
+        } catch {
+          // Keep the local answer until the server can be checked again.
+        }
+      }
     } finally {
+      savingAnswersRef.current.delete(questionId);
       setSavingAnswers((current) => {
         const next = { ...current };
         delete next[questionId];
@@ -727,7 +933,20 @@ function ExamAttemptRunner({ exam, onBack }) {
   }
 
   async function submitAttempt() {
-    if (!attempt || submitting) return;
+    if (
+      !attempt ||
+      submitting ||
+      Object.keys(pendingAnswersRef.current).length > 0 ||
+      savingAnswersRef.current.size > 0
+    ) {
+      setSubmitPending(false);
+      if (Object.keys(pendingAnswersRef.current).length > 0) {
+        setSaveError(
+          "Wait until every answer is confirmed by the server before submitting.",
+        );
+      }
+      return;
+    }
     setSubmitting(true);
     setSaveError("");
     try {
@@ -783,10 +1002,14 @@ function ExamAttemptRunner({ exam, onBack }) {
             Answers save to the server as you choose each option.
           </p>
         </div>
+      </div>
+      <div className="attempt-sticky-bar">
         <div
           className={
             remainingSeconds <= 60 && isOpen ? "timer urgent" : "timer"
           }
+          role="timer"
+          aria-live="off"
         >
           <span>Time remaining</span>
           <strong aria-label={`Time remaining ${timerLabel}`}>
@@ -799,13 +1022,27 @@ function ExamAttemptRunner({ exam, onBack }) {
           {saveError}
         </p>
       )}
-      <p className="hint" role="status" aria-live="polite">
-        {Object.keys(savingAnswers).length
-          ? "Saving answer…"
-          : attempt.last_saved_at
-            ? `Last saved ${new Date(attempt.last_saved_at).toLocaleTimeString()}`
-            : "No answers saved yet."}
-      </p>
+      <div className="attempt-save-status">
+        <p className="hint" role="status" aria-live="polite">
+          {Object.keys(savingAnswers).length
+            ? "Saving answer…"
+            : Object.keys(pendingAnswers).length
+              ? `${Object.keys(pendingAnswers).length} answer(s) waiting to sync. Reconnect to save automatically.`
+              : attempt.last_saved_at
+                ? `Last saved ${new Date(attempt.last_saved_at).toLocaleTimeString()}`
+                : "No answers saved yet."}
+        </p>
+        {isOpen && Object.keys(pendingAnswers).length > 0 && (
+          <button
+            className="secondary"
+            type="button"
+            onClick={flushPendingAnswers}
+            disabled={Object.keys(savingAnswers).length > 0}
+          >
+            Retry saving now
+          </button>
+        )}
+      </div>
 
       {!isOpen ? (
         <div className="notice" role="status">
@@ -816,6 +1053,13 @@ function ExamAttemptRunner({ exam, onBack }) {
             Answer editing is locked. Your score remains hidden until the
             scheduled result release.
           </p>
+          {Object.keys(pendingAnswers).length > 0 && (
+            <p className="notice error" role="alert">
+              {Object.keys(pendingAnswers).length} answer(s) were still waiting
+              to sync when the exam closed. Those answers may not be included
+              in evaluation.
+            </p>
+          )}
           <div className="row-actions">
             <button
               className="secondary"
@@ -902,7 +1146,11 @@ function ExamAttemptRunner({ exam, onBack }) {
             <button
               className="primary"
               onClick={() => setSubmitPending(true)}
-              disabled={submitting || Object.keys(savingAnswers).length > 0}
+              disabled={
+                submitting ||
+                Object.keys(savingAnswers).length > 0 ||
+                Object.keys(pendingAnswers).length > 0
+              }
             >
               Submit exam
             </button>
@@ -920,7 +1168,11 @@ function ExamAttemptRunner({ exam, onBack }) {
                 <button
                   className="primary"
                   onClick={submitAttempt}
-                  disabled={submitting}
+                  disabled={
+                    submitting ||
+                    Object.keys(savingAnswers).length > 0 ||
+                    Object.keys(pendingAnswers).length > 0
+                  }
                 >
                   {submitting ? "Submitting…" : "Confirm submission"}
                 </button>
