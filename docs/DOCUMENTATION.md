@@ -8,7 +8,8 @@ documentation, not feature integration or release closeout. Closeout remains pau
 
 | Document | Purpose / current scope |
 | --- | --- |
-| [Repository README](../README.md) | Main's available features, pending PR #43, setup, workers, checks and measurement limits |
+| [Repository README](../README.md) | Project overview, interface preview, features, quick start, architecture and team |
+| [Development and deployment](DEVELOPMENT.md) | Detailed local/Docker setup, fixtures, workers, checks, browser launcher limits and deployment configuration |
 | [API contract](API.md) | Routes actually in main; proposed PR #43 APIs remain branch-specific |
 | [Implementation deviations](DEVIATIONS.md) | Historical decisions plus current schema/lock/scoring/measurement differences from submitted baselines |
 | [Team handoff](TEAM_HANDOFF.md) | Current responsibilities and resolved Jira assignments; original Sprint 1 handoff retained below |
