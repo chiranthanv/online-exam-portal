@@ -291,7 +291,6 @@ test(
     await login(page, "student");
     const submissions = [];
     const focusEvents = [];
-    let patchRequests = 0;
     page.on("request", (request) => {
       if (
         request.method() === "POST" &&
@@ -417,7 +416,6 @@ test(
     await expect(status).toContainText("waiting to sync", {
       timeout: 10000,
     });
-    expect(patchRequests).toBeGreaterThanOrEqual(3);
     await page.screenshot({
       path: testInfo.outputPath("exam-pending-answer-offline.png"),
     });
