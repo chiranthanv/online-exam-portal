@@ -164,7 +164,6 @@ class ScheduledExamNotificationTests(TestCase):
         self.assertNotIn("password", notice.last_error.lower())
         self.assertGreater(notice.due_at, timezone.now())
 
-
     def test_notification_scheduler_runs_one_batch_in_once_mode(self):
         from unittest.mock import patch
 
