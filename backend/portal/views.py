@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from datetime import timedelta
 
 from django.db import connection, transaction
@@ -473,7 +474,23 @@ class ExamAttemptSubmit(APIView):
         if attempt.status == ExamAttempt.IN_PROGRESS:
             attempt.status = ExamAttempt.SUBMITTED
             attempt.submitted_at = now
-            attempt.save(update_fields=["status", "submitted_at"])
+            score = Decimal("0.00")
+            for answer in attempt.answers.select_related("question"):
+                if answer.selected_option_id is None:
+                    continue
+                selected = Option.objects.filter(pk=answer.selected_option_id, question_id=answer.question_id).only("is_correct").first()
+                if selected and selected.is_correct:
+                    score += answer.question.default_marks
+                else:
+                    score -= answer.question.negative_marks
+            attempt.score = max(score, Decimal("0.00"))
+            attempt.evaluated_at = now
+            attempt.save(update_fields=["status", "submitted_at", "score", "evaluated_at"])
+            from .models import NotificationOutbox
+            NotificationOutbox.objects.get_or_create(
+                dedupe_key="result:" + str(attempt.id),
+                defaults={"attempt": attempt, "recipient": request.user.email, "due_at": attempt.exam.result_visible_from},
+            )
             AuditLog.objects.create(
                 actor=request.user, action="EXAM_ATTEMPT_SUBMITTED", target=str(attempt.id)
             )
