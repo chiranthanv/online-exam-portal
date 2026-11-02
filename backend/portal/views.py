@@ -198,9 +198,7 @@ class ExamDetail(generics.RetrieveUpdateAPIView):
             raise ValidationError("Start time must remain in the future.")
         payload.save()
         for batch in exam.batches.all():
-            queue_scheduled_exam_notifications(
-                exam, batch.students.filter(role="STUDENT", is_active=True)
-            )
+            queue_scheduled_exam_notifications(exam, batch.students.filter(role="STUDENT", is_active=True))
         AuditLog.objects.create(actor=request.user, action="EXAM_UPDATED", target=str(exam.id))
         return Response(payload.data)
 
