@@ -1,6 +1,7 @@
 import csv
 from io import BytesIO
 
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -91,7 +92,7 @@ class AttemptResult(APIView):
         attempt = get_object_or_404(ExamAttempt.objects.select_related("exam"), pk=pk, student=request.user)
         if attempt.status == ExamAttempt.IN_PROGRESS or attempt.submitted_at is None:
             raise ValidationError("This attempt has not been submitted.")
-        if attempt.disqualification_reason:
+        if attempt.status == ExamAttempt.DISQUALIFIED or attempt.disqualification_reason:
             return Response({"detail": "This result is withheld by an administrator."}, status=403)
         if timezone.now() < attempt.exam.result_visible_from:
             return Response(
@@ -116,8 +117,11 @@ class AttemptResult(APIView):
 class AttemptProctoringEvent(APIView):
     permission_classes = [IsStudent]
 
+    @transaction.atomic
     def post(self, request, pk):
-        attempt = get_object_or_404(ExamAttempt, pk=pk, student=request.user)
+        attempt = get_object_or_404(
+            ExamAttempt.objects.select_for_update(of=("self",)), pk=pk, student=request.user
+        )
         if request.headers.get("X-Exam-Session") != str(attempt.session_key):
             return Response({"detail": "Invalid exam session."}, status=409)
         if attempt.status != ExamAttempt.IN_PROGRESS:
