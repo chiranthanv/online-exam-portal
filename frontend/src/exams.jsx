@@ -945,7 +945,20 @@ function ExamAttemptRunner({ exam, onBack }) {
   }
 
   async function submitAttempt() {
-    if (!attempt || submitting) return;
+    if (
+      !attempt ||
+      submitting ||
+      Object.keys(pendingAnswersRef.current).length > 0 ||
+      Object.keys(savingAnswersRef.current).length > 0
+    ) {
+      setSubmitPending(false);
+      if (Object.keys(pendingAnswersRef.current).length > 0) {
+        setSaveError(
+          "Wait until every answer is confirmed by the server before submitting.",
+        );
+      }
+      return;
+    }
     setSubmitting(true);
     setSaveError("");
     try {
@@ -1001,10 +1014,14 @@ function ExamAttemptRunner({ exam, onBack }) {
             Answers save to the server as you choose each option.
           </p>
         </div>
+      </div>
+      <div className="attempt-sticky-bar">
         <div
           className={
             remainingSeconds <= 60 && isOpen ? "timer urgent" : "timer"
           }
+          role="timer"
+          aria-live="off"
         >
           <span>Time remaining</span>
           <strong aria-label={`Time remaining ${timerLabel}`}>
@@ -1017,13 +1034,27 @@ function ExamAttemptRunner({ exam, onBack }) {
           {saveError}
         </p>
       )}
-      <p className="hint" role="status" aria-live="polite">
-        {Object.keys(savingAnswers).length
-          ? "Saving answer…"
-          : attempt.last_saved_at
-            ? `Last saved ${new Date(attempt.last_saved_at).toLocaleTimeString()}`
-            : "No answers saved yet."}
-      </p>
+      <div className="attempt-save-status">
+        <p className="hint" role="status" aria-live="polite">
+          {Object.keys(savingAnswers).length
+            ? "Saving answer…"
+            : Object.keys(pendingAnswers).length
+              ? `${Object.keys(pendingAnswers).length} answer(s) waiting to sync. Reconnect to save automatically.`
+              : attempt.last_saved_at
+                ? `Last saved ${new Date(attempt.last_saved_at).toLocaleTimeString()}`
+                : "No answers saved yet."}
+        </p>
+        {isOpen && Object.keys(pendingAnswers).length > 0 && (
+          <button
+            className="secondary"
+            type="button"
+            onClick={flushPendingAnswers}
+            disabled={Object.keys(savingAnswers).length > 0}
+          >
+            Retry saving now
+          </button>
+        )}
+      </div>
 
       {!isOpen ? (
         <div className="notice" role="status">
@@ -1034,6 +1065,13 @@ function ExamAttemptRunner({ exam, onBack }) {
             Answer editing is locked. Your score remains hidden until the
             scheduled result release.
           </p>
+          {Object.keys(pendingAnswers).length > 0 && (
+            <p className="notice error" role="alert">
+              {Object.keys(pendingAnswers).length} answer(s) were still waiting
+              to sync when the exam closed. Those answers may not be included
+              in evaluation.
+            </p>
+          )}
           <div className="row-actions">
             <button
               className="secondary"
@@ -1120,7 +1158,11 @@ function ExamAttemptRunner({ exam, onBack }) {
             <button
               className="primary"
               onClick={() => setSubmitPending(true)}
-              disabled={submitting || Object.keys(savingAnswers).length > 0}
+              disabled={
+                submitting ||
+                Object.keys(savingAnswers).length > 0 ||
+                Object.keys(pendingAnswers).length > 0
+              }
             >
               Submit exam
             </button>
@@ -1138,7 +1180,11 @@ function ExamAttemptRunner({ exam, onBack }) {
                 <button
                   className="primary"
                   onClick={submitAttempt}
-                  disabled={submitting}
+                  disabled={
+                    submitting ||
+                    Object.keys(savingAnswers).length > 0 ||
+                    Object.keys(pendingAnswers).length > 0
+                  }
                 >
                   {submitting ? "Submitting…" : "Confirm submission"}
                 </button>
