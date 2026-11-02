@@ -645,10 +645,7 @@ function ExamAttemptRunner({ exam, onBack }) {
                 }
               : data;
           setAttempt(restored);
-          if (
-            data.status !== "IN_PROGRESS" &&
-            Object.keys(pending).length
-          ) {
+          if (data.status !== "IN_PROGRESS" && Object.keys(pending).length) {
             setSaveError(
               "The exam is closed. An answer that was waiting to sync was not saved.",
             );
@@ -915,10 +912,9 @@ function ExamAttemptRunner({ exam, onBack }) {
       );
       if (e.status === 409) {
         try {
-          const latest = await api.request(
-            `/attempts/${attempt.attempt_id}`,
-            { headers: { "X-Exam-Session": sessionId } },
-          );
+          const latest = await api.request(`/attempts/${attempt.attempt_id}`, {
+            headers: { "X-Exam-Session": sessionId },
+          });
           setAttempt(latest);
           if (latest.status !== "IN_PROGRESS") {
             storePendingAnswers({});
@@ -1064,8 +1060,8 @@ function ExamAttemptRunner({ exam, onBack }) {
           {Object.keys(pendingAnswers).length > 0 && (
             <p className="notice error" role="alert">
               {Object.keys(pendingAnswers).length} answer(s) were still waiting
-              to sync when the exam closed. Those answers may not be included
-              in evaluation.
+              to sync when the exam closed. Those answers may not be included in
+              evaluation.
             </p>
           )}
           <div className="row-actions">
