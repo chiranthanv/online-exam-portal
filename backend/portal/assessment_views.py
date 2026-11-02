@@ -175,7 +175,6 @@ class AdminAttemptOverride(APIView):
     permission_classes = [IsAdmin]
 
     def post(self, request, pk):
-        from django.db import transaction
         with transaction.atomic():
             attempt = get_object_or_404(ExamAttempt.objects.select_for_update(), pk=pk)
             disqualified = request.data.get("disqualified")
