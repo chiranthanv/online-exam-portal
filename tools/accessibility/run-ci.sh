@@ -36,7 +36,7 @@ cd "$ROOT"
 API_PID=$!
 (
   cd frontend
-  npm run dev -- --host 127.0.0.1 --strictPort
+  exec ./node_modules/.bin/vite --host 127.0.0.1 --strictPort
 ) >"$OUT/frontend.log" 2>&1 &
 VITE_PID=$!
 
