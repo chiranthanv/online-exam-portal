@@ -108,6 +108,55 @@ class AttemptAssessmentIntegrationTests(TestCase):
         attempt.refresh_from_db()
         self.assertEqual(str(attempt.score), "-0.50")
 
+    def test_maximum_exam_penalties_fit_persisted_score(self):
+        # The API permits 500 questions and penalties up to 999.99 each.
+        # A valid negative total must survive both submission and a later read.
+        questions = [
+            Question(
+                text=f"Penalty boundary {index}",
+                subject="Math",
+                topic="Arithmetic",
+                difficulty="EASY",
+                default_marks="1.00",
+                negative_marks="999.99",
+                created_by=self.admin,
+            )
+            for index in range(500)
+        ]
+        Question.objects.bulk_create(questions)
+        wrong_options = [Option(question=q, text="Wrong") for q in questions]
+        Option.objects.bulk_create(
+            wrong_options + [Option(question=q, text="Correct", is_correct=True) for q in questions]
+        )
+        ExamQuestion.objects.filter(exam=self.exam).delete()
+        ExamQuestion.objects.bulk_create(
+            [ExamQuestion(exam=self.exam, question=q, sequence=i + 1) for i, q in enumerate(questions)]
+        )
+        self.exam.total_marks = "500.00"
+        self.exam.end_time = timezone.now() + timedelta(hours=1)
+        self.exam.save(update_fields=["total_marks", "end_time"])
+        attempt = self.make_attempt()
+        AttemptAnswer.objects.bulk_create(
+            [
+                AttemptAnswer(attempt=attempt, question=option.question, selected_option_id=option.id)
+                for option in wrong_options
+            ]
+        )
+        client = APIClient()
+        client.force_authenticate(self.student)
+        response = client.post(
+            f"/api/v1/attempts/{attempt.id}/submit",
+            {},
+            format="json",
+            HTTP_X_EXAM_SESSION=str(attempt.session_key),
+        )
+        self.assertEqual(response.status_code, 200)
+        attempt.refresh_from_db()
+        self.assertEqual(str(attempt.score), "-499995.00")
+        result = client.get(f"/api/v1/attempts/{attempt.id}/result")
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.data["score"], "-499995.00")
+
     def test_unanswered_question_scores_zero(self):
         attempt = self.make_attempt()
         client = APIClient()

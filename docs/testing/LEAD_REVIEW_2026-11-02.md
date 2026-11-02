@@ -39,6 +39,11 @@ final release freeze. No video is recorded as part of this review.
 6. **Operations documentation:** README/development startup commands include the
    notification `scheduler`, distinct from the expiry `worker`; deployment still
    requires operator SMTP settings for actual mailbox delivery.
+7. **Score capacity:** a valid 500-question exam with 999.99 penalties can produce
+   `-499995.00`, exceeding the original seven-digit score field. The new boundary
+   regression reproduced `decimal.InvalidOperation` when reading the persisted
+   SQLite result. An additive migration widens the field to eight digits without
+   altering the grading formula, clamping scores or discarding existing values.
 
 ## Local verification
 
@@ -49,6 +54,9 @@ and the other checkout are not edited. Runtime inspection confirms `portal` is
 imported from the isolated review worktree.
 
 - Full local backend suite: **94 discovered, 89 passed, five PostgreSQL-only skips**.
+  This is the first CSV/evidence patch's result; the subsequent score-capacity
+  regression and migration require a new suite/CI run and are not represented
+  as covered by that earlier count.
 - PDF exports run with the required pinned `reportlab==4.4.4` installed in the exact
   interpreter used for the checks.
 - Migration consistency: no changes detected.
