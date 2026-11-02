@@ -703,7 +703,7 @@ function ExamAttemptRunner({ exam, onBack }) {
   }, []);
 
   useEffect(() => {
-    if (!attempt || attempt.status !== "IN_PROGRESS" || !sessionId) return;
+    if (!attempt || attempt.status !== "IN_PROGRESS") return;
     const report = (eventType) => {
       const now = Date.now();
       api
@@ -713,7 +713,6 @@ function ExamAttemptRunner({ exam, onBack }) {
             event_type: eventType,
             occurred_at: new Date(now).toISOString(),
           },
-          headers: { "X-Exam-Session": sessionId },
         })
         .catch(() => {});
     };
@@ -727,7 +726,7 @@ function ExamAttemptRunner({ exam, onBack }) {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("blur", onBlur);
     };
-  }, [attempt?.attempt_id, attempt?.status, sessionId]);
+  }, [attempt?.attempt_id, attempt?.status]);
 
   const remainingMs = attempt
     ? Math.max(0, (deadlineMonotonicAt.current ?? now) - now)
@@ -742,7 +741,6 @@ function ExamAttemptRunner({ exam, onBack }) {
       !attempt ||
       attempt.status !== "IN_PROGRESS" ||
       remainingMs > 0 ||
-      !sessionId ||
       autoSubmitting.current
     ) {
       return;
@@ -752,11 +750,10 @@ function ExamAttemptRunner({ exam, onBack }) {
       .request(`/attempts/${attempt.attempt_id}/submit`, {
         method: "POST",
         body: {},
-        headers: { "X-Exam-Session": sessionId },
       })
       .then(setAttempt)
       .catch((e) => setSaveError(e.message));
-  }, [attempt, remainingMs, sessionId]);
+  }, [attempt, remainingMs]);
 
   async function requestWithRetry(path, options) {
     let lastError;
@@ -779,7 +776,6 @@ function ExamAttemptRunner({ exam, onBack }) {
     if (
       !attempt ||
       attempt.status !== "IN_PROGRESS" ||
-      !sessionId ||
       !navigator.onLine ||
       syncingPendingRef.current
     ) {
@@ -808,8 +804,7 @@ function ExamAttemptRunner({ exam, onBack }) {
             {
               method: "PATCH",
               body: { question_id: questionId, option_id: optionId },
-              headers: { "X-Exam-Session": sessionId },
-            },
+                },
           );
           storePendingAnswers((current) => {
             if (
@@ -835,7 +830,6 @@ function ExamAttemptRunner({ exam, onBack }) {
             try {
               const latest = await api.request(
                 `/attempts/${attempt.attempt_id}`,
-                { headers: { "X-Exam-Session": sessionId } },
               );
               setAttempt(latest);
               if (latest.status !== "IN_PROGRESS") {
@@ -865,7 +859,7 @@ function ExamAttemptRunner({ exam, onBack }) {
   }
 
   useEffect(() => {
-    if (!attempt || attempt.status !== "IN_PROGRESS" || !sessionId) return;
+    if (!attempt || attempt.status !== "IN_PROGRESS") return;
     const retry = () => {
       if (navigator.onLine) void flushPendingAnswers();
     };
@@ -883,7 +877,7 @@ function ExamAttemptRunner({ exam, onBack }) {
       document.removeEventListener("visibilitychange", onVisibility);
       if (retryOnMount) window.clearTimeout(retryOnMount);
     };
-  }, [attempt?.attempt_id, attempt?.status, sessionId, pendingAnswers]);
+  }, [attempt?.attempt_id, attempt?.status, pendingAnswers]);
 
   async function saveAnswer(questionId, optionId) {
     if (
@@ -894,10 +888,6 @@ function ExamAttemptRunner({ exam, onBack }) {
       return;
     }
     savingAnswersRef.current.add(questionId);
-    storePendingAnswers((current) => ({
-      ...current,
-      [questionId]: optionId,
-    }));
     setSaveError("");
     setSavingAnswers((current) => ({ ...current, [questionId]: true }));
     setAttempt((current) => ({
@@ -909,49 +899,70 @@ function ExamAttemptRunner({ exam, onBack }) {
       ),
       answers: { ...current.answers, [questionId]: optionId },
     }));
+    let recoveryStored = false;
+    try {
+      await storePendingAnswers((current) => ({
+        ...current,
+        [questionId]: optionId,
+      }));
+      recoveryStored = true;
+    } catch {
+      setSaveError(
+        "This browser could not write local recovery data. The server save is still being attempted; keep this page open until it is confirmed.",
+      );
+    }
     try {
       const result = await requestWithRetry(
         `/attempts/${attempt.attempt_id}/answers`,
         {
           method: "PATCH",
           body: { question_id: questionId, option_id: optionId },
-          headers: { "X-Exam-Session": sessionId },
         },
       );
-      storePendingAnswers((current) => {
-        if (
-          !Object.prototype.hasOwnProperty.call(current, questionId) ||
-          current[questionId] !== optionId
-        ) {
-          return current;
-        }
-        const next = { ...current };
-        delete next[questionId];
-        return next;
-      });
+      try {
+        await storePendingAnswers((current) => {
+          if (
+            !Object.prototype.hasOwnProperty.call(current, questionId) ||
+            current[questionId] !== optionId
+          ) {
+            return current;
+          }
+          const next = { ...current };
+          delete next[questionId];
+          return next;
+        });
+      } catch {
+        setSaveError(
+          "The server confirmed this answer, but local recovery cleanup failed. It may be retried after reopening.",
+        );
+      }
       setAttempt((current) =>
         current ? { ...current, last_saved_at: result.saved_at } : current,
       );
     } catch (e) {
       setSaveError(
         e.status === 0
-          ? "Connection unavailable. Your answer is stored in this tab and will retry when you reconnect."
-          : `Your answer is stored in this tab but is not yet confirmed by the server: ${e.message}`,
+          ? recoveryStored
+            ? "Connection unavailable. Your answer is stored on this device and will retry when you reconnect. The server has not confirmed it yet."
+            : "Connection unavailable and local recovery storage failed. This answer is not saved; keep this tab open and retry."
+          : recoveryStored
+            ? `Your answer is stored on this device but is not yet confirmed by the server: ${e.message}`
+            : `The server has not confirmed this answer and local recovery storage is unavailable: ${e.message}`,
       );
       if (e.status === 409) {
         try {
-          const latest = await api.request(`/attempts/${attempt.attempt_id}`, {
-            headers: { "X-Exam-Session": sessionId },
-          });
+          const latest = await api.request(
+            `/attempts/${attempt.attempt_id}`,
+          );
           setAttempt(latest);
           if (latest.status !== "IN_PROGRESS") {
-            storePendingAnswers({});
+            await storePendingAnswers({});
             setSaveError(
-              "The exam closed before the pending answers reached the server. Those answers were not saved.",
+              "The exam closed before the pending answer reached the server. That answer was not saved.",
             );
           }
         } catch {
-          // Keep the local answer until the server can be checked again.
+          // Keep the pending answer until the server can be checked again.
         }
       }
     } finally {
@@ -985,7 +996,6 @@ function ExamAttemptRunner({ exam, onBack }) {
       const data = await api.request(`/attempts/${attempt.attempt_id}/submit`, {
         method: "POST",
         body: {},
-        headers: { "X-Exam-Session": sessionId },
       });
       setAttempt(data);
       setSubmitPending(false);
