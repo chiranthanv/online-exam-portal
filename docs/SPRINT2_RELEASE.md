@@ -8,8 +8,8 @@ See [current status](testing/SPRINT2_STATUS.md) and [teammate tasks](planning/SP
 ## Integration prerequisites
 
 - Teammate PRs target the current attempt schema, preserve existing rows and include
-  required migrations. Evaluation/results, reports, proctoring, notification worker
-  and the integrated UI must actually be present and usable.
+  required migrations. Harkirat's current-schema feature integration is in PR #43;
+  independent review and final integrated UI acceptance remain required.
 - Real reviewers record findings/approval. PR #37 and #40 currently have no submitted
   reviews. Use a reviewed isolated candidate; do not touch another checkout's active merge.
 - Run only against a fresh disposable database for demo/verification. Back up any real
@@ -60,7 +60,8 @@ git diff --check
 Use a new disposable database and set `DATABASE_URL` explicitly for any migration,
 seed, browser or concurrency run. SQLite skips do not prove PostgreSQL locking.
 Final teammate commands/API endpoints must be updated from their reviewed PRs;
-`process_exam_notifications` exists only on the old PR #33 branch today.
+`run_notification_scheduler --interval 60` is wired as the Compose `scheduler`
+service; verify its runtime and SMTP delivery in the final environment.
 
 ## Documentation and two-minute recording
 
