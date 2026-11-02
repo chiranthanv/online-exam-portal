@@ -25,7 +25,7 @@ class AttemptAssessmentIntegrationTests(TestCase):
             email="faculty-assessment@example.test",
             name="Faculty",
             role="ADMIN",
-            password="Assessment-Test-Password-123!"
+            password="Assessment-Test-Password-123!",
         )
         cls.student = User.objects.create_user(
             username="student-assessment",
@@ -97,12 +97,15 @@ class AttemptAssessmentIntegrationTests(TestCase):
         client = APIClient()
         client.force_authenticate(self.student)
         response = client.post(
-            f"/api/v1/attempts/{attempt.id}/submit", {}, format="json",
+            f"/api/v1/attempts/{attempt.id}/submit",
+            {},
+            format="json",
             HTTP_X_EXAM_SESSION=str(attempt.session_key),
         )
         self.assertEqual(response.status_code, 200, response.content)
         attempt.refresh_from_db()
         self.assertEqual(str(attempt.score), "0.00")
+
     def test_result_is_hidden_before_release(self):
         self.exam.result_visible_from = timezone.now() + timedelta(hours=1)
         self.exam.save(update_fields=["result_visible_from"])
