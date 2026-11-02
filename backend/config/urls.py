@@ -1,7 +1,7 @@
 from django.urls import path
+from portal import assessment_views as assessment
 from portal import auth_views as auth
 from portal import views
-from portal import assessment_views as assessment
 
 from .frontend import entry
 
