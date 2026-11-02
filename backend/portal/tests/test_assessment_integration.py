@@ -32,7 +32,7 @@ class AttemptAssessmentIntegrationTests(TestCase):
             email="student-assessment@example.test",
             name="Student",
             usn="ASSESS-001",
-            password="Assessment-Test-Password-123!"
+            password="Assessment-Test-Password-123!",
         )
         cls.question = Question.objects.create(
             text="2 + 2?",
