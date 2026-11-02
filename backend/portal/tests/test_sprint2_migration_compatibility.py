@@ -100,6 +100,7 @@ class ExistingAttemptMigrationTests(TransactionTestCase):
         self.answer_id = answer.id
         self.question_id = question.id
         self.option_id = option.id
+        self.wrong_option_id = wrong_option.id
         self.deadline_at = attempt.deadline_at
         self.submitted_at = attempt.submitted_at
         self.saved_at = answer.saved_at
@@ -139,7 +140,7 @@ class ExistingAttemptMigrationTests(TransactionTestCase):
         self.assertEqual(disqualified_attempt.status, "DISQUALIFIED")
         self.assertEqual(str(disqualified_attempt.score), "-0.50")
         self.assertEqual(disqualified_attempt.evaluated_at, disqualified_attempt.submitted_at)
-        self.assertEqual(disqualified_answer.selected_option_id, self.option_id if False else disqualified_answer.selected_option_id)
+        self.assertEqual(disqualified_answer.selected_option_id, self.wrong_option_id)
 
         notice = NotificationOutbox.objects.get()
         self.assertEqual(notice.attempt_id, self.attempt_id)
