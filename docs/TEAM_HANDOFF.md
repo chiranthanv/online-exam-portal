@@ -1,5 +1,9 @@
 # Team 15 — Sprint 1 handoff
 
+Historical Sprint 1 record. For current work use the [Sprint 2 status](testing/SPRINT2_STATUS.md),
+[exact teammate tasks](planning/SPRINT2_TEAM_TASKS.md) and [lead release procedure](SPRINT2_RELEASE.md).
+The Sprint 1 pending list below is not the current Sprint 2 implementation status.
+
 Sprint 1 implementation is merged into `main`. Backend PR [#29](https://github.com/chiranthanv/online-exam-portal/pull/29), frontend/integration PR [#30](https://github.com/chiranthanv/online-exam-portal/pull/30), and final integration PR [#28](https://github.com/chiranthanv/online-exam-portal/pull/28) delivered the integrated product. Genuine teammate follow-up PR [#31](https://github.com/chiranthanv/online-exam-portal/pull/31) then added SQL-injection and stored-XSS regression coverage. Its merge commit [`8550754`](https://github.com/chiranthanv/online-exam-portal/commit/8550754a2c4a496e75316804c882c8cc526b8ad5) passed both final workflows. PR #31 was opened from Harkirat's account and contains commit/merge activity attributed by GitHub to Dwijesh; no additional independent review is claimed.
 
 ## Dwijesh — @Dwijesh60

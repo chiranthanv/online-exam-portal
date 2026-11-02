@@ -3,6 +3,11 @@
 Course window: 26–30 October. Actual Jira sprint activation: 28 October;
 do not backdate progress. All dates below use Asia/Kolkata.
 
+The newly supplied course screenshot confirms 26–30 October and the two-minute
+video/documentation/freeze requirements. This table remains the original daily
+plan; use [current status](../testing/SPRINT2_STATUS.md) and
+[teammate closeout tasks](SPRINT2_TEAM_TASKS.md) for actual remaining work.
+
 ## Ownership and daily delivery
 
 | Day | Chiranthan: backend/architecture lead | Dwijesh: exam interface/engine | Harkirat: evaluation/security/testing |

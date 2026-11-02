@@ -1,5 +1,10 @@
 # Design clarifications and deviations — Sprint 1
 
+Historical Sprint 1 decisions are retained below. Current Sprint 2 integration and
+measurement limits are recorded in [Sprint 2 status](testing/SPRINT2_STATUS.md).
+The later supplied course screenshot confirms Sprint 2 as 26–30 October 2026;
+actual implementation timestamps are not changed.
+
 This record accompanies the original SRS, SAD and Test Plan; it does not silently replace them. Implementation date: 26 October 2026. Review these decisions in the backend PR.
 
 | Item | Implemented decision and reason | Acceptance / remaining work |
@@ -17,7 +22,7 @@ This record accompanies the original SRS, SAD and Test Plan; it does not silentl
 | Audit enforcement | Append-only ORM plus database UPDATE/DELETE triggers. Actor, time, action and target only; no tokens or passwords in audit. | DB-owner migrations/TRUNCATE can bypass row triggers; production DB administration remains trusted. |
 | HSTS policy | Host HSTS is one year. includeSubDomains/preload are off unless operator opts in with HSTS_INCLUDE_SUBDOMAINS/HSTS_PRELOAD. Only Django W005/W021 are silenced, with this rationale. | Avoids asserting HTTPS ownership of unrelated subdomains or committing to preload without domain-owner consent. All other deploy checks remain active. |
 | TLS evidence | Container CI exercises a temporary backend deployment through Caddy, with CA/hostname verification and TLS 1.2. | Does not establish public hosting, production certificates, real mailbox delivery or the future frontend's browser security. |
-| Scope / dates | Backlog and both sprints were planned before application implementation. Course Sprint 1 dates remain 19–23 October; actual commits/evidence use real dates. | No backdating, fabricated reviews or teammate authorship. Sprint 2 calendar still requires course confirmation. |
+| Scope / dates | Backlog and both sprints were planned before application implementation. Course Sprint 1 dates remain 19–23 October; Sprint 2 is confirmed as 26–30 October. Actual commits/evidence use real dates. | No backdating, fabricated reviews or teammate authorship. Late completion remains visible in actual timestamps. |
 
 No attempt engine, result scoring, reporting, autosave, proctoring, notifications, performance or uptime claims are made by this Sprint 1 backend. The React application and automated system tests have been implemented in PR #30 through Chiranthan’s account at his request. Genuine teammate review/contribution evidence is still a human team dependency. The actual product recording and execution results are recorded in the integration report.
 
