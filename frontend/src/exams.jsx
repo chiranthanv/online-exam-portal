@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import {
+  clearPendingAnswers,
+  formatRecoveryAge,
+  loadPendingAnswers,
+  savePendingAnswers,
+} from "./attempt-recovery";
+import {
   ActionNotice,
   Empty,
   Field,
@@ -535,10 +541,10 @@ function ExamAttemptRunner({ exam, onBack }) {
   const storageKey = `oep:attempt:${exam.exam_id}`;
   const pendingStorageKey = `oep:pending:${exam.exam_id}`;
   const [attempt, setAttempt] = useState(null);
-  const [sessionId, setSessionId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [recoveredMessage, setRecoveredMessage] = useState("");
   const [result, setResult] = useState(null);
   const [resultMessage, setResultMessage] = useState("");
   const [savingAnswers, setSavingAnswers] = useState({});
@@ -551,20 +557,25 @@ function ExamAttemptRunner({ exam, onBack }) {
   const pendingAnswersRef = useRef({});
   const savingAnswersRef = useRef(new Set());
   const syncingPendingRef = useRef(false);
+  const pendingWriteRef = useRef(Promise.resolve());
+  const attemptIdRef = useRef(null);
 
-  function storePendingAnswers(nextOrUpdate) {
+  function storePendingAnswers(nextOrUpdate, savedAt = Date.now()) {
     const next =
       typeof nextOrUpdate === "function"
         ? nextOrUpdate(pendingAnswersRef.current)
         : nextOrUpdate;
     pendingAnswersRef.current = next;
     setPendingAnswers(next);
-    if (Object.keys(next).length) {
-      sessionStorage.setItem(pendingStorageKey, JSON.stringify(next));
-    } else {
-      sessionStorage.removeItem(pendingStorageKey);
-    }
-    return next;
+    const attemptId = attemptIdRef.current;
+    pendingWriteRef.current = pendingWriteRef.current
+      .catch(() => {})
+      .then(() =>
+        Object.keys(next).length
+          ? savePendingAnswers(exam.exam_id, attemptId, next, savedAt)
+          : clearPendingAnswers(exam.exam_id, attemptId),
+      );
+    return pendingWriteRef.current;
   }
 
   useEffect(() => {
@@ -579,30 +590,68 @@ function ExamAttemptRunner({ exam, onBack }) {
         } catch {
           saved = null;
         }
-        if (!saved?.session_id) {
-          saved = { session_id: window.crypto.randomUUID() };
+        // Migrate a prior version's header session once; new sessions use the
+        // attempt-scoped HttpOnly cookie issued by the server.
+        const legacySessionId = saved?.session_id || "";
+        const headers = legacySessionId
+          ? { "X-Exam-Session": legacySessionId }
+          : {};
+        const data = await api.request(`/exams/${exam.exam_id}/attempt`, {
+          method: "POST",
+          body: legacySessionId ? { session_id: legacySessionId } : {},
+          headers,
+        });
+        attemptIdRef.current = data.attempt_id;
+
+        let recovery = { answers: {}, age_ms: null, clock_skew: false };
+        try {
+          recovery = await loadPendingAnswers(exam.exam_id, data.attempt_id);
+        } catch {
+          setSaveError(
+            "This browser's local recovery storage is unavailable. Server-confirmed answers remain safe; keep this page open while working.",
+          );
         }
-        const headers = { "X-Exam-Session": saved.session_id };
-        const data = saved.attempt_id
-          ? await api.request(`/attempts/${saved.attempt_id}`, { headers })
-          : await api.request(`/exams/${exam.exam_id}/attempt`, {
-              method: "POST",
-              body: { session_id: saved.session_id },
-              headers,
-            });
-        saved.attempt_id = data.attempt_id;
-        sessionStorage.setItem(storageKey, JSON.stringify(saved));
-        let pending = {};
+        let legacyPending = {};
+        let unmatchedLegacy = false;
         try {
           const parsed = JSON.parse(
             sessionStorage.getItem(pendingStorageKey) || "{}",
           );
           if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-            pending = parsed;
+            if (saved?.attempt_id === data.attempt_id) {
+              legacyPending = parsed;
+            } else {
+              // Keep the old queue and its old non-secret owner reference;
+              // another account must never inherit those answer choices.
+              unmatchedLegacy = Object.keys(parsed).length > 0;
+            }
           }
         } catch {
-          pending = {};
+          legacyPending = {};
         }
+        try {
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify({
+              attempt_id: unmatchedLegacy ? saved?.attempt_id : data.attempt_id,
+            }),
+          );
+        } catch {
+          // This reference only changes the card label. Cookies and scoped
+          // IndexedDB still permit recovery when sessionStorage is unavailable.
+        }
+        const pending = { ...recovery.answers, ...legacyPending };
+        if (Object.keys(legacyPending).length) {
+          try {
+            await savePendingAnswers(exam.exam_id, data.attempt_id, pending);
+            sessionStorage.removeItem(pendingStorageKey);
+          } catch {
+            setSaveError(
+              "Older unsynced answers could not be migrated to durable recovery storage. Keep this tab open and retry.",
+            );
+          }
+        }
+
         const validPending = Object.fromEntries(
           Object.entries(pending).filter(([questionId, optionId]) => {
             const question = data.questions.find(
@@ -616,10 +665,32 @@ function ExamAttemptRunner({ exam, onBack }) {
           }),
         );
         if (active) {
-          storePendingAnswers(
-            data.status === "IN_PROGRESS" ? validPending : {},
-          );
-          setSessionId(saved.session_id);
+          try {
+            await storePendingAnswers(
+              data.status === "IN_PROGRESS" ? validPending : {},
+              Object.keys(legacyPending).length
+                ? Date.now()
+                : (recovery.saved_at ?? Date.now()),
+            );
+          } catch {
+            setSaveError(
+              "This browser could not update local recovery storage. Server-confirmed answers remain safe; keep this page open while retrying.",
+            );
+          }
+          if (
+            Object.keys(validPending).length &&
+            data.status === "IN_PROGRESS"
+          ) {
+            const age =
+              legacyPending && Object.keys(legacyPending).length
+                ? "recovered from this tab's previous session"
+                : recovery.clock_skew
+                  ? "age unavailable because the device clock differs from the stored save time"
+                  : formatRecoveryAge(recovery.age_ms);
+            setRecoveredMessage(
+              `Recovered ${Object.keys(validPending).length} unsynced answer(s) from this device (${age}). The server deadline remains authoritative.`,
+            );
+          }
           deadlineMonotonicAt.current =
             window.performance.now() +
             Math.max(
@@ -672,7 +743,7 @@ function ExamAttemptRunner({ exam, onBack }) {
   }, []);
 
   useEffect(() => {
-    if (!attempt || attempt.status !== "IN_PROGRESS" || !sessionId) return;
+    if (!attempt || attempt.status !== "IN_PROGRESS") return;
     const report = (eventType) => {
       const now = Date.now();
       api
@@ -682,7 +753,6 @@ function ExamAttemptRunner({ exam, onBack }) {
             event_type: eventType,
             occurred_at: new Date(now).toISOString(),
           },
-          headers: { "X-Exam-Session": sessionId },
         })
         .catch(() => {});
     };
@@ -696,7 +766,7 @@ function ExamAttemptRunner({ exam, onBack }) {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("blur", onBlur);
     };
-  }, [attempt?.attempt_id, attempt?.status, sessionId]);
+  }, [attempt?.attempt_id, attempt?.status]);
 
   const remainingMs = attempt
     ? Math.max(0, (deadlineMonotonicAt.current ?? now) - now)
@@ -711,7 +781,6 @@ function ExamAttemptRunner({ exam, onBack }) {
       !attempt ||
       attempt.status !== "IN_PROGRESS" ||
       remainingMs > 0 ||
-      !sessionId ||
       autoSubmitting.current
     ) {
       return;
@@ -721,11 +790,10 @@ function ExamAttemptRunner({ exam, onBack }) {
       .request(`/attempts/${attempt.attempt_id}/submit`, {
         method: "POST",
         body: {},
-        headers: { "X-Exam-Session": sessionId },
       })
       .then(setAttempt)
       .catch((e) => setSaveError(e.message));
-  }, [attempt, remainingMs, sessionId]);
+  }, [attempt, remainingMs]);
 
   async function requestWithRetry(path, options) {
     let lastError;
@@ -748,7 +816,6 @@ function ExamAttemptRunner({ exam, onBack }) {
     if (
       !attempt ||
       attempt.status !== "IN_PROGRESS" ||
-      !sessionId ||
       !navigator.onLine ||
       syncingPendingRef.current
     ) {
@@ -777,38 +844,42 @@ function ExamAttemptRunner({ exam, onBack }) {
             {
               method: "PATCH",
               body: { question_id: questionId, option_id: optionId },
-              headers: { "X-Exam-Session": sessionId },
             },
           );
-          storePendingAnswers((current) => {
-            if (
-              !Object.prototype.hasOwnProperty.call(current, questionId) ||
-              current[questionId] !== optionId
-            ) {
-              return current;
-            }
-            const next = { ...current };
-            delete next[questionId];
-            return next;
-          });
+          try {
+            await storePendingAnswers((current) => {
+              if (
+                !Object.prototype.hasOwnProperty.call(current, questionId) ||
+                current[questionId] !== optionId
+              ) {
+                return current;
+              }
+              const next = { ...current };
+              delete next[questionId];
+              return next;
+            });
+          } catch {
+            setSaveError(
+              "The server confirmed a pending answer, but local recovery cleanup failed. It may be retried after reopening.",
+            );
+          }
           setAttempt((current) =>
             current ? { ...current, last_saved_at: result.saved_at } : current,
           );
         } catch (e) {
           setSaveError(
             e.status === 0
-              ? "Connection unavailable. Your answer is stored in this tab and will retry when you reconnect."
+              ? "Connection unavailable. Your answer is stored on this device and will retry when you reconnect; the server has not confirmed it yet."
               : `Could not sync a pending answer: ${e.message}`,
           );
           if (e.status === 409) {
             try {
               const latest = await api.request(
                 `/attempts/${attempt.attempt_id}`,
-                { headers: { "X-Exam-Session": sessionId } },
               );
               setAttempt(latest);
               if (latest.status !== "IN_PROGRESS") {
-                storePendingAnswers({});
+                await storePendingAnswers({});
                 setSaveError(
                   "The exam closed before the pending answers reached the server. Those answers were not saved.",
                 );
@@ -834,7 +905,7 @@ function ExamAttemptRunner({ exam, onBack }) {
   }
 
   useEffect(() => {
-    if (!attempt || attempt.status !== "IN_PROGRESS" || !sessionId) return;
+    if (!attempt || attempt.status !== "IN_PROGRESS") return;
     const retry = () => {
       if (navigator.onLine) void flushPendingAnswers();
     };
@@ -852,7 +923,7 @@ function ExamAttemptRunner({ exam, onBack }) {
       document.removeEventListener("visibilitychange", onVisibility);
       if (retryOnMount) window.clearTimeout(retryOnMount);
     };
-  }, [attempt?.attempt_id, attempt?.status, sessionId, pendingAnswers]);
+  }, [attempt?.attempt_id, attempt?.status, pendingAnswers]);
 
   async function saveAnswer(questionId, optionId) {
     if (
@@ -863,10 +934,6 @@ function ExamAttemptRunner({ exam, onBack }) {
       return;
     }
     savingAnswersRef.current.add(questionId);
-    storePendingAnswers((current) => ({
-      ...current,
-      [questionId]: optionId,
-    }));
     setSaveError("");
     setSavingAnswers((current) => ({ ...current, [questionId]: true }));
     setAttempt((current) => ({
@@ -878,49 +945,68 @@ function ExamAttemptRunner({ exam, onBack }) {
       ),
       answers: { ...current.answers, [questionId]: optionId },
     }));
+    let recoveryStored = false;
+    try {
+      await storePendingAnswers((current) => ({
+        ...current,
+        [questionId]: optionId,
+      }));
+      recoveryStored = true;
+    } catch {
+      setSaveError(
+        "This browser could not write local recovery data. The server save is still being attempted; keep this page open until it is confirmed.",
+      );
+    }
     try {
       const result = await requestWithRetry(
         `/attempts/${attempt.attempt_id}/answers`,
         {
           method: "PATCH",
           body: { question_id: questionId, option_id: optionId },
-          headers: { "X-Exam-Session": sessionId },
         },
       );
-      storePendingAnswers((current) => {
-        if (
-          !Object.prototype.hasOwnProperty.call(current, questionId) ||
-          current[questionId] !== optionId
-        ) {
-          return current;
-        }
-        const next = { ...current };
-        delete next[questionId];
-        return next;
-      });
+      try {
+        await storePendingAnswers((current) => {
+          if (
+            !Object.prototype.hasOwnProperty.call(current, questionId) ||
+            current[questionId] !== optionId
+          ) {
+            return current;
+          }
+          const next = { ...current };
+          delete next[questionId];
+          return next;
+        });
+      } catch {
+        setSaveError(
+          "The server confirmed this answer, but local recovery cleanup failed. It may be retried after reopening.",
+        );
+      }
       setAttempt((current) =>
         current ? { ...current, last_saved_at: result.saved_at } : current,
       );
     } catch (e) {
       setSaveError(
         e.status === 0
-          ? "Connection unavailable. Your answer is stored in this tab and will retry when you reconnect."
-          : `Your answer is stored in this tab but is not yet confirmed by the server: ${e.message}`,
+          ? recoveryStored
+            ? "Connection unavailable. Your answer is stored on this device and will retry when you reconnect. The server has not confirmed it yet."
+            : "Connection unavailable and local recovery storage failed. This answer is not saved; keep this tab open and retry."
+          : recoveryStored
+            ? `Your answer is stored on this device but is not yet confirmed by the server: ${e.message}`
+            : `The server has not confirmed this answer and local recovery storage is unavailable: ${e.message}`,
       );
       if (e.status === 409) {
         try {
-          const latest = await api.request(`/attempts/${attempt.attempt_id}`, {
-            headers: { "X-Exam-Session": sessionId },
-          });
+          const latest = await api.request(`/attempts/${attempt.attempt_id}`);
           setAttempt(latest);
           if (latest.status !== "IN_PROGRESS") {
-            storePendingAnswers({});
+            await storePendingAnswers({});
             setSaveError(
-              "The exam closed before the pending answers reached the server. Those answers were not saved.",
+              "The exam closed before the pending answer reached the server. That answer was not saved.",
             );
           }
         } catch {
-          // Keep the local answer until the server can be checked again.
+          // Keep the pending answer until the server can be checked again.
         }
       }
     } finally {
@@ -954,7 +1040,6 @@ function ExamAttemptRunner({ exam, onBack }) {
       const data = await api.request(`/attempts/${attempt.attempt_id}/submit`, {
         method: "POST",
         body: {},
-        headers: { "X-Exam-Session": sessionId },
       });
       setAttempt(data);
       setSubmitPending(false);
@@ -1021,6 +1106,11 @@ function ExamAttemptRunner({ exam, onBack }) {
       {saveError && (
         <p className="notice error" role="alert">
           {saveError}
+        </p>
+      )}
+      {recoveredMessage && (
+        <p className="hint" role="status" aria-live="polite">
+          {recoveredMessage}
         </p>
       )}
       <div className="attempt-save-status">
