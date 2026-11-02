@@ -1,6 +1,7 @@
 from django.urls import path
 from portal import auth_views as auth
 from portal import views
+from portal import assessment_views as assessment
 
 from .frontend import entry
 
@@ -27,6 +28,12 @@ urlpatterns = [
     path("api/v1/attempts/<uuid:pk>", views.ExamAttemptDetail.as_view()),
     path("api/v1/attempts/<uuid:pk>/answers", views.ExamAttemptAnswers.as_view()),
     path("api/v1/attempts/<uuid:pk>/submit", views.ExamAttemptSubmit.as_view()),
+    path("api/v1/attempts/<uuid:pk>/result", assessment.AttemptResult.as_view()),
+    path("api/v1/attempts/<uuid:pk>/proctoring-events", assessment.AttemptProctoringEvent.as_view()),
+    path("api/v1/admin/attempts", assessment.AdminAttemptList.as_view()),
+    path("api/v1/admin/attempts/<uuid:pk>/override", assessment.AdminAttemptOverride.as_view()),
+    path("api/v1/reports/class", assessment.AdminClassReport.as_view()),
+    path("api/v1/reports/questions", assessment.AdminQuestionReport.as_view()),
     path("api/v1/exams/<uuid:pk>", views.ExamDetail.as_view()),
     path("api/v1/exams/<uuid:pk>/questions", views.ExamQuestions.as_view()),
     path("api/v1/exams/<uuid:pk>/batches", views.ExamBatches.as_view()),
