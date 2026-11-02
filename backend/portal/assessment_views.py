@@ -46,7 +46,7 @@ def _safe_csv_cell(field, value):
     if field not in {"student_name", "usn", "difficulty", "subject", "topic"}:
         return value
     text_value = str(value or "")
-    if text_value.lstrip(" \\t\\r\\n").startswith(("=", "+", "-", "@")):
+    if text_value.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
         return "'" + text_value
     return value
 
