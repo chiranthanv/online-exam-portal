@@ -1,8 +1,10 @@
 # Sprint 2 lead release procedure
 
-This procedure is ready to execute once the remaining owners deliver. It does not
-declare a freeze. The present candidate includes Chiranthan's response integrity,
-performance and availability tools; the full feature integration is still pending.
+This procedure is ready to execute once the remaining owners deliver and Chiranthan
+resumes closeout. **Closeout is currently paused; no recording, release freeze or
+sprint closure is performed by the documentation update.** Main now includes
+Chiranthan's merged response integrity, performance and availability tools. Draft
+PR #43 proposes the remaining assessment integration; it is not merged or accepted.
 See [current status](testing/SPRINT2_STATUS.md) and [teammate tasks](planning/SPRINT2_TEAM_TASKS.md).
 
 ## Integration prerequisites
@@ -10,8 +12,10 @@ See [current status](testing/SPRINT2_STATUS.md) and [teammate tasks](planning/SP
 - Teammate PRs target the current attempt schema, preserve existing rows and include
   required migrations. Evaluation/results, reports, proctoring, notification worker
   and the integrated UI must actually be present and usable.
-- Real reviewers record findings/approval. PR #37 and #40 currently have no submitted
-  reviews. Use a reviewed isolated candidate; do not touch another checkout's active merge.
+- Real reviewers record findings/approval. PR #37/#40 are merged but have no submitted
+  reviews; PR #42 has Harkirat's COMMENTED review explicitly withholding whole-product
+  approval. Re-read current review/check results, including PR #43, before acceptance.
+  Use an isolated candidate; do not touch another checkout's active merge.
 - Run only against a fresh disposable database for demo/verification. Back up any real
   database before migrations. Never seed or reset production data for a demo.
 - Keep an exact source revision, environment record and source patch if uncommitted.
@@ -60,7 +64,9 @@ git diff --check
 Use a new disposable database and set `DATABASE_URL` explicitly for any migration,
 seed, browser or concurrency run. SQLite skips do not prove PostgreSQL locking.
 Final teammate commands/API endpoints must be updated from their reviewed PRs;
-`process_exam_notifications` exists only on the old PR #33 branch today.
+`process_exam_notifications` is proposed in PR #43 as well as the old PR #33
+implementation; it is not yet available in main. Do not start a nonexistent main
+worker or assume the Compose expiry worker also sends notifications.
 
 ## Documentation and two-minute recording
 
@@ -83,7 +89,7 @@ Jira, CI artifacts and video. Do not close blocked criteria solely to tidy the b
 
 When the final revision is committed and the working tree is clean, the lead may
 create a local annotated release tag using the recorded SHA. Publishing/merging
-and changing Jira remain separate actions; this closeout preparation performs none.
+and changing Jira remain separate actions requiring genuine completion evidence.
 No final tag is created while full product integration and the required video are pending.
 
 ## Authorship
