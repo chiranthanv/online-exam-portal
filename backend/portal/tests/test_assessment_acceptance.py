@@ -148,7 +148,8 @@ class AssessmentAcceptanceTests(TestCase):
         class_csv = client.get(f"/api/v1/reports/class?exam_id={self.exam.id}&export=csv")
         self.assertEqual(class_csv.status_code, 200)
         class_row = next(
-            row for row in csv.DictReader(StringIO(class_csv.content.decode()))
+            row
+            for row in csv.DictReader(StringIO(class_csv.content.decode()))
             if row["student_id"] == str(student.id)
         )
         self.assertEqual(class_row["student_name"], '\'=HYPERLINK("https://example.test","open")')
