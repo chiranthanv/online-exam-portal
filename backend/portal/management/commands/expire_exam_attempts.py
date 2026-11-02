@@ -20,7 +20,7 @@ class Command(BaseCommand):
         while True:
             with transaction.atomic():
                 expired = list(
-                    ExamAttempt.objects.select_for_update()
+                    ExamAttempt.objects.select_for_update(of=("self",))
                     .select_related("student", "exam")
                     .filter(status=ExamAttempt.IN_PROGRESS, deadline_at__lte=timezone.now())
                     .order_by("deadline_at")
