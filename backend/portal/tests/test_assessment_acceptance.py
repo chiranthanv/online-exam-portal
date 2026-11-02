@@ -7,8 +7,15 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 
 from portal.models import (
-    AttemptAnswer, AuditLog, Exam, ExamAttempt, ExamQuestion, Option,
-    ProctoringEvent, Question, User,
+    AttemptAnswer,
+    AuditLog,
+    Exam,
+    ExamAttempt,
+    ExamQuestion,
+    Option,
+    ProctoringEvent,
+    Question,
+    User,
 )
 
 
