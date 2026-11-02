@@ -96,7 +96,18 @@ class AssessmentAcceptanceTests(TestCase):
         self.make_attempt(self.students[0], selected=[(self.questions[0], correct)])
         self.make_attempt(self.students[1], selected=[(self.questions[0], wrong)])
         self.make_attempt(self.students[2])
-        self.make_attempt(self.students[0], status=ExamAttempt.DISQUALIFIED, selected=[(self.questions[0], correct)])
+        disqualified_student = User.objects.create_user(
+            username="accept-disqualified",
+            email="accept-disqualified@example.test",
+            name="Disqualified Student",
+            usn="ACCEPT-004",
+            password="Test-Password-123!",
+        )
+        self.make_attempt(
+            disqualified_student,
+            status=ExamAttempt.DISQUALIFIED,
+            selected=[(self.questions[0], correct)],
+        )
         client = self.admin_client()
         class_json = client.get(f"/api/v1/reports/class?exam_id={self.exam.id}")
         class_csv = client.get(f"/api/v1/reports/class?exam_id={self.exam.id}&export=csv")
