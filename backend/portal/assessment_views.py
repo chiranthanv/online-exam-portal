@@ -247,11 +247,7 @@ class AdminQuestionReport(APIView):
             ).prefetch_related("answers")
         )
         rows = []
-        for mapping in (
-            ExamQuestion.objects.filter(exam=exam)
-            .select_related("question")
-            .order_by("sequence")
-        ):
+        for mapping in ExamQuestion.objects.filter(exam=exam).select_related("question").order_by("sequence"):
             answers = [
                 a
                 for attempt in attempts
