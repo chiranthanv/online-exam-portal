@@ -150,6 +150,7 @@ class ExamAttempt(models.Model):
     overridden_by = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.PROTECT, related_name="attempt_overrides"
     )
+    status_before_disqualification = models.CharField(max_length=20, blank=True, default="")
 
     class Meta:
         db_table = "exam_attempts"

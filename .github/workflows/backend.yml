@@ -40,6 +40,7 @@ jobs:
         run: |
           coverage run backend/manage.py test portal.tests --verbosity 2
           coverage report
+          coverage report --include=backend/portal/services.py,backend/portal/assessment_views.py --fail-under=70
           coverage xml
       - name: Synthetic development fixtures are repeatable
         run: |

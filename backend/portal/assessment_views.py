@@ -192,19 +192,28 @@ class AdminAttemptOverride(APIView):
                     raise ValidationError("Only terminal attempts can be disqualified.")
                 if not reason.strip():
                     raise ValidationError({"reason": "A reason is required."})
+                if attempt.status != ExamAttempt.DISQUALIFIED:
+                    attempt.status_before_disqualification = attempt.status
                 attempt.status = ExamAttempt.DISQUALIFIED
                 attempt.disqualification_reason = reason.strip()
                 action = "ATTEMPT_DISQUALIFIED"
             else:
                 if attempt.status != ExamAttempt.DISQUALIFIED:
                     raise ValidationError("This attempt is not disqualified.")
-                attempt.status = ExamAttempt.SUBMITTED if attempt.submitted_at else ExamAttempt.AUTO_SUBMITTED
+                restored_status = attempt.status_before_disqualification
+                if restored_status not in {ExamAttempt.SUBMITTED, ExamAttempt.AUTO_SUBMITTED}:
+                    restored_status = ExamAttempt.SUBMITTED
+                attempt.status = restored_status
+                attempt.status_before_disqualification = ""
                 attempt.disqualification_reason = ""
                 action = "ATTEMPT_REPERMITTED"
             attempt.overridden_at = timezone.now()
             attempt.overridden_by = request.user
             attempt.save(
-                update_fields=["status", "disqualification_reason", "overridden_at", "overridden_by"]
+                update_fields=[
+                    "status", "status_before_disqualification", "disqualification_reason",
+                    "overridden_at", "overridden_by"
+                ]
             )
             AuditLog.objects.create(actor=request.user, action=action, target=str(attempt.id))
         return Response(

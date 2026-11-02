@@ -34,11 +34,20 @@ class Command(BaseCommand):
                     continue
                 item.attempts += 1
                 try:
-                    if item.attempt.disqualification_reason:
+                    if item.attempt.evaluated_at is None:
+                        item.due_at = timezone.now() + timedelta(minutes=1)
+                        item.last_error = "Waiting for server-side evaluation."
+                        item.save(update_fields=["due_at", "last_error"])
+                        continue
+                    if timezone.now() < item.attempt.exam.result_visible_from:
+                        item.due_at = item.attempt.exam.result_visible_from
+                        item.save(update_fields=["due_at"])
+                        continue
+                    if item.attempt.status == "DISQUALIFIED" or item.attempt.disqualification_reason:
                         item.status = NotificationOutbox.SENT
                         item.sent_at = timezone.now()
                         item.last_error = "Suppressed: attempt is disqualified."
-                        item.save(update_fields=["attempts", "status", "sent_at", "last_error"])
+                        item.save(update_fields=["attempts", "status", "sent_at", "last_error", "due_at"])
                         continue
                     send_mail(
                         subject=f"Results available: {item.attempt.exam.title}",
@@ -87,10 +96,10 @@ class Command(BaseCommand):
                     send_mail(
                         subject=f"Exam scheduled: {item.exam.title}",
                         message=(
-                            f"An exam has been scheduled: {item.exam.title}.\\n"
-                            f"Start: {item.exam.start_time.isoformat()}\\n"
-                            f"End: {item.exam.end_time.isoformat()}\\n"
-                            f"Duration: {item.exam.duration_minutes} minutes.\\n"
+                            f"An exam has been scheduled: {item.exam.title}.\n"
+                            f"Start: {item.exam.start_time.isoformat()}\n"
+                            f"End: {item.exam.end_time.isoformat()}\n"
+                            f"Duration: {item.exam.duration_minutes} minutes.\n"
                             "Sign in to the exam portal for details."
                         ),
                         from_email=None,
