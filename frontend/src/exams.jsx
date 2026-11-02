@@ -921,13 +921,9 @@ function ExamAttemptRunner({ exam, onBack }) {
           );
           setAttempt(latest);
           if (latest.status !== "IN_PROGRESS") {
-            storePendingAnswers((current) => {
-              const next = { ...current };
-              delete next[questionId];
-              return next;
-            });
+            storePendingAnswers({});
             setSaveError(
-              "The exam closed before this answer reached the server. That answer was not saved.",
+              "The exam closed before the pending answers reached the server. Those answers were not saved.",
             );
           }
         } catch {
@@ -949,7 +945,7 @@ function ExamAttemptRunner({ exam, onBack }) {
       !attempt ||
       submitting ||
       Object.keys(pendingAnswersRef.current).length > 0 ||
-      Object.keys(savingAnswersRef.current).length > 0
+      savingAnswersRef.current.size > 0
     ) {
       setSubmitPending(false);
       if (Object.keys(pendingAnswersRef.current).length > 0) {
