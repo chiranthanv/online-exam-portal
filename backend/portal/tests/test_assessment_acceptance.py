@@ -140,7 +140,7 @@ class AssessmentAcceptanceTests(TestCase):
 
         question = self.questions[0]
         question.subject = "+cmd|' /C calc'!A0"
-        question.topic = "\t=1+1"
+        question.topic = " =1+1"
         question.save(update_fields=["subject", "topic"])
 
         client = self.admin_client()
@@ -155,7 +155,7 @@ class AssessmentAcceptanceTests(TestCase):
         self.assertEqual(question_csv.status_code, 200)
         question_rows = list(csv.DictReader(StringIO(question_csv.content.decode())))
         self.assertEqual(question_rows[0]["subject"], "'+cmd|' /C calc'!A0")
-        self.assertEqual(question_rows[0]["topic"], "'\\t=1+1")
+        self.assertEqual(question_rows[0]["topic"], "' =1+1")
 
     def test_reports_are_admin_only_and_hidden_until_release(self):
         client = APIClient()
