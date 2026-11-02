@@ -19,7 +19,7 @@ def _report_rows(exam):
         status__in=[ExamAttempt.SUBMITTED, ExamAttempt.AUTO_SUBMITTED],
         submitted_at__isnull=False,
         evaluated_at__isnull=False,
-    ).exclude(disqualification_reason__gt="").select_related("student").order_by("student__name", "student__usn")
+    ).filter(disqualification_reason="").select_related("student").order_by("student__name", "student__usn")
     return [
         {
             "attempt_id": str(a.id),
