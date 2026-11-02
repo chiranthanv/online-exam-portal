@@ -20,6 +20,7 @@ from .models import (
     ExamAttempt,
     ExamBatch,
     ExamQuestion,
+    NotificationOutbox,
     Option,
     Question,
     StudentBatch,
@@ -285,7 +286,18 @@ def _expire_attempt_if_due(attempt, now=None):
     if attempt.status == ExamAttempt.IN_PROGRESS and now >= attempt.deadline_at:
         attempt.status = ExamAttempt.AUTO_SUBMITTED
         attempt.submitted_at = now
-        attempt.save(update_fields=["status", "submitted_at"])
+        # GET/resume and rejected post-deadline answer writes can be the first
+        # request to observe expiry. They must use the same evaluator/outbox
+        # path as explicit submit and the background expiry worker.
+        if evaluate_attempt(attempt, now=now):
+            NotificationOutbox.objects.get_or_create(
+                dedupe_key="result:" + str(attempt.id),
+                defaults={
+                    "attempt": attempt,
+                    "recipient": attempt.student.email,
+                    "due_at": attempt.exam.result_visible_from,
+                },
+            )
         AuditLog.objects.create(
             actor=attempt.student,
             action="EXAM_ATTEMPT_AUTO_SUBMITTED",
