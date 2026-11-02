@@ -6,6 +6,51 @@ import django.utils.timezone
 import uuid
 
 
+from decimal import Decimal
+
+
+def backfill_existing_terminal_attempts(apps, schema_editor):
+    """Score attempts submitted before evaluation was deployed, without dropping saved answers."""
+    ExamAttempt = apps.get_model("portal", "ExamAttempt")
+    Option = apps.get_model("portal", "Option")
+    NotificationOutbox = apps.get_model("portal", "NotificationOutbox")
+
+    terminal_statuses = {"SUBMITTED", "AUTO_SUBMITTED", "DISQUALIFIED"}
+    attempts = (
+        ExamAttempt.objects.filter(status__in=terminal_statuses, submitted_at__isnull=False)
+        .select_related("exam", "student")
+        .prefetch_related("answers__question")
+        .order_by("submitted_at", "id")
+    )
+    for attempt in attempts.iterator():
+        score = Decimal("0.00")
+        for answer in attempt.answers.all():
+            if answer.selected_option_id is None:
+                continue
+            is_correct = Option.objects.filter(
+                pk=answer.selected_option_id,
+                question_id=answer.question_id,
+            ).values_list("is_correct", flat=True).first()
+            if is_correct:
+                score += answer.question.default_marks
+            else:
+                score -= answer.question.negative_marks
+
+        ExamAttempt.objects.filter(pk=attempt.pk).update(
+            score=score,
+            evaluated_at=attempt.submitted_at,
+        )
+        if attempt.status != "DISQUALIFIED":
+            NotificationOutbox.objects.get_or_create(
+                dedupe_key=f"result:{attempt.pk}",
+                defaults={
+                    "attempt_id": attempt.pk,
+                    "recipient": attempt.student.email,
+                    "due_at": attempt.exam.result_visible_from,
+                },
+            )
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("portal", "0004_alter_examattempt_status"),
@@ -46,4 +91,5 @@ class Migration(migrations.Migration):
             ],
             options={"db_table": "notification_outbox", "ordering": ["due_at", "id"]},
         ),
+        migrations.RunPython(backfill_existing_terminal_attempts, migrations.RunPython.noop),
     ]
