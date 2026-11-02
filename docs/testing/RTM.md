@@ -24,12 +24,12 @@ counted as integrated merely because their older backend branch was merged.
 | OEP-F-014 | #11 | Implemented in main via #35; CI passes; independent acceptance pending | One attempt/session, owner/session guards; backend + browser regressions |
 | OEP-F-015 | #12 | Implemented in main; refresh/retry checks pass; final recovery acceptance pending | #35/#39 autosave, retry after 503 and refresh restoration; crash/reconnect scope requires acceptance |
 | OEP-F-016 | #13 | Implemented in main; timer fix #38 and regression #39 pass; acceptance pending | Server deadline/expiry worker, monotonic browser timer; backend + browser regressions |
-| OEP-F-017 | #14 | Implemented on old PR #33 branch; absent from current main/candidate | Adapt scoring and timed results to current ExamAttempt and saved-answer lifecycle |
+| OEP-F-017 | #14 | Implemented on Harkirat integration branch; automated acceptance pending | Server-side scoring from locked saved answers, zero floor, score hidden until `result_visible_from`; manual and expiry paths must be exercised in CI |
 | OEP-F-018 | #15 | Implemented in main via #36; PostgreSQL tests pass; independent review pending | Immutable terminal responses/timestamps, ownership/session boundaries and save/submit race |
-| OEP-F-019 | #16 | Old PR #33 reporting/export implementation awaits current-schema integration | Match UI/CSV/PDF totals and enforce role/release/disqualification filters |
-| OEP-F-020 | #17 | Old PR #33 proctoring implementation awaits current-schema integration | Client-reported tab/blur entries, ownership/session guards and admin visibility |
-| OEP-F-021 | #17 | Old PR #33 override workflow awaits integration; current DISQUALIFIED state is only foundation | Attributable disqualify/re-permit, exclusions and immutable submitted answers |
-| OEP-F-022 | #18 | Old PR #33 notification outbox awaits integration | Current-schema queue/retry/deduplication, one-minute scheduler and environment-specific SMTP |
+| OEP-F-019 | #16 | Current-schema class/question report APIs and CSV/PDF export implemented on integration branch; CI pending | Verify report/export row parity, release gate and disqualification exclusions |
+| OEP-F-020 | #17 | Current-schema tab/blur events and faculty review UI implemented on integration branch; CI pending | Client-reported signals are review evidence only; verify session ownership and post-submit rejection |
+| OEP-F-021 | #17 | Attributable disqualify/re-permit API and audit entries implemented on integration branch; CI pending | Verify terminal-only overrides, required reason and report/result exclusion |
+| OEP-F-022 | #18 | Current-schema notification outbox and bounded-retry worker implemented on integration branch; delivery not yet verified | Run `process_exam_notifications` every minute after SMTP configuration; verify idempotency and controlled-mailbox delivery |
 | OEP-NF-001 | #21 | API and browser targets pass on ff66678 in recorded CI environment; review/final integration pending | [TC-Perf-01 results](performance/RESULTS.md), 200-student HTTP + five real SPA openings; cold initial navigation excluded |
 | OEP-NF-002 | #21 | Two-instance persistence and attempt/response EXPLAIN pass; review pending | [Index/EXPLAIN and shared-state review](performance/README.md) |
 | OEP-NF-003 | #22 | Monitor/tooling implemented, nine focused regressions and branch CI pass; representative measurement blocked | [Published HTTPS/PostgreSQL window prerequisites](availability/README.md); no >=99.5% acceptance claim |
