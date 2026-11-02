@@ -604,11 +604,11 @@ function ExamAttemptRunner({ exam, onBack }) {
 
   useEffect(() => {
     if (!attempt || attempt.status !== "IN_PROGRESS" || !sessionId) return;
-    let lastBlurAt = 0;
+    const lastReportedAt = { TAB_SWITCH: 0, WINDOW_BLUR: 0 };
     const report = (eventType) => {
       const now = Date.now();
-      if (now - lastBlurAt < 1500) return;
-      lastBlurAt = now;
+      if (now - lastReportedAt[eventType] < 1500) return;
+      lastReportedAt[eventType] = now;
       api
         .request(`/attempts/${attempt.attempt_id}/proctoring-events`, {
           method: "POST",
