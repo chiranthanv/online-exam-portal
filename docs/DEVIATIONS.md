@@ -32,3 +32,11 @@ The runtime image now builds React with Node.js 24 and serves its static assets 
 ## Sprint 2 scoring clarification
 
 SRS v1.0 OEP-F-017 requires automatic server-side evaluation with negative marking, but does not specify a minimum-zero clamp. SCRUM-25's acceptance formula is explicit: correct answers add their marks, incorrect answers subtract the configured penalty, and unanswered questions add zero. The current-schema implementation follows that arithmetic sum and permits a negative total. The zero-floor behavior in legacy PR #33 is intentionally not retained because it is not stated in the SRS or the Sprint 2 acceptance formula. Regression coverage confirms that one incorrect answer with a 0.50 penalty yields -0.50. Revisit only if the product owner supplies an explicit specification amendment.
+
+## Sprint 2 integration clarifications
+
+- **Negative marking:** SRS OEP-F-017 and BL-14 specify correct marks minus incorrect penalties, with unanswered questions scoring zero, but no minimum-zero floor. The current evaluator follows the arithmetic sum and allows a negative result. Legacy PR #33's zero clamp is not carried forward without a specification amendment.
+- **Proctoring evidence:** `TAB_SWITCH` and `WINDOW_BLUR` are separate session-bound, client-reported observations. They are review signals, not proof of misconduct; administrators make attributable decisions through reason-required overrides.
+- **Notification delivery:** schedule/result notifications are queued durably with unique dedupe keys and bounded retry. The Compose scheduler starts processing on a 60-second cadence. The default development file-email backend is not SMTP; real delivery requires operator-supplied SMTP settings and a controlled mailbox check. SMTP delivery is not claimed by CI.
+- **Re-permission:** if a result notice was suppressed while an attempt was disqualified, a subsequent admin re-permit requeues that undelivered notice. Already delivered messages are not resent.
+- **Migration compatibility:** migrations `0005`–`0007` add nullable scoring/override state and notification/proctoring tables to the current `ExamAttempt` lifecycle. The migration regression migrates a pre-existing submitted attempt and saved answer forward and verifies their identifiers, status, deadline, submission time and answer are preserved.
