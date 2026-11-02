@@ -34,10 +34,18 @@ class Command(BaseCommand):
                     for answer in attempt.answers.select_related("question"):
                         if answer.selected_option_id is None:
                             continue
-                        selected = Option.objects.filter(
-                            pk=answer.selected_option_id, question_id=answer.question_id
-                        ).only("is_correct").first()
-                        score += answer.question.default_marks if selected and selected.is_correct else -answer.question.negative_marks
+                        selected = (
+                            Option.objects.filter(
+                                pk=answer.selected_option_id, question_id=answer.question_id
+                            )
+                            .only("is_correct")
+                            .first()
+                        )
+                        score += (
+                            answer.question.default_marks
+                            if selected and selected.is_correct
+                            else -answer.question.negative_marks
+                        )
                     attempt.status = ExamAttempt.AUTO_SUBMITTED
                     attempt.submitted_at = now
                     attempt.score = max(score, Decimal("0.00"))
@@ -45,7 +53,11 @@ class Command(BaseCommand):
                     attempt.save(update_fields=["status", "submitted_at", "score", "evaluated_at"])
                     NotificationOutbox.objects.get_or_create(
                         dedupe_key="result:" + str(attempt.id),
-                        defaults={"attempt": attempt, "recipient": attempt.student.email, "due_at": attempt.exam.result_visible_from},
+                        defaults={
+                            "attempt": attempt,
+                            "recipient": attempt.student.email,
+                            "due_at": attempt.exam.result_visible_from,
+                        },
                     )
                     AuditLog.objects.create(
                         actor=attempt.student, action="EXAM_ATTEMPT_AUTO_SUBMITTED", target=str(attempt.id)
