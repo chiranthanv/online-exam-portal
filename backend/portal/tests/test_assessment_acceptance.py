@@ -151,11 +151,7 @@ class AssessmentAcceptanceTests(TestCase):
         payload = _attempt_payload(self.make_attempt(self.students[0]))
         self.assertNotIn("is_correct", str(payload))
         self.assertTrue(
-            all(
-                set(option) == {"id", "text"}
-                for q in payload["questions"]
-                for option in q["options"]
-            )
+            all(set(option) == {"id", "text"} for q in payload["questions"] for option in q["options"])
         )
 
     def test_each_tab_switch_and_blur_is_visible_in_admin_review(self):
