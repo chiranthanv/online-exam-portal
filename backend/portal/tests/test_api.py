@@ -684,6 +684,42 @@ class PortalTests(TestCase):
         self.assertEqual(restored.status_code, 200, restored.content)
         self.assertEqual(restored.json()["answers"][question["id"]], option_id)
 
+    def test_attempt_session_httponly_cookie_resumes_without_browser_storage(self):
+        result, session_id = self.create_student_attempt()
+        self.assertEqual(result.status_code, 201, result.content)
+        data = result.json()
+        cookie_name = f"oep_attempt_session_{uuid.UUID(data['attempt_id']).hex}"
+        cookie = result.cookies.get(cookie_name)
+        self.assertIsNotNone(cookie)
+        self.assertTrue(cookie["httponly"])
+        self.assertEqual(cookie["samesite"], "Lax")
+        self.assertEqual(cookie["path"], "/api/v1/")
+        self.assertNotIn("session_key", data)
+        self.assertNotIn(str(session_id), result.content.decode())
+
+        # A new browser context has only browser-managed HttpOnly cookies and
+        # ordinary authentication; no JS-readable session UUID is sent.
+        self.client.credentials(
+            HTTP_X_CSRFTOKEN=self.csrf,
+            HTTP_AUTHORIZATION=self.student_access_header,
+        )
+        resumed = self.client.post(
+            f"/api/v1/exams/{self.exam.id}/attempt", {}, format="json"
+        )
+        self.assertEqual(resumed.status_code, 200, resumed.content)
+        self.assertEqual(resumed.json()["attempt_id"], data["attempt_id"])
+        question = data["questions"][0]
+        option_id = question["options"][0]["id"]
+        saved = self.client.patch(
+            f"/api/v1/attempts/{data['attempt_id']}/answers",
+            {"question_id": question["id"], "option_id": option_id},
+            format="json",
+        )
+        self.assertEqual(saved.status_code, 200, saved.content)
+        restored = self.client.get(f"/api/v1/attempts/{data['attempt_id']}")
+        self.assertEqual(restored.status_code, 200, restored.content)
+        self.assertEqual(restored.json()["answers"][question["id"]], option_id)
+
     def test_attempt_answers_autosave_and_recover_after_refresh(self):
         result, session_id = self.create_student_attempt()
         self.assertEqual(result.status_code, 201, result.content)
