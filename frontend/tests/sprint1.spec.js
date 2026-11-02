@@ -330,10 +330,11 @@ test("exam timer avoids premature submission and autosave survives a retry and r
       get: () => "hidden",
     });
     document.dispatchEvent(new Event("visibilitychange"));
+    document.dispatchEvent(new Event("visibilitychange"));
     window.dispatchEvent(new Event("blur"));
   });
-  await expect.poll(() => focusEvents.length).toBe(2);
-  expect(focusEvents).toEqual(["TAB_SWITCH", "WINDOW_BLUR"]);
+  await expect.poll(() => focusEvents.length).toBe(3);
+  expect(focusEvents).toEqual(["TAB_SWITCH", "TAB_SWITCH", "WINDOW_BLUR"]);
   const timer = page.locator(".timer strong");
   await expect(timer).not.toHaveText("00:00");
   await page.waitForTimeout(1200);
