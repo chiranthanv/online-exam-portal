@@ -1,9 +1,6 @@
 # Online Exam Portal API contract
 
-The administrative and student attempt routes below exist in this candidate and
-current main. Evaluation, result, report, proctoring and notification APIs from
-old PR #33 are not integrated here; do not build against those old routes without
-Harkirat's current-schema PR. See [Sprint 2 status](testing/SPRINT2_STATUS.md).
+The routes below describe current `main` plus the Harkirat current-schema integration branch. The evaluation/report/proctoring/notification additions are under review in the integration PR and are not available on `main` until merged. See [Sprint 2 status](testing/SPRINT2_STATUS.md).
 
 Base URL: `http://localhost:8000/api/v1` in development. Paths have **no trailing slash**. Dates use ISO-8601 with an explicit timezone; the server stores UTC. IDs are UUID strings; marks are decimal strings. Standard lists use `{count,next,previous,results}`, page size 50, `?page=2`. Available exams and exam-question lists use `{results:[...]}` without pagination.
 
@@ -131,7 +128,13 @@ These endpoints were integrated through PR #35 and subsequent response-lock/time
 | POST `/exams/{exam_id}/attempt` | Start an attempt or resume the same attempt | Body: `{"session_id":"UUID"}`; send the same value in `X-Exam-Session`. Response includes `attempt_id`, status, server-calculated `deadline_at`, `server_now`, and the ordered question/options list. |
 | GET `/attempts/{attempt_id}` | Recover saved state after refresh/reconnect | Requires `X-Exam-Session: UUID`; response includes all answers saved so far and each question's `selected_option_id`. |
 | PATCH `/attempts/{attempt_id}/answers` | Save or clear one answer | Requires the session header. Body: `{"question_id":"UUID","option_id":"UUID-or-null"}`. A null option clears the answer. Successful responses return `saved_at` and the authoritative deadline. |
-| POST `/attempts/{attempt_id}/submit` | Submit manually, or finalize an expired attempt | Requires the session header. Repeating the request is idempotent. An expired in-progress attempt becomes `AUTO_SUBMITTED`; a timely manual submission becomes `SUBMITTED`. |
+| POST `/attempts/{attempt_id}/submit` | Submit manually, or finalize an expired attempt | Requires the session header. Repeating the request is idempotent. Server scores saved answers once, clamps total to zero, queues a result notification and returns no score. |
+| GET `/attempts/{attempt_id}/result` | View own released result | Student owner only; requires terminal submission, scheduled release and no active disqualification. |
+| POST `/attempts/{attempt_id}/proctoring-events` | Record a focus/visibility signal | Student owner + `X-Exam-Session`; event type `TAB_SWITCH` or `WINDOW_BLUR`. These client-reported signals are not proof of misconduct. |
+| GET `/admin/attempts?exam_id={id}` | Review attempts and proctoring events | Admin only; returns status, score and attributable client-reported events. |
+| POST `/admin/attempts/{attempt_id}/override` | Disqualify or re-permit a terminal attempt | Admin only; JSON `{disqualified:boolean,reason:string}`; a reason is required for disqualification and every action is audited. |
+| GET `/reports/class?exam_id={id}` | Class-level results | Admin only; scheduled release required. `export=csv` or `export=pdf` downloads a matching export. |
+| GET `/reports/questions?exam_id={id}` | Question-level performance summary | Admin only; scheduled release required. `export=csv` or `export=pdf` downloads a matching export. |
 
 The database enforces one attempt per exam/student and one saved answer per attempt/question. The exam row is locked when creating an attempt; the attempt row is locked during answer writes, resume/expiry and submission. A new browser session ID cannot resume an existing attempt. The deadline is calculated by the server as the earlier of `started_at + duration_minutes` and `exam.end_time`. Browser time is only used to render a countdown; writes after the deadline are rejected by the server.
 
@@ -149,8 +152,7 @@ python backend/manage.py expire_exam_attempts --loop --interval 1
 
 The Docker Compose `worker` service runs that command for container deployments. It persists auto-submission even without a browser request. The poll interval means scheduled closure can lag the exact deadline by up to approximately one poll interval plus processing delay. An environment that does not run this worker (or an equivalent scheduler) can still enforce the deadline on a subsequent API request, but cannot promise immediate database state transition while all clients are disconnected.
 
-Evaluation, scoring, results release and proctoring require current-schema integration
-of Harkirat's existing PR #33. PR #41 already records a real-browser Lighthouse audit
+Scoring and timed result release are implemented against `ExamAttempt` in the Harkirat integration branch. The notification worker is `python backend/manage.py process_exam_notifications` and must be scheduled at least once per minute with real SMTP configured. PR #41 already records a real-browser Lighthouse audit
 (96 desktop, 91 at both mobile widths); contrast and countdown visibility fail.
 Focused fixes and the remaining manual accessibility checks are still outstanding.
 
