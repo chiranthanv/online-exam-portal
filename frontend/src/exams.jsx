@@ -538,6 +538,8 @@ function ExamAttemptRunner({ exam, onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [result, setResult] = useState(null);
+  const [resultMessage, setResultMessage] = useState("");
   const [savingAnswers, setSavingAnswers] = useState({});
   const [submitPending, setSubmitPending] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -599,6 +601,32 @@ function ExamAttemptRunner({ exam, onBack }) {
     );
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!attempt || attempt.status !== "IN_PROGRESS" || !sessionId) return;
+    let lastBlurAt = 0;
+    const report = (eventType) => {
+      const now = Date.now();
+      if (now - lastBlurAt < 1500) return;
+      lastBlurAt = now;
+      api.request(`/attempts/${attempt.attempt_id}/proctoring-events`, {
+        method: "POST",
+        body: { event_type: eventType, occurred_at: new Date(now).toISOString() },
+        headers: { "X-Exam-Session": sessionId },
+      }).catch(() => {});
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") report("TAB_SWITCH");
+    };
+    const onBlur = () => report("WINDOW_BLUR");
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("blur", onBlur);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("blur", onBlur);
+    };
+  }, [attempt?.attempt_id, attempt?.status, sessionId]);
+
 
   const remainingMs = attempt
     ? Math.max(0, (deadlineMonotonicAt.current ?? now) - now)
@@ -783,13 +811,25 @@ function ExamAttemptRunner({ exam, onBack }) {
           {attempt.status === "AUTO_SUBMITTED"
             ? "Time expired. Your attempt was automatically submitted."
             : "Your attempt has been submitted."}
-          <p>
-            Answer editing is now locked. Evaluation and results will be
-            provided in a later release.
-          </p>
-          <button className="secondary" onClick={onBack}>
-            Back to exams
-          </button>
+          <p>Answer editing is locked. Your score remains hidden until the scheduled result release.</p>
+          <div className="row-actions">
+            <button
+              className="secondary"
+              onClick={async () => {
+                setResultMessage("");
+                try {
+                  setResult(await api.request(`/attempts/${attempt.attempt_id}/result`));
+                } catch (e) {
+                  setResultMessage(e.message);
+                }
+              }}
+            >
+              Check result
+            </button>
+            <button className="quiet" onClick={onBack}>Back to exams</button>
+          </div>
+          {result && <p className="notice" role="status">Score: {result.score} / {result.total_marks}</p>}
+          {resultMessage && <p className="hint" role="status">{resultMessage}</p>}
         </div>
       ) : (
         <>
