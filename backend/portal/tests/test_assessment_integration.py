@@ -199,7 +199,6 @@ class AttemptAssessmentIntegrationTests(TestCase):
         self.assertEqual(attempt.status, ExamAttempt.SUBMITTED)
         self.assertEqual(AuditLog.objects.filter(target=str(attempt.id)).count(), 2)
 
-
     def test_read_triggered_expiry_evaluates_and_queues_once(self):
         attempt = self.make_attempt(option=self.wrong)
         attempt.deadline_at = timezone.now() - timedelta(seconds=1)
