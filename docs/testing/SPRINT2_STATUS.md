@@ -2,9 +2,7 @@
 
 Owner: Chiranthan V. This is a closeout candidate, not a frozen release.
 Lead closeout [PR #42](https://github.com/chiranthanv/online-exam-portal/pull/42) is merged
-into `main` at `9ca18cdd021152d9b0822caf195712ae253aa437`. Harkirat's current-schema
-feature integration was merged via [PR #43](https://github.com/chiranthanv/online-exam-portal/pull/43); review follow-up is in [PR #48](https://github.com/chiranthanv/online-exam-portal/pull/48)
-on branch `sprint2/harkirat-attempt-evaluation-integration`; it remains under review.
+into `main` at `9ca18cdd021152d9b0822caf195712ae253aa437`. Harkirat's current-schema feature integration was merged via [PR #43](https://github.com/chiranthanv/online-exam-portal/pull/43); the CSV/accessibility follow-up [PR #48](https://github.com/chiranthanv/online-exam-portal/pull/48) is also merged.
 The supplied course screenshot confirms Sprint 2 as **26–30 October 2026** and
 requires implemented sprint items, a two-minute working-product video, complete
 documentation and development freeze. Actual work dates remain unchanged.
@@ -31,15 +29,14 @@ no submitted reviews; passing automated checks do not supply human approval.
 | SCRUM-25 / BL-14 | Harkirat | PR #43 merged; persisted-answer evaluation, manual/request expiry/worker paths exactly once, release-gated result UI/API; main backend CI passed | Final end-to-end acceptance on release |
 | SCRUM-26 / BL-15 | Chiranthan | PR #36 merged; terminal answers immutable, PostgreSQL race checks pass | Genuine independent review; preserve guarantees during teammate integration |
 | SCRUM-27 / BL-16 | Harkirat | PR #43 merged; class/question JSON/CSV/PDF reports and faculty UI; main CI pass; CSV formula-injection follow-up in PR #48 | PR #48 review and final screen/export walkthrough |
-| SCRUM-28 / BL-17 | Harkirat | PR #43 merged; session-bound focus events, terminal overrides and append-only actor/time/action audit; CI pass | Final proctoring/override walkthrough |
+| SCRUM-28 / BL-17 | Harkirat | PR #43 merged; two distinct tab-switch events and blur are separately visible; reason-required disqualify/re-permit restores prior terminal status, keeps answers closed, hides results/reports while disqualified, and writes actor/time/action audit rows; audit ORM/database immutability and question create/update/delete audit tests pass in CI | No automated acceptance blocker; client-reported focus events are observations, not proof of misconduct |
 | SCRUM-29 / BL-18 | Harkirat | PR #43 merged; durable result/schedule outboxes, deduplication, bounded retries and Compose 60-second scheduler; CI pass | Controlled-mailbox SMTP delivery remains environment-specific |
 | SCRUM-30 / BL-21 | Chiranthan | PR #37 performance recovery passes 200-student API and five-browser benchmark; assembled here | Human review and final integration; repeat measurement if workload/queries change |
 | SCRUM-31 / BL-22 | Chiranthan | PR #40 monitor and nine regressions pass; assembled here | **Blocked:** actual HTTPS/PostgreSQL deployment and published window; no representative availability acceptance |
 | SCRUM-32 / BL-23 | Dwijesh | PR #41 measures Lighthouse 96/91/91 but timer visibility and contrast fail | Fix timer/contrast, check keyboard/focus/mobile and attach focused rerun |
-| SCRUM-33 / BL-24 | Harkirat | Main backend CI run 41459714593: 92 tests, 94% portal line coverage; exam/evaluation engine 96% | PR #48 review; manual screen-reader/zoom/forced-colors acceptance remains separate |
+| SCRUM-33 / BL-24 | Harkirat | Main backend CI run 41461840762: 93 tests passed; portal line coverage 94%; exam/evaluation engine coverage 96% (assessment.py 93%, services.py 97%), exceeding the 70% gate; RTM records requirement-linked verification and deviations | No automated coverage/traceability blocker; manual screen-reader/zoom/forced-colors acceptance belongs to the accessibility workstream, not BL-24 |
 
-Do not convert this table into a completion percentage: implemented, integrated,
-measured and independently accepted are different states. Original estimates are
+BL-17 and BL-24 implementation and automated acceptance evidence are complete on the merged main revision. Proctoring signals remain client-reported observations; the audit log is append-only at the ORM/database layer. BL-24's 93-test backend run and 96% exam/evaluation-engine coverage satisfy the specified 70% threshold. Do not convert this table into a completion percentage: implemented, integrated, measured and independently accepted are different states. Original estimates are
 63 points: Chiranthan 14, Dwijesh 20, Harkirat 29; points are not measured hours.
 
 ## Verified branch evidence
