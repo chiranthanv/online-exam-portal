@@ -1,8 +1,7 @@
 # Sprint 2 implementation and release status
 
 Owner: Chiranthan V. This is a closeout candidate, not a frozen release.
-Lead closeout [PR #42](https://github.com/chiranthanv/online-exam-portal/pull/42) is merged
-into `main` at `9ca18cdd021152d9b0822caf195712ae253aa437`. Harkirat's current-schema feature integration was merged via [PR #43](https://github.com/chiranthanv/online-exam-portal/pull/43); the CSV/accessibility follow-up [PR #48](https://github.com/chiranthanv/online-exam-portal/pull/48) is also merged.
+Lead closeout [PR #42](https://github.com/chiranthanv/online-exam-portal/pull/42), current-schema integration [PR #43](https://github.com/chiranthanv/online-exam-portal/pull/43), CSV/historical-evidence follow-up [PR #48](https://github.com/chiranthanv/online-exam-portal/pull/48), and Dwijesh closeout/accessibility CI PRs [#50](https://github.com/chiranthanv/online-exam-portal/pull/50), [#51](https://github.com/chiranthanv/online-exam-portal/pull/51) and [#52](https://github.com/chiranthanv/online-exam-portal/pull/52) are merged. Current main is `8f9aaf131e4b4d719bfd445ff1d5f2a2bfbba6ee`; its backend and integrated frontend workflows pass: [backend](https://github.com/chiranthanv/online-exam-portal/actions/runs/41468322173), [frontend](https://github.com/chiranthanv/online-exam-portal/actions/runs/41468322243).
 The supplied course screenshot confirms Sprint 2 as **26–30 October 2026** and
 requires implemented sprint items, a two-minute working-product video, complete
 documentation and development freeze. Actual work dates remain unchanged.
@@ -15,8 +14,7 @@ current attempt/session/autosave/timer lifecycle and both PostgreSQL lock/race r
 Harkirat's PR #43 was merged into `main` on 2 November 2026. The current-schema
 assessment/report/proctoring/notification integration.
 
-GitHub PR and CI metadata were read during this closeout. PR #37 and #40 have
-no submitted reviews; passing automated checks do not supply human approval.
+GitHub PR and CI metadata were read during this closeout. Dwijesh added COMMENTED independent reviews on PR #37 and #40 on 2 November; these are review comments, not formal approvals. Passing automated checks do not supply final human acceptance.
 
 ## All 13 Sprint 2 stories
 
@@ -33,7 +31,7 @@ no submitted reviews; passing automated checks do not supply human approval.
 | SCRUM-29 / BL-18 | Harkirat | PR #43 merged; durable result/schedule outboxes, deduplication, bounded retries and Compose 60-second scheduler; CI pass | Controlled-mailbox SMTP delivery remains environment-specific |
 | SCRUM-30 / BL-21 | Chiranthan | PR #37 performance recovery passes 200-student API and five-browser benchmark; assembled here | Human review and final integration; repeat measurement if workload/queries change |
 | SCRUM-31 / BL-22 | Chiranthan | PR #40 monitor and nine regressions pass; assembled here | **Blocked:** actual HTTPS/PostgreSQL deployment and published window; no representative availability acceptance |
-| SCRUM-32 / BL-23 | Dwijesh | PR #41 measures Lighthouse 96/91/91 but timer visibility and contrast fail | Fix timer/contrast, check keyboard/focus/mobile and attach focused rerun |
+| SCRUM-32 / BL-23 | Dwijesh | PR #46 responsive/keyboard/timer/contrast fixes integrated; PR #52 runs authenticated Lighthouse in CI; current main 8f9aaf13 scored 100/100 at 1440/390/320px and passed automated WCAG 2.0/2.1 A/AA, skip-link, labelled-radio, overflow and sticky-timer checks | Manual screen-reader, full keyboard/focus, 200%/400% zoom and forced-colors/high-contrast checks remain open; PR #53 also fixes Clear answer being clickable but silently ignored during an in-flight save (CI pending) |
 | SCRUM-33 / BL-24 | Harkirat | Main backend CI run 41461840762: 93 tests passed; portal line coverage 94%; exam/evaluation engine coverage 96% (assessment.py 93%, services.py 97%), exceeding the 70% gate; RTM records requirement-linked verification and deviations | No automated coverage/traceability blocker; manual screen-reader/zoom/forced-colors acceptance belongs to the accessibility workstream, not BL-24 |
 
 BL-17 and BL-24 implementation and automated acceptance evidence are complete on the merged main revision. Proctoring signals remain client-reported observations; the audit log is append-only at the ORM/database layer. BL-24's 93-test backend run and 96% exam/evaluation-engine coverage satisfy the specified 70% threshold. Do not convert this table into a completion percentage: implemented, integrated, measured and independently accepted are different states. Original estimates are
@@ -62,8 +60,8 @@ BL-17 and BL-24 implementation and automated acceptance evidence are complete on
 
 | Deliverable | State |
 | --- | --- |
-| Sprint 2 lead implementation | Response locks merged; performance and monitoring assembled locally |
-| Full working Sprint 2 product | Waiting for teammate integration and accessibility fixes |
+| Sprint 2 lead implementation | Response locks, performance/monitoring and current-schema integration merged into main; 200-student API/5-Chromium benchmark evidence recorded | Real HTTPS/PostgreSQL availability window and final human acceptance remain Chiranthan-owned |
+| Full working Sprint 2 product | Current-schema assessment/report/proctoring/notification integration is on main and automated backend/frontend CI passes, including authenticated Lighthouse evidence | Independent manual WCAG review, browser-restart recovery decision, controlled-mailbox SMTP, representative published availability, final two-minute video and release freeze remain separate gates |
 | Documentation | Lead status, current API/setup, deviations, teammate tasks, demo and freeze procedure prepared in this candidate; teammate API details still depend on their implementation |
 | Two-minute video | [Run sheet prepared](../SPRINT2_DEMO.md); no final Sprint 2 recording claimed |
 | Development freeze | [Procedure prepared](../SPRINT2_RELEASE.md); no final release tag or freeze claimed |
@@ -95,4 +93,4 @@ Latest verification on exact head `f08bbc3f1d7ef264b68a1bb4fa60450289d3f6fd`:
 - Latest backend coverage: portal 95.94% line (1041/1085) and 85.22% branch (196/230); `assessment.py` 95% line / 90% branch; `services.py` 97.87% / 95%; `assessment_views.py` 90.51% line; `views.py` 93.36% line. CI's >=70% exam/evaluation engine threshold passes. See [coverage artifact](https://github.com/chiranthanv/online-exam-portal/actions/runs/41450839677).
 - [200-student/PostgreSQL performance workflow](https://github.com/chiranthanv/online-exam-portal/actions/runs/41447099376) passed on earlier integration head `c7f7a8d`; latest backend CI independently reruns the PostgreSQL lock/race regressions. No performance regression is claimed beyond the recorded benchmark revision.
 
-PR #43 merged at `5be3e5408c89337f330eaabc4e526803a36962f1`. Follow-up PR #48 restores the historical 30 October accessibility baseline assets and closes the CSV formula-injection review finding; Dwijesh is requested as reviewer. Latest main backend/frontend checks pass; PR #48 checks and review are pending. Real SMTP controlled-mailbox delivery remains external; local file-email output is not SMTP proof. Final release, two-minute lead video and freeze remain Chiranthan's responsibilities.
+PR #43 merged at `5be3e5408c89337f330eaabc4e526803a36962f1`. PR #48 restores the historical 30 October accessibility baseline assets and closes the CSV formula-injection review finding. PRs #50–#52 are merged. The current-main authenticated Lighthouse audit is 100/100 at 1440/390/320px; the raw JSON/screenshots are in the `authenticated-exam-accessibility` artifact of [run 41468322243](https://github.com/chiranthanv/online-exam-portal/actions/runs/41468322243). Dwijesh's PR #53 handles the remaining clear-button pending-save defect and is awaiting CI/review. Real SMTP controlled-mailbox delivery remains external; local file-email output is not SMTP proof. Final release, two-minute lead video and freeze remain Chiranthan's responsibilities.
