@@ -66,7 +66,7 @@ class Command(BaseCommand):
                 except Exception as exc:
                     item.status = NotificationOutbox.FAILED
                     item.last_error = type(exc).__name__[:120]
-                    item.due_at = timezone.now() + timedelta(minutes=min(2 ** item.attempts, 60))
+                    item.due_at = timezone.now() + timedelta(minutes=min(2**item.attempts, 60))
                     failed += 1
                 item.save(update_fields=["attempts", "status", "sent_at", "last_error"])
 
@@ -74,7 +74,7 @@ class Command(BaseCommand):
             status__in=[ScheduledExamNotification.PENDING, ScheduledExamNotification.FAILED],
             due_at__lte=timezone.now(),
             attempts__lt=5,
-        ).order_by("due_at", "created_at")[:max(1, min(options["limit"], 500))]
+        ).order_by("due_at", "created_at")[: max(1, min(options["limit"], 500))]
         for candidate in schedule_candidates:
             with transaction.atomic():
                 item = (
