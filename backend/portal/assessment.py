@@ -16,10 +16,14 @@ def evaluate_attempt(attempt, now=None):
     for answer in attempt.answers.select_related("question"):
         if answer.selected_option_id is None:
             continue
-        selected = Option.objects.filter(
-            pk=answer.selected_option_id,
-            question_id=answer.question_id,
-        ).only("is_correct").first()
+        selected = (
+            Option.objects.filter(
+                pk=answer.selected_option_id,
+                question_id=answer.question_id,
+            )
+            .only("is_correct")
+            .first()
+        )
         if selected is not None and selected.is_correct:
             score += answer.question.default_marks
         else:
