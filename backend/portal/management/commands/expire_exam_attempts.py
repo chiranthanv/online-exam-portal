@@ -1,11 +1,11 @@
 import time
-from decimal import Decimal
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from portal.models import AuditLog, ExamAttempt, NotificationOutbox, Option
+from portal.assessment import evaluate_attempt
+from portal.models import AuditLog, ExamAttempt, NotificationOutbox
 
 
 class Command(BaseCommand):
@@ -30,27 +30,9 @@ class Command(BaseCommand):
                     # The row lock and status recheck make concurrent workers safe.
                     if attempt.status != ExamAttempt.IN_PROGRESS or attempt.deadline_at > now:
                         continue
-                    score = Decimal("0.00")
-                    for answer in attempt.answers.select_related("question"):
-                        if answer.selected_option_id is None:
-                            continue
-                        selected = (
-                            Option.objects.filter(
-                                pk=answer.selected_option_id, question_id=answer.question_id
-                            )
-                            .only("is_correct")
-                            .first()
-                        )
-                        score += (
-                            answer.question.default_marks
-                            if selected and selected.is_correct
-                            else -answer.question.negative_marks
-                        )
                     attempt.status = ExamAttempt.AUTO_SUBMITTED
                     attempt.submitted_at = now
-                    attempt.score = max(score, Decimal("0.00"))
-                    attempt.evaluated_at = now
-                    attempt.save(update_fields=["status", "submitted_at", "score", "evaluated_at"])
+                    evaluate_attempt(attempt, now=now)
                     NotificationOutbox.objects.get_or_create(
                         dedupe_key="result:" + str(attempt.id),
                         defaults={

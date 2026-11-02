@@ -1,6 +1,5 @@
 import uuid
 from datetime import timedelta
-from decimal import Decimal
 
 from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
@@ -26,6 +25,7 @@ from .models import (
     User,
 )
 from .notifications import queue_scheduled_exam_notifications
+from .assessment import evaluate_attempt
 from .permissions import IsAdmin, IsStudent
 from .roster import import_roster
 from .serializers import (
@@ -495,26 +495,7 @@ class ExamAttemptSubmit(APIView):
             )
         # Both manual submission and request-triggered expiry use the same
         # idempotent evaluation path. The background expiry worker mirrors it.
-        if (
-            attempt.status in {ExamAttempt.SUBMITTED, ExamAttempt.AUTO_SUBMITTED}
-            and attempt.evaluated_at is None
-        ):
-            score = Decimal("0.00")
-            for answer in attempt.answers.select_related("question"):
-                if answer.selected_option_id is None:
-                    continue
-                selected = (
-                    Option.objects.filter(pk=answer.selected_option_id, question_id=answer.question_id)
-                    .only("is_correct")
-                    .first()
-                )
-                if selected and selected.is_correct:
-                    score += answer.question.default_marks
-                else:
-                    score -= answer.question.negative_marks
-            attempt.score = max(score, Decimal("0.00"))
-            attempt.evaluated_at = now
-            attempt.save(update_fields=["status", "submitted_at", "score", "evaluated_at"])
+        if evaluate_attempt(attempt, now=now):
             from .models import NotificationOutbox
 
             NotificationOutbox.objects.get_or_create(

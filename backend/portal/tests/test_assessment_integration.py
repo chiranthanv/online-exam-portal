@@ -10,6 +10,7 @@ from portal.models import (
     Exam,
     ExamAttempt,
     ExamQuestion,
+    NotificationOutbox,
     Option,
     ProctoringEvent,
     Question,
@@ -92,7 +93,7 @@ class AttemptAssessmentIntegrationTests(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data["score"], "2.00")
 
-    def test_negative_score_is_clamped_to_zero(self):
+    def test_negative_marking_follows_formula_without_legacy_zero_floor(self):
         attempt = self.make_attempt(option=self.wrong)
         client = APIClient()
         client.force_authenticate(self.student)
@@ -104,7 +105,50 @@ class AttemptAssessmentIntegrationTests(TestCase):
         )
         self.assertEqual(response.status_code, 200, response.content)
         attempt.refresh_from_db()
+        self.assertEqual(str(attempt.score), "-0.50")
+
+
+    def test_unanswered_question_scores_zero(self):
+        attempt = self.make_attempt()
+        client = APIClient()
+        client.force_authenticate(self.student)
+        response = client.post(
+            f"/api/v1/attempts/{attempt.id}/submit",
+            {},
+            format="json",
+            HTTP_X_EXAM_SESSION=str(attempt.session_key),
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        attempt.refresh_from_db()
         self.assertEqual(str(attempt.score), "0.00")
+
+    def test_repeated_submission_does_not_duplicate_scoring_or_result_notice(self):
+        attempt = self.make_attempt(option=self.wrong)
+        client = APIClient()
+        client.force_authenticate(self.student)
+        url = f"/api/v1/attempts/{attempt.id}/submit"
+        first = client.post(url, {}, format="json", HTTP_X_EXAM_SESSION=str(attempt.session_key))
+        self.assertEqual(first.status_code, 200, first.content)
+        attempt.refresh_from_db()
+        first_score = attempt.score
+        second = client.post(url, {}, format="json", HTTP_X_EXAM_SESSION=str(attempt.session_key))
+        self.assertEqual(second.status_code, 200, second.content)
+        attempt.refresh_from_db()
+        self.assertEqual(attempt.score, first_score)
+        self.assertEqual(NotificationOutbox.objects.filter(dedupe_key=f"result:{attempt.id}").count(), 1)
+
+    def test_evaluation_engine_is_terminal_only_and_idempotent(self):
+        from portal.assessment import evaluate_attempt
+
+        attempt = self.make_attempt(option=self.correct)
+        self.assertFalse(evaluate_attempt(attempt))
+        attempt.status = ExamAttempt.SUBMITTED
+        attempt.submitted_at = timezone.now()
+        attempt.save(update_fields=["status", "submitted_at"])
+        self.assertTrue(evaluate_attempt(attempt))
+        self.assertFalse(evaluate_attempt(attempt))
+        attempt.refresh_from_db()
+        self.assertEqual(str(attempt.score), "2.00")
 
     def test_result_is_hidden_before_release(self):
         self.exam.result_visible_from = timezone.now() + timedelta(hours=1)
