@@ -380,6 +380,34 @@ test("exam attempt keeps its timer visible, meets contrast and recovers pending 
     path: testInfo.outputPath("exam-attempt-desktop.png"),
   });
 
+  // Moving the device wall clock must not shorten or extend the server deadline.
+  const timer = page.locator(".attempt-sticky-bar .timer strong");
+  const toSeconds = (value) => {
+    const [minutes, seconds] = value.trim().split(":").map(Number);
+    return minutes * 60 + seconds;
+  };
+  const beforeClockChange = toSeconds(await timer.innerText());
+  await page.evaluate(() => {
+    const originalNow = Date.now.bind(Date);
+    Object.defineProperty(window, "__oepRestoreDateNow", {
+      configurable: true,
+      value: () => {
+        Date.now = originalNow;
+        delete window.__oepRestoreDateNow;
+      },
+    });
+    Date.now = () => originalNow() + 24 * 60 * 60 * 1000;
+  });
+  await page.waitForTimeout(350);
+  await expect(timer).not.toHaveText("00:00");
+  expect(submissions).toHaveLength(0);
+  await page.evaluate(() => window.__oepRestoreDateNow());
+  await expect
+    .poll(async () => toSeconds(await timer.innerText()), { timeout: 5000 })
+    .toBeLessThan(beforeClockChange);
+  await expect(timer).not.toHaveText("00:00");
+  expect(submissions).toHaveLength(0);
+
   // Focus/visibility events remain client-reported review signals.
   await page.evaluate(() => {
     Object.defineProperty(document, "visibilityState", {
