@@ -339,11 +339,12 @@ def _require_attempt_session(request, attempt):
 
 def _attach_attempt_session_cookie(response, attempt, now=None):
     cookie_name = _attempt_session_cookie_name(attempt)
-    if attempt.status != ExamAttempt.IN_PROGRESS:
-        response.delete_cookie(cookie_name, path="/api/v1/", samesite="Lax")
-        return response
     now = now or timezone.now()
-    max_age = max(0, int((attempt.deadline_at - now).total_seconds() + 0.999))
+    # Keep the attempt-binding cookie through the scheduled deadline and for
+    # eight hours afterwards so a browser restart can still recover a terminal
+    # attempt/result. The expiry is fixed from the server deadline, not renewed.
+    cookie_expires_at = attempt.deadline_at + timedelta(hours=8)
+    max_age = max(0, int((cookie_expires_at - now).total_seconds() + 0.999))
     if not max_age:
         response.delete_cookie(cookie_name, path="/api/v1/", samesite="Lax")
         return response
