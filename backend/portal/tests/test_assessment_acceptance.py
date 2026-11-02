@@ -96,6 +96,7 @@ class AssessmentAcceptanceTests(TestCase):
         self.make_attempt(self.students[0], selected=[(self.questions[0], correct)])
         self.make_attempt(self.students[1], selected=[(self.questions[0], wrong)])
         self.make_attempt(self.students[2])
+        self.make_attempt(self.students[0], status=ExamAttempt.DISQUALIFIED, selected=[(self.questions[0], correct)])
         client = self.admin_client()
         class_json = client.get(f"/api/v1/reports/class?exam_id={self.exam.id}")
         class_csv = client.get(f"/api/v1/reports/class?exam_id={self.exam.id}&export=csv")
@@ -148,7 +149,17 @@ class AssessmentAcceptanceTests(TestCase):
     def test_student_payload_does_not_expose_correct_option_flags(self):
         from portal.views import _attempt_payload
 
-        payload = _attempt_payload(self.make_attempt(self.students[0]))
+        attempt = self.make_attempt(self.students[0])
+        payload = _attempt_payload(attempt)
+        client = APIClient()
+        client.force_authenticate(self.students[0])
+        response = client.get(
+            f"/api/v1/attempts/{attempt.id}",
+            HTTP_X_EXAM_SESSION=str(attempt.session_key),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("score", response.data)
+        self.assertNotIn("is_correct", str(response.data))
         self.assertNotIn("is_correct", str(payload))
         self.assertTrue(
             all(set(option) == {"id", "text"} for q in payload["questions"] for option in q["options"])
