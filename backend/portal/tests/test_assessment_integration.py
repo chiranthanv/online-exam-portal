@@ -245,3 +245,23 @@ class AttemptAssessmentIntegrationTests(TestCase):
         self.assertEqual(str(attempt.score), "-0.50")
         self.assertIsNotNone(attempt.evaluated_at)
         self.assertEqual(NotificationOutbox.objects.filter(dedupe_key=f"result:{attempt.id}").count(), 1)
+
+
+    def test_proctoring_signal_after_deadline_commits_expiry_and_rejects_event(self):
+        attempt = self.make_attempt(option=self.wrong)
+        attempt.deadline_at = timezone.now() - timedelta(seconds=1)
+        attempt.save(update_fields=["deadline_at"])
+        client = APIClient()
+        client.force_authenticate(self.student)
+        response = client.post(
+            f"/api/v1/attempts/{attempt.id}/proctoring-events",
+            {"event_type": "TAB_SWITCH"},
+            format="json",
+            HTTP_X_EXAM_SESSION=str(attempt.session_key),
+        )
+        self.assertEqual(response.status_code, 409)
+        attempt.refresh_from_db()
+        self.assertEqual(attempt.status, ExamAttempt.AUTO_SUBMITTED)
+        self.assertEqual(str(attempt.score), "-0.50")
+        self.assertEqual(ProctoringEvent.objects.filter(attempt=attempt).count(), 0)
+        self.assertEqual(NotificationOutbox.objects.filter(dedupe_key=f"result:{attempt.id}").count(), 1)
