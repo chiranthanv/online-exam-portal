@@ -107,7 +107,6 @@ class AttemptAssessmentIntegrationTests(TestCase):
         attempt.refresh_from_db()
         self.assertEqual(str(attempt.score), "-0.50")
 
-
     def test_unanswered_question_scores_zero(self):
         attempt = self.make_attempt()
         client = APIClient()
