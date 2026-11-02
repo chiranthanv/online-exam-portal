@@ -358,7 +358,7 @@ test(
       return {
         footer: contrastRatio(
           getComputedStyle(footer).color,
-          getComputedStyle(document.body).backgroundColor,
+          getComputedStyle(document.documentElement).backgroundColor,
         ),
         navigation: contrastRatio(
           getComputedStyle(activeIndex).color,
