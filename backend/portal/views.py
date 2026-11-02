@@ -11,6 +11,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .assessment import evaluate_attempt
 from .models import (
     AttemptAnswer,
     AuditLog,
@@ -25,7 +26,6 @@ from .models import (
     User,
 )
 from .notifications import queue_scheduled_exam_notifications
-from .assessment import evaluate_attempt
 from .permissions import IsAdmin, IsStudent
 from .roster import import_roster
 from .serializers import (
