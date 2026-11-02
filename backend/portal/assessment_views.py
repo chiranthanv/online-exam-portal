@@ -41,14 +41,28 @@ def _report_rows(exam):
     ]
 
 
-def _export(request, title, fields, rows, filename):
+def _csv_text(value):
+    if isinstance(value, str) and value.lstrip().startswith(("=", "+", "-", "@")):
+        return "'" + value
+    return value
+
+
+def _export(request, title, fields, rows, filename, *, text_fields=()):
     kind = request.query_params.get("export", "").lower()
     if kind == "csv":
         response = HttpResponse(content_type="text/csv; charset=utf-8")
         response["Content-Disposition"] = f'attachment; filename="{filename}.csv"'
         writer = csv.DictWriter(response, fieldnames=fields)
         writer.writeheader()
-        writer.writerows(rows)
+        # Escape user-controlled text only. Numeric scores/counts (including
+        # negative scores) and the shared JSON/PDF source rows stay unchanged.
+        writer.writerows(
+            {
+                field: _csv_text(row.get(field, "")) if field in text_fields else row.get(field, "")
+                for field in fields
+            }
+            for row in rows
+        )
         return response
     if kind == "pdf":
         try:
@@ -259,7 +273,14 @@ class AdminClassReport(APIView):
             raise ValidationError("Reports are unavailable until the scheduled result release.")
         fields = ["attempt_id", "student_id", "student_name", "usn", "score", "total_marks", "submitted_at"]
         rows = _report_rows(exam)
-        exported = _export(request, "Class report — " + exam.title, fields, rows, "class-report")
+        exported = _export(
+            request,
+            "Class report — " + exam.title,
+            fields,
+            rows,
+            "class-report",
+            text_fields=("student_name", "usn"),
+        )
         return exported or Response({"exam_id": str(exam.id), "results": rows})
 
 
@@ -317,5 +338,12 @@ class AdminQuestionReport(APIView):
             "incorrect",
             "unanswered",
         ]
-        exported = _export(request, "Question report — " + exam.title, fields, rows, "question-report")
+        exported = _export(
+            request,
+            "Question report — " + exam.title,
+            fields,
+            rows,
+            "question-report",
+            text_fields=("difficulty", "subject", "topic"),
+        )
         return exported or Response({"exam_id": str(exam.id), "results": rows})
