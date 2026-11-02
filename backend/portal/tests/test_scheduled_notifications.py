@@ -171,7 +171,6 @@ class ScheduledExamNotificationTests(TestCase):
             call_command("run_notification_scheduler", once=True, interval=60)
         run_batch.assert_called_once_with("process_exam_notifications")
 
-
     def test_notification_scheduler_uses_one_minute_start_cadence(self):
         from unittest.mock import patch
 
