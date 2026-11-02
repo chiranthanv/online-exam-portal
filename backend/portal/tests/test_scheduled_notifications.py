@@ -29,9 +29,12 @@ class ScheduledExamNotificationTests(TestCase):
             StudentBatch.objects.create(student=student, batch=self.batch)
         now = timezone.now()
         self.exam = Exam.objects.create(
-            title="Scheduled exam", duration_minutes=30,
-            start_time=now + timedelta(hours=2), end_time=now + timedelta(hours=3),
-            result_visible_from=now + timedelta(hours=4), total_marks="10.00",
+            title="Scheduled exam",
+            duration_minutes=30,
+            start_time=now + timedelta(hours=2),
+            end_time=now + timedelta(hours=3),
+            result_visible_from=now + timedelta(hours=4),
+            total_marks="10.00",
             created_by=self.admin,
         )
 
