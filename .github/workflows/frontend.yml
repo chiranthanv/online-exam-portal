@@ -3,7 +3,7 @@ on:
   push:
     branches: [main, 'sprint1/**']
   pull_request:
-    branches: [main, 'planning/**']
+    branches: [main, 'planning/**', 'sprint2/**']
 permissions:
   contents: read
 jobs:
