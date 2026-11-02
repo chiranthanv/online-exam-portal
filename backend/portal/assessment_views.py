@@ -10,7 +10,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import AuditLog, Exam, ExamAttempt, ExamQuestion, Option, ProctoringEvent
+from .models import AuditLog, Exam, ExamAttempt, ExamQuestion, NotificationOutbox, Option, ProctoringEvent
 from .permissions import IsAdmin, IsStudent
 
 
@@ -221,6 +221,21 @@ class AdminAttemptOverride(APIView):
                 ]
             )
             AuditLog.objects.create(actor=request.user, action=action, target=str(attempt.id))
+            if not disqualified:
+                # A result notice may have been suppressed while this attempt
+                # was disqualified. Re-permitting restores the pending notice
+                # without resending any notification already delivered.
+                now = timezone.now()
+                NotificationOutbox.objects.filter(
+                    attempt=attempt,
+                    status=NotificationOutbox.SENT,
+                    last_error="Suppressed: attempt is disqualified.",
+                ).update(
+                    status=NotificationOutbox.PENDING,
+                    sent_at=None,
+                    due_at=max(now, attempt.exam.result_visible_from),
+                    last_error="",
+                )
         return Response(
             {
                 "attempt_id": str(attempt.id),
