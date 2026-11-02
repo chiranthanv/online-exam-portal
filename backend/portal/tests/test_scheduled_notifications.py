@@ -24,13 +24,18 @@ from portal.notifications import queue_scheduled_exam_notifications
 class ScheduledExamNotificationTests(TestCase):
     def setUp(self):
         self.admin = User.objects.create_user(
-            username="schedule-admin", email="schedule-admin@example.test",
-            name="Admin", role="ADMIN", password="Test-Password-123!",
+            username="schedule-admin",
+            email="schedule-admin@example.test",
+            name="Admin",
+            role="ADMIN",
+            password="Test-Password-123!",
         )
         self.students = [
             User.objects.create_user(
-                username=f"schedule-student-{i}", email=f"schedule-{i}@example.test",
-                name=f"Student {i}", password="Test-Password-123!",
+                username=f"schedule-student-{i}",
+                email=f"schedule-{i}@example.test",
+                name=f"Student {i}",
+                password="Test-Password-123!",
             )
             for i in range(2)
         ]
