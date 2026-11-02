@@ -1,21 +1,21 @@
 # Sprint 2 implementation and release status
 
 Owner: Chiranthan V. This is a closeout candidate, not a frozen release.
-Published for review in [draft PR #42](https://github.com/chiranthanv/online-exam-portal/pull/42)
-on branch `sprint2/lead-closeout`. Main remains unmerged.
+Lead closeout [PR #42](https://github.com/chiranthanv/online-exam-portal/pull/42) is merged
+into `main` at `9ca18cdd021152d9b0822caf195712ae253aa437`. Harkirat's current-schema
+feature integration is in [PR #43](https://github.com/chiranthanv/online-exam-portal/pull/43)
+on branch `sprint2/harkirat-attempt-evaluation-integration`; it remains under review.
 The supplied course screenshot confirms Sprint 2 as **26–30 October 2026** and
 requires implemented sprint items, a two-minute working-product video, complete
 documentation and development freeze. Actual work dates remain unchanged.
 
 ## What is assembled here
 
-This local candidate combines current main `3ae652a59d72c834bb8ca0525465f3bb197d4f82`,
-the performance recovery head `2006e63da9d566bfb2d283e0aefe3103f314ee44` and
-availability head `c9efbcc5564263ae2a340130e2e89064eea1821f`.
-The integration commit is `7791ad2c067ebad127994eda9bf0aafdc1d12bd0`.
-It preserves the existing teammates' attempt, autosave and timer work and both
-independent-lock and terminal save/submit race regressions. It changes neither
-remote main nor the separately active audit checkout.
+The merged lead closeout includes performance recovery head `2006e63da9d566bfb2d283e0aefe3103f314ee44`
+and availability head `c9efbcc5564263ae2a340130e2e89064eea1821f`, while preserving the
+current attempt/session/autosave/timer lifecycle and both PostgreSQL lock/race regressions.
+Harkirat's PR #43 is based directly on the post-PR-42 `main` and adds the current-schema
+assessment/report/proctoring/notification integration.
 
 GitHub PR and CI metadata were read during this closeout. PR #37 and #40 have
 no submitted reviews; passing automated checks do not supply human approval.
@@ -24,19 +24,19 @@ no submitted reviews; passing automated checks do not supply human approval.
 
 | Jira / backlog | Owner | Implementation and evidence | Remaining delivery |
 | --- | --- | --- | --- |
-| SCRUM-21 / BL-10 | Harkirat | Main attempt payload explicitly emits option ID/text without keys; broader work exists in old PR #33 | Integrate evaluation and verify every student result/report path keeps keys private |
+| SCRUM-21 / BL-10 | Harkirat | PR #43 integrates server-only answer-key use; student payload tests and CI pass | Independent review and final acceptance of all student-facing paths |
 | SCRUM-22 / BL-11 | Dwijesh | PR #35 merged; one attempt/session, owner guards and durable state | Independent acceptance of final integrated flow |
 | SCRUM-23 / BL-12 | Dwijesh | Main autosave, refresh restoration and bounded retry; browser checks pass | Finish reconnect/crash/error-state acceptance and include integrated result flow |
 | SCRUM-24 / BL-13 | Dwijesh | Server deadline, expiry worker and monotonic timer fixes merged | Keep countdown visible while scrolling; check closed-browser expiry in final environment |
-| SCRUM-25 / BL-14 | Harkirat | Evaluation code exists in PR #33's older branch; absent from current main/candidate | Adapt to current ExamAttempt, score once, enforce timed release and wire student results |
+| SCRUM-25 / BL-14 | Harkirat | PR #43 evaluates persisted answers on manual/request expiry/worker paths exactly once; release-gated result UI/API; CI pass | Independent review; controlled end-to-end acceptance on final release |
 | SCRUM-26 / BL-15 | Chiranthan | PR #36 merged; terminal answers immutable, PostgreSQL race checks pass | Genuine independent review; preserve guarantees during teammate integration |
-| SCRUM-27 / BL-16 | Harkirat | JSON/CSV/PDF report code exists in old PR #33; absent here | Integrate reports, exclusions, role/release rules and matching export totals |
-| SCRUM-28 / BL-17 | Harkirat | Old PR #33 contains flags/overrides; current main only has DISQUALIFIED state and audit foundation | Integrate append-only focus events and attributable disqualify/re-permit behavior |
-| SCRUM-29 / BL-18 | Harkirat | Old PR #33 contains outbox/worker; absent here | Integrate queue, retries/deduplication and documented one-minute scheduler; real SMTP is environment-specific |
+| SCRUM-27 / BL-16 | Harkirat | PR #43 adds class/question JSON/CSV/PDF reports and faculty UI; acceptance tests and CI pass | Independent review and final screen/export walkthrough |
+| SCRUM-28 / BL-17 | Harkirat | PR #43 adds session-bound focus events, terminal overrides and append-only actor/time/action audit; CI pass | Independent review and final proctoring/override walkthrough |
+| SCRUM-29 / BL-18 | Harkirat | PR #43 adds durable result/schedule outboxes, deduplication, bounded retries and Compose 60-second scheduler; CI pass | Real SMTP controlled-mailbox delivery remains environment-specific |
 | SCRUM-30 / BL-21 | Chiranthan | PR #37 performance recovery passes 200-student API and five-browser benchmark; assembled here | Human review and final integration; repeat measurement if workload/queries change |
 | SCRUM-31 / BL-22 | Chiranthan | PR #40 monitor and nine regressions pass; assembled here | **Blocked:** actual HTTPS/PostgreSQL deployment and published window; no representative availability acceptance |
 | SCRUM-32 / BL-23 | Dwijesh | PR #41 measures Lighthouse 96/91/91 but timer visibility and contrast fail | Fix timer/contrast, check keyboard/focus/mobile and attach focused rerun |
-| SCRUM-33 / BL-24 | Harkirat | Current attempt backend CI measures 96% portal coverage; evaluation is absent here | Update coverage/RTM/defect summary after integration; existing percentage cannot certify missing modules |
+| SCRUM-33 / BL-24 | Harkirat | PR #43 integrated backend CI: 95.83% line / 84.07% branch portal coverage; assessment 95.00%, assessment_views 89.54%, services 97.87% | Independent review; attach final verification summary after PR review |
 
 Do not convert this table into a completion percentage: implemented, integrated,
 measured and independently accepted are different states. Original estimates are
@@ -92,4 +92,4 @@ Branch: `sprint2/harkirat-attempt-evaluation-integration`. This branch starts fr
 
 Implemented in this branch: persisted server-side scoring from autosaved answers using the accepted correct-marks-minus-penalties formula (negative totals are not clamped); score omitted from submit payload and exposed only after `Exam.result_visible_from`; class/question report JSON/CSV/PDF routes; session-bound tab-switch/window-blur event capture; admin attempt review and audited disqualify/re-permit for terminal attempts; notification outbox with unique dedupe key and bounded retries; expiry worker scoring and enqueueing; student result button and faculty Reports & Review workspace. Migration `0005_attempt_evaluation_proctoring_notifications` adds only compatible fields/tables.
 
-Automated verification is pending GitHub Actions for the new branch. The test module `backend/portal/tests/test_assessment_integration.py` covers manual scoring, negative marking, result release, session-bound proctoring and admin overrides. Do not claim these tests passed until CI reports success. Real SMTP delivery remains environment-dependent and must be tested with a controlled mailbox after configuring SMTP; schedule the outbox command at least once per minute.
+PR #43 head `52187ee1d89225aadcd42b01f4c37ae18a58e9aa` passed backend verification [run 41433822312](https://github.com/chiranthanv/online-exam-portal/actions/runs/41433822312), frontend/Playwright [run 41433822110](https://github.com/chiranthanv/online-exam-portal/actions/runs/41433822110), and 200-student/PostgreSQL [run 41433822121](https://github.com/chiranthanv/online-exam-portal/actions/runs/41433822121). Coverage artifact reports 95.83% line coverage (1034/1079) and 84.07% branch coverage (190/226); `services.py` 97.87%, `assessment.py` 95.00%, `assessment_views.py` 89.54%, and `views.py` 93.33%. The CI threshold of 70% for `services.py` and `assessment.py` passed. The backend job also passed migration drift, Django checks, migrations, PostgreSQL API/concurrency tests, deployment checks, runtime image build and TLS smoke test; frontend lint/unit/build/Playwright and actual one-minute walkthrough steps passed; performance workflow passed. PR #43 is still draft pending independent review. Real SMTP delivery remains environment-dependent; Compose now runs the outbox scheduler every 60 seconds, but controlled-mailbox delivery must still be verified after configuring SMTP.
