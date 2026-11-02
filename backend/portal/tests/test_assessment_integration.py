@@ -69,16 +69,15 @@ class AttemptAssessmentIntegrationTests(TestCase):
 
     def test_negative_score_is_clamped_to_zero(self):
         attempt = self.make_attempt(option=self.wrong)
-        attempt.status = ExamAttempt.SUBMITTED
-        attempt.submitted_at = timezone.now()
-        attempt.save(update_fields=["status", "submitted_at"])
         client = APIClient()
         client.force_authenticate(self.student)
-        # A submitted legacy/incomplete row is scored only through the locked submit path.
-        response = client.get(f"/api/v1/attempts/{attempt.id}/result")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["score"], "0.00")
-
+        response = client.post(
+            f"/api/v1/attempts/{attempt.id}/submit", {}, format="json",
+            HTTP_X_EXAM_SESSION=str(attempt.session_key),
+        )
+        self.assertEqual(response.status_code, 200, response.content)
+        attempt.refresh_from_db()
+        self.assertEqual(str(attempt.score), "0.00")
     def test_result_is_hidden_before_release(self):
         self.exam.result_visible_from = timezone.now() + timedelta(hours=1)
         self.exam.save(update_fields=["result_visible_from"])
