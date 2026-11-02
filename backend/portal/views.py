@@ -1,6 +1,7 @@
 import uuid
 from datetime import timedelta
 
+from django.conf import settings
 from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -316,8 +317,17 @@ def _expire_attempt_if_due(attempt, now=None):
     return attempt
 
 
+def _attempt_session_cookie_name(attempt):
+    return f"oep_attempt_session_{attempt.pk.hex}"
+
+
 def _require_attempt_session(request, attempt):
-    value = request.headers.get("X-Exam-Session", "")
+    # The legacy header remains supported for older clients. New browser clients
+    # use an attempt-scoped HttpOnly cookie so a browser restart does not require
+    # storing the session-binding UUID in JavaScript-accessible storage.
+    value = request.headers.get("X-Exam-Session")
+    if not value:
+        value = request.COOKIES.get(_attempt_session_cookie_name(attempt), "")
     try:
         session_key = uuid.UUID(value)
     except (TypeError, ValueError, AttributeError):
@@ -325,6 +335,29 @@ def _require_attempt_session(request, attempt):
     if session_key != attempt.session_key:
         raise Conflict("This attempt is active in another session. Return to the original exam session.")
     return attempt
+
+
+def _attach_attempt_session_cookie(response, attempt, now=None):
+    cookie_name = _attempt_session_cookie_name(attempt)
+    if attempt.status != ExamAttempt.IN_PROGRESS:
+        response.delete_cookie(cookie_name, path="/api/v1/", samesite="Lax")
+        return response
+    now = now or timezone.now()
+    max_age = max(0, int((attempt.deadline_at - now).total_seconds() + 0.999))
+    if not max_age:
+        response.delete_cookie(cookie_name, path="/api/v1/", samesite="Lax")
+        return response
+    response.set_cookie(
+        cookie_name,
+        str(attempt.session_key),
+        max_age=max_age,
+        httponly=True,
+        secure=settings.REFRESH_COOKIE_SECURE,
+        samesite="Lax",
+        path="/api/v1/",
+    )
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 def _attempt_payload(attempt):
@@ -376,19 +409,28 @@ class StudentExamAttempt(APIView):
     def post(self, request, pk):
         attempt, response_status = self._open_attempt(request, pk)
         # Serialize immutable exam content after releasing the shared exam lock.
-        return Response(_attempt_payload(attempt), status=response_status)
+        response = Response(_attempt_payload(attempt), status=response_status)
+        return _attach_attempt_session_cookie(response, attempt)
 
     @transaction.atomic
     def _open_attempt(self, request, pk):
-        try:
-            session_key = uuid.UUID(str(request.data.get("session_id", "")))
-            header_session = uuid.UUID(request.headers.get("X-Exam-Session", ""))
-        except (TypeError, ValueError, AttributeError):
-            raise ValidationError(
-                {"session_id": "Provide the same valid UUID in session_id and X-Exam-Session."}
-            )
-        if header_session != session_key:
-            raise Conflict("The exam session header does not match the requested session.")
+        body_session = request.data.get("session_id")
+        header_value = request.headers.get("X-Exam-Session")
+        session_key = None
+        if body_session or header_value:
+            if not body_session or not header_value:
+                raise ValidationError(
+                    {"session_id": "For header-based sessions, provide the same UUID in the body and X-Exam-Session."}
+                )
+            try:
+                session_key = uuid.UUID(str(body_session))
+                header_session = uuid.UUID(str(header_value))
+            except (TypeError, ValueError, AttributeError):
+                raise ValidationError(
+                    {"session_id": "Provide a valid UUID in session_id and X-Exam-Session."}
+                )
+            if header_session != session_key:
+                raise Conflict("The exam session header does not match the requested session.")
 
         # Shared locks let all students start the same exam concurrently while
         # still preventing an administrator from changing its schedule mid-start.
@@ -400,9 +442,9 @@ class StudentExamAttempt(APIView):
         now = timezone.now()
         if attempt:
             _require_attempt_session(request, attempt)
-            # Validate the session before mutating the attempt so an invalid
-            # second session cannot roll back or interfere with expiry handling.
-            if session_key != attempt.session_key:
+            # Validate a provided legacy header before mutating the attempt so
+            # an invalid second session cannot interfere with expiry handling.
+            if session_key is not None and session_key != attempt.session_key:
                 raise Conflict("An attempt already exists in another session for this exam.")
             _expire_attempt_if_due(attempt, now)
             return attempt, 200
@@ -417,7 +459,7 @@ class StudentExamAttempt(APIView):
         attempt = ExamAttempt.objects.create(
             exam=exam,
             student=request.user,
-            session_key=session_key,
+            session_key=session_key or uuid.uuid4(),
             started_at=now,
             deadline_at=deadline,
         )
