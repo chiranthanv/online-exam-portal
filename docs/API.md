@@ -1,9 +1,11 @@
 # Online Exam Portal API contract
 
-The administrative and student attempt routes below exist in this candidate and
-current main. Evaluation, result, report, proctoring and notification APIs from
-old PR #33 are not integrated here; do not build against those old routes without
-Harkirat's current-schema PR. See [Sprint 2 status](testing/SPRINT2_STATUS.md).
+Checked against main `9ca18cdd021152d9b0822caf195712ae253aa437` on 2 November
+2026. The administrative and student attempt routes below exist in main.
+Evaluation, result, report, proctoring and notification integration is proposed in
+[draft PR #43](https://github.com/chiranthanv/online-exam-portal/pull/43), not yet
+merged. Its branch API additions and notification worker must not be described
+as available in main. See [Sprint 2 status](testing/SPRINT2_STATUS.md).
 
 Base URL: `http://localhost:8000/api/v1` in development. Paths have **no trailing slash**. Dates use ISO-8601 with an explicit timezone; the server stores UTC. IDs are UUID strings; marks are decimal strings. Standard lists use `{count,next,previous,results}`, page size 50, `?page=2`. Available exams and exam-question lists use `{results:[...]}` without pagination.
 
@@ -97,15 +99,18 @@ Accepts 2–6 distinct, nonempty options with exactly one correct option. Positi
 
 ## Exams
 
-Create a future schedule; generate timestamps relative to the current date for testing:
+Create a future schedule; generate timestamps relative to the current date instead
+of copying an expired fixed date. For example, in Node or a browser console:
 
-```json
-{
-  "title": "SE Quiz 1", "duration_minutes": 30,
-  "start_time": "2026-11-02T09:00:00+05:30",
-  "end_time": "2026-11-02T10:00:00+05:30",
-  "result_visible_from": "2026-11-02T12:00:00+05:30"
-}
+```js
+const now = Date.now();
+const schedule = {
+  title: 'SE Quiz 1', duration_minutes: 30,
+  start_time: new Date(now + 3600000).toISOString(),
+  end_time: new Date(now + 7200000).toISOString(),
+  result_visible_from: new Date(now + 10800000).toISOString(),
+};
+console.log(JSON.stringify(schedule, null, 2));
 ```
 
 Duration 1–1440 minutes; end strictly after start. `total_marks` is computed and read-only. Create → select questions → assign batches. Selection replaces all previous selections atomically and returns `{exam_id,question_count,total_marks}`.
@@ -138,7 +143,7 @@ The database enforces one attempt per exam/student and one saved answer per atte
 Answer PATCH is permitted only while status is `IN_PROGRESS`. `SUBMITTED`,
 `AUTO_SUBMITTED` and `DISQUALIFIED` reject answer changes with HTTP 409 and retain
 stored answers/timestamps. A repeated submit does not reopen a closed attempt.
-The performance candidate locks only the attempt row for detail/save/submit, not
+The merged performance implementation locks only the attempt row for detail/save/submit, not
 the joined shared exam row; retain that scope when adding evaluation.
 
 For automatic submission when the browser is closed, keep the deadline worker running:
@@ -149,8 +154,10 @@ python backend/manage.py expire_exam_attempts --loop --interval 1
 
 The Docker Compose `worker` service runs that command for container deployments. It persists auto-submission even without a browser request. The poll interval means scheduled closure can lag the exact deadline by up to approximately one poll interval plus processing delay. An environment that does not run this worker (or an equivalent scheduler) can still enforce the deadline on a subsequent API request, but cannot promise immediate database state transition while all clients are disconnected.
 
-Evaluation, scoring, results release and proctoring require current-schema integration
-of Harkirat's existing PR #33. PR #41 already records a real-browser Lighthouse audit
+Evaluation, scoring, results release and proctoring are being adapted from Harkirat's
+older PR #33 in current-schema PR #43. Its routes, score semantics and scheduler
+instructions remain branch-specific until review, passing checks and merge.
+PR #41 already records a real-browser Lighthouse audit
 (96 desktop, 91 at both mobile widths); contrast and countdown visibility fail.
 Focused fixes and the remaining manual accessibility checks are still outstanding.
 

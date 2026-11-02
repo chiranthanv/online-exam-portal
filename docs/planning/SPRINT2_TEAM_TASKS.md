@@ -2,14 +2,16 @@
 
 These are messages for Chiranthan to send. No messages have been sent on his behalf.
 Each teammate owns the actual changes and opens the PR from their own account.
-The lead candidate is branch `sprint2/lead-closeout`, published for review in
-[draft PR #42](https://github.com/chiranthanv/online-exam-portal/pull/42).
-Until the lead supplies a reviewed integration base, branch from current remote main
-and keep changes scoped; do not invent a remote closeout branch that does not exist.
+The lead implementation from `sprint2/lead-closeout` is merged through
+[PR #42](https://github.com/chiranthanv/online-exam-portal/pull/42).
+Harkirat has opened [draft integration PR #43](https://github.com/chiranthanv/online-exam-portal/pull/43)
+against that main baseline. Continue that existing PR rather than creating a duplicate
+integration. Branch any separate scoped changes from current remote main and preserve
+the existing authorship and pending teammate changes.
 
 ## Send to Dwijesh (@Dwijesh60)
 
-> Please finish SCRUM-22/23/24/32 (BL-11/12/13/23) for Sprint 2 today. Your PR #35
+> Please finish SCRUM-22/23/24/32 (BL-11/12/13/23) for Sprint 2. Your PR #35
 > and the subsequent timer fixes are already in main, so preserve them. Start from
 > current main and fix the actual open findings from PR #41: the countdown must
 > remain visible when scrolling at desktop, 390px and 320px; footer/navigation
@@ -28,13 +30,15 @@ the existing 96/91/91 fixture still fails contrast and countdown persistence.
 
 ## Send to Harkirat (@h4ki06)
 
-> Please integrate your existing PR #33 work into current main for SCRUM-21/25/27/28/29/33
-> (BL-10/14/16/17/18/24). It was merged into the old backend branch and is not in main.
+> Please finish your existing draft PR #43 for SCRUM-21/25/27/28/29/33
+> (BL-10/14/16/17/18/24). It adapts the older PR #33 work to current main;
+> the feature integration is not merged yet. Resolve the current checks and retain
+> your actual result/report/proctoring/notification integration rather than restarting it.
 > Keep the current ExamAttempt/session/autosave/deadline model and adapt your scoring,
 > released results, reports/CSV/PDF, proctoring/overrides and notification outbox to it.
 > Do not restore the old Attempt table or replace the current attempt endpoints.
 > Preserve terminal-answer locks and the performance lock fix when we integrate.
-> Open your own PR with migrations, API/worker documentation and a short demonstration
+> Update your existing PR #43 with migrations, API/worker documentation and a short demonstration
 > of the working features. Coordinate result/report UI with Dwijesh. Update the RTM
 > and final coverage/test summary for the code actually integrated. Please independently
 > review my response-integrity PR #36 and performance/monitor PRs #37/#40 as applicable.
@@ -78,7 +82,8 @@ the existing 96/91/91 fixture still fails contrast and countdown persistence.
 1. Receive and review Harkirat's current-schema integration; resolve model/API ownership
    before combining UI changes. Do not claim the old PR is missing authorship/work.
 2. Receive Dwijesh's focused UI/accessibility PR and wire to the reviewed API contract.
-3. Combine these with lead PR #37/#40 in an isolated candidate, retaining both lock
+3. Combine these with the lead implementation already merged through PR #37/#40/#42
+   in an isolated candidate, retaining both lock
    regressions and the existing monotonic timer behavior. Do not overwrite either
    teammate's work or push on their branches.
 4. Perform the final working-flow check, update documents, capture the two-minute

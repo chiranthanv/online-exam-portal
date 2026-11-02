@@ -19,8 +19,10 @@ plan; use [current status](../testing/SPRINT2_STATUS.md) and
 The final day is a target, not a claim of completion. Dependencies and failed
 checks can block acceptance; record those instead of closing unfinished stories.
 Teammates should work from current main and open PRs through their own accounts.
-Jira teammate stories remain unassigned until their accounts are assignable;
-planned ownership above does not imply that they have started work.
+At the original planning checkpoint, Jira teammate assignment awaited their accounts.
+By 2 November their accounts are verified and all backlog stories are assigned.
+The original plan does not itself establish progress; current implementation/CI
+and remaining acceptance are tracked in the linked status and Jira stories.
 
 ## Day 1 implementation scope
 

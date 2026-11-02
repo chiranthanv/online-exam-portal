@@ -1,5 +1,13 @@
 # Performance branch recovery
 
+Historical recovery record. PR #37 and lead PR #42 have since merged into main.
+On 2 November the lead head `bc7e574` also passed
+[backend](https://github.com/chiranthanv/online-exam-portal/actions/runs/41426460536),
+[frontend](https://github.com/chiranthanv/online-exam-portal/actions/runs/41426460665)
+and [benchmark](https://github.com/chiranthanv/online-exam-portal/actions/runs/41426460524)
+CI. The original counts/results below bind to their recorded recovery revisions;
+final scope acceptance and future assessment-integration verification remain separate.
+
 The recovery merges main `3ae652a59d72c834bb8ca0525465f3bb197d4f82` into PR #37
 without rebasing, discarding teammate commits or changing main. The sole merge
 conflict joined two tests added at the same location; both independent attempt

@@ -1,5 +1,10 @@
 # Sprint 1 integration report — 27 October 2026
 
+Historical report for the named 27 October revision. Statements about deferred
+Sprint 2 scope below describe that checkpoint, not current main. See
+[current Sprint 2 status](SPRINT2_STATUS.md) for merged work, active PR #43 and
+remaining acceptance; the original execution evidence is preserved.
+
 Scope: the administrative Sprint 1 product only. The main React implementation and automated system/security suite were completed through Chiranthan's account at his explicit request. Genuine teammate follow-up PR #31 subsequently added two injection regression tests. No independent review beyond the recorded GitHub activity is claimed.
 
 ## Final integration state

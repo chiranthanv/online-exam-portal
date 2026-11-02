@@ -1,3 +1,8 @@
+> Archived SRS text from the original README, version 1.0 dated 5 September 2026.
+> It is a requirements baseline, not a current implementation/status report. See
+> [implementation deviations](../DEVIATIONS.md), [RTM](../testing/RTM.md) and
+> [documentation index](../DOCUMENTATION.md) for the current mapping and original PDFs.
+
 Software Requirements Specification (SRS)
 
 Online Exam Portal

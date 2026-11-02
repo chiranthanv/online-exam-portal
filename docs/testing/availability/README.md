@@ -1,8 +1,14 @@
 # Availability monitor — SCRUM-31 / BL-22 / OEP-NF-003
 
-This first increment supplies a standalone Python standard-library monitor for the
+This supplies a standalone Python standard-library monitor for the
 existing `/health` endpoint, which executes `SELECT 1` against the configured database.
 It does not finish the story: representative deployment measurement and review remain pending.
+
+Status on 2 November 2026: monitoring PR #40 and lead PR #42 are merged. The lead
+head `bc7e574` passed [backend](https://github.com/chiranthanv/online-exam-portal/actions/runs/41426460536)
+and [frontend/browser](https://github.com/chiranthanv/online-exam-portal/actions/runs/41426460665)
+CI, including the nine focused monitor regressions in backend verification. This
+is tooling evidence; the required deployment/window measurement remains blocked.
 
 ## Before the acceptance run
 
@@ -125,7 +131,9 @@ HTTP development server and an isolated temporary SQLite database, based on main
 app and write evidence; it does **not** establish PostgreSQL/HTTPS exam-window
 availability. No users, exams or production records were changed.
 
-This increment is published as a draft with automatic CI skipped to avoid triggering
-the inherited frontend workflow's unconditional demo-video recording. Local monitor
-tests and Ruff pass; full PostgreSQL CI/review remain pending. The backend workflow
-now includes the monitor tests for subsequent normal CI runs. No video was recorded.
+At the original first-increment checkpoint the PR was draft and automatic CI was
+skipped to avoid triggering the inherited one-minute demo recording. Those are
+historical publication details, not the current CI/merge status. Recovery commit
+`c9efbcc` subsequently passed normal backend/frontend CI; PR #40 and lead #42
+are now merged. Original smoke evidence is retained unchanged. No final Sprint 2
+video or representative exam-window acceptance follows from that smoke run.
