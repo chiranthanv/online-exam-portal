@@ -290,6 +290,7 @@ test("exam timer avoids premature submission and autosave survives a retry and r
 }) => {
   await login(page, "student");
   const submissions = [];
+  const focusEvents = [];
   let captureSubmissions = true;
   page.on("request", (request) => {
     if (
@@ -298,6 +299,12 @@ test("exam timer avoids premature submission and autosave survives a retry and r
       /\/api\/v1\/attempts\/[^/]+\/submit$/.test(request.url())
     ) {
       submissions.push(request.url());
+    }
+    if (
+      request.method() === "POST" &&
+      /\/api\/v1\/attempts\/[^/]+\/proctoring-events$/.test(request.url())
+    ) {
+      focusEvents.push(request.postDataJSON().event_type);
     }
   });
   let saveRequests = 0;
@@ -317,6 +324,16 @@ test("exam timer avoids premature submission and autosave survives a retry and r
   await expect(
     page.getByRole("button", { name: "Submit exam", exact: true }),
   ).toBeVisible();
+  await page.evaluate(() => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "hidden",
+    });
+    document.dispatchEvent(new Event("visibilitychange"));
+    window.dispatchEvent(new Event("blur"));
+  });
+  await expect.poll(() => focusEvents.length).toBe(2);
+  expect(focusEvents).toEqual(["TAB_SWITCH", "WINDOW_BLUR"]);
   const timer = page.locator(".timer strong");
   await expect(timer).not.toHaveText("00:00");
   await page.waitForTimeout(1200);
