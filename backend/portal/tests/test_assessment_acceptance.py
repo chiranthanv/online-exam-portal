@@ -23,13 +23,19 @@ class AssessmentAcceptanceTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.admin = User.objects.create_user(
-            username="accept-admin", email="accept-admin@example.test",
-            name="Faculty", role="ADMIN", password="Test-Password-123!",
+            username="accept-admin",
+            email="accept-admin@example.test",
+            name="Faculty",
+            role="ADMIN",
+            password="Test-Password-123!",
         )
         cls.students = [
             User.objects.create_user(
-                username=f"accept-student-{i}", email=f"accept-{i}@example.test",
-                name=f"Student {i}", usn=f"ACCEPT-{i:03}", password="Test-Password-123!",
+                username=f"accept-student-{i}",
+                email=f"accept-{i}@example.test",
+                name=f"Student {i}",
+                usn=f"ACCEPT-{i:03}",
+                password="Test-Password-123!",
             )
             for i in range(1, 4)
         ]
@@ -108,7 +114,10 @@ class AssessmentAcceptanceTests(TestCase):
         parsed = list(csv.DictReader(StringIO(question_csv.content.decode())))
         self.assertEqual(parsed[0]["correct"], str(question_json.data["results"][0]["correct"]))
         row = question_json.data["results"][0]
-        self.assertEqual((row["submitted_attempts"], row["correct"], row["incorrect"], row["unanswered"]), (3, 1, 1, 1))
+        self.assertEqual(
+            (row["submitted_attempts"], row["correct"], row["incorrect"], row["unanswered"]),
+            (3, 1, 1, 1),
+        )
 
     def test_reports_are_admin_only_and_hidden_until_release(self):
         client = APIClient()
@@ -140,7 +149,13 @@ class AssessmentAcceptanceTests(TestCase):
         from portal.views import _attempt_payload
         payload = _attempt_payload(self.make_attempt(self.students[0]))
         self.assertNotIn("is_correct", str(payload))
-        self.assertTrue(all(set(option) == {"id", "text"} for q in payload["questions"] for option in q["options"]))
+        self.assertTrue(
+            all(
+                set(option) == {"id", "text"}
+                for q in payload["questions"]
+                for option in q["options"]
+            )
+        )
 
     def test_each_tab_switch_and_blur_is_visible_in_admin_review(self):
         attempt = self.make_attempt(self.students[0], status=ExamAttempt.IN_PROGRESS)
@@ -148,8 +163,12 @@ class AssessmentAcceptanceTests(TestCase):
         client.force_authenticate(self.students[0])
         endpoint = f"/api/v1/attempts/{attempt.id}/proctoring-events"
         for kind in [ProctoringEvent.TAB_SWITCH, ProctoringEvent.TAB_SWITCH, ProctoringEvent.WINDOW_BLUR]:
-            response = client.post(endpoint, {"event_type": kind}, format="json",
-                HTTP_X_EXAM_SESSION=str(attempt.session_key))
+            response = client.post(
+                endpoint,
+                {"event_type": kind},
+                format="json",
+                HTTP_X_EXAM_SESSION=str(attempt.session_key),
+            )
             self.assertEqual(response.status_code, 201)
         response = self.admin_client().get(f"/api/v1/admin/attempts?exam_id={self.exam.id}")
         self.assertEqual(len(response.data["results"][0]["flags"]), 3)
