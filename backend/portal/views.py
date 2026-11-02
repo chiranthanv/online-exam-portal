@@ -480,7 +480,10 @@ class ExamAttemptSubmit(APIView):
             )
         # Both manual submission and request-triggered expiry use the same
         # idempotent evaluation path. The background expiry worker mirrors it.
-        if attempt.status in {ExamAttempt.SUBMITTED, ExamAttempt.AUTO_SUBMITTED} and attempt.evaluated_at is None:
+        if (
+            attempt.status in {ExamAttempt.SUBMITTED, ExamAttempt.AUTO_SUBMITTED}
+            and attempt.evaluated_at is None
+        ):
             score = Decimal("0.00")
             for answer in attempt.answers.select_related("question"):
                 if answer.selected_option_id is None:
