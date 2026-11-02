@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"
 DB_DIR="$(mktemp -d)"
-OUT="\${AUDIT_OUTPUT:-\${RUNNER_TEMP:-/tmp}/oep-accessibility-audit}"
+OUT="${AUDIT_OUTPUT:-${RUNNER_TEMP:-/tmp}/oep-accessibility-audit}"
 mkdir -p "$(dirname "$OUT")"
 if [[ -e "$OUT" ]]; then
   echo "Refusing to overwrite existing accessibility evidence: $OUT" >&2
