@@ -246,7 +246,6 @@ class AttemptAssessmentIntegrationTests(TestCase):
         self.assertIsNotNone(attempt.evaluated_at)
         self.assertEqual(NotificationOutbox.objects.filter(dedupe_key=f"result:{attempt.id}").count(), 1)
 
-
     def test_proctoring_signal_after_deadline_commits_expiry_and_rejects_event(self):
         attempt = self.make_attempt(option=self.wrong)
         attempt.deadline_at = timezone.now() - timedelta(seconds=1)
