@@ -81,7 +81,9 @@ class ScheduledExamNotificationTests(TestCase):
         queue_scheduled_exam_notifications(self.exam, self.batch.students.all())
         call_command("process_exam_notifications")
         self.assertEqual(len(mail.outbox), 2)
-        self.assertEqual(ScheduledExamNotification.objects.filter(status=ScheduledExamNotification.SENT).count(), 2)
+        self.assertEqual(
+            ScheduledExamNotification.objects.filter(status=ScheduledExamNotification.SENT).count(), 2
+        )
         call_command("process_exam_notifications")
         self.assertEqual(len(mail.outbox), 2)
 
