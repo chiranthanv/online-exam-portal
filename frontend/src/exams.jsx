@@ -750,16 +750,129 @@ function ExamAttemptRunner({ exam, onBack }) {
     throw lastError;
   }
 
+  async function flushPendingAnswers() {
+    if (
+      !attempt ||
+      attempt.status !== "IN_PROGRESS" ||
+      !sessionId ||
+      !navigator.onLine ||
+      syncingPendingRef.current
+    ) {
+      return;
+    }
+    const entries = Object.entries(pendingAnswersRef.current);
+    if (!entries.length) return;
+    syncingPendingRef.current = true;
+    try {
+      for (const [questionId, optionId] of entries) {
+        if (
+          savingAnswersRef.current.has(questionId) ||
+          !Object.prototype.hasOwnProperty.call(
+            pendingAnswersRef.current,
+            questionId,
+          ) ||
+          pendingAnswersRef.current[questionId] !== optionId
+        ) {
+          continue;
+        }
+        savingAnswersRef.current.add(questionId);
+        setSavingAnswers((current) => ({ ...current, [questionId]: true }));
+        try {
+          const result = await requestWithRetry(
+            `/attempts/${attempt.attempt_id}/answers`,
+            {
+              method: "PATCH",
+              body: { question_id: questionId, option_id: optionId },
+              headers: { "X-Exam-Session": sessionId },
+            },
+          );
+          storePendingAnswers((current) => {
+            if (
+              !Object.prototype.hasOwnProperty.call(current, questionId) ||
+              current[questionId] !== optionId
+            ) {
+              return current;
+            }
+            const next = { ...current };
+            delete next[questionId];
+            return next;
+          });
+          setAttempt((current) =>
+            current ? { ...current, last_saved_at: result.saved_at } : current,
+          );
+        } catch (e) {
+          setSaveError(
+            e.status === 0
+              ? "Connection unavailable. Your answer is stored in this tab and will retry when you reconnect."
+              : `Could not sync a pending answer: ${e.message}`,
+          );
+          if (e.status === 409) {
+            try {
+              const latest = await api.request(
+                `/attempts/${attempt.attempt_id}`,
+                { headers: { "X-Exam-Session": sessionId } },
+              );
+              setAttempt(latest);
+              if (latest.status !== "IN_PROGRESS") {
+                storePendingAnswers({});
+                setSaveError(
+                  "The exam closed before the pending answer reached the server. That answer was not saved.",
+                );
+              }
+            } catch {
+              // Preserve the local pending answer until the server can be checked.
+            }
+          }
+          break;
+        } finally {
+          savingAnswersRef.current.delete(questionId);
+          setSavingAnswers((current) => {
+            const next = { ...current };
+            delete next[questionId];
+            return next;
+          });
+        }
+      }
+      if (!Object.keys(pendingAnswersRef.current).length) setSaveError("");
+    } finally {
+      syncingPendingRef.current = false;
+    }
+  }
+
+  useEffect(() => {
+    if (!attempt || attempt.status !== "IN_PROGRESS" || !sessionId) return;
+    const retry = () => {
+      if (navigator.onLine) void flushPendingAnswers();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") retry();
+    };
+    window.addEventListener("online", retry);
+    document.addEventListener("visibilitychange", onVisibility);
+    let retryOnMount;
+    if (Object.keys(pendingAnswers).length && navigator.onLine) {
+      retryOnMount = window.setTimeout(retry, 0);
+    }
+    return () => {
+      window.removeEventListener("online", retry);
+      document.removeEventListener("visibilitychange", onVisibility);
+      if (retryOnMount) window.clearTimeout(retryOnMount);
+    };
+  }, [attempt?.attempt_id, attempt?.status, sessionId, pendingAnswers]);
+
   async function saveAnswer(questionId, optionId) {
     if (
       !attempt ||
       attempt.status !== "IN_PROGRESS" ||
-      savingAnswers[questionId]
+      savingAnswersRef.current.has(questionId)
     ) {
       return;
     }
-    const question = attempt.questions.find((item) => item.id === questionId);
-    const previous = question?.selected_option_id ?? null;
+    savingAnswersRef.current.add(questionId);
+    storePendingAnswers((current) => ({
+      ...current,
+      [questionId]: optionId,
+    }));
     setSaveError("");
     setSavingAnswers((current) => ({ ...current, [questionId]: true }));
     setAttempt((current) => ({
@@ -780,19 +893,49 @@ function ExamAttemptRunner({ exam, onBack }) {
           headers: { "X-Exam-Session": sessionId },
         },
       );
-      setAttempt((current) => ({ ...current, last_saved_at: result.saved_at }));
+      storePendingAnswers((current) => {
+        if (
+          !Object.prototype.hasOwnProperty.call(current, questionId) ||
+          current[questionId] !== optionId
+        ) {
+          return current;
+        }
+        const next = { ...current };
+        delete next[questionId];
+        return next;
+      });
+      setAttempt((current) =>
+        current ? { ...current, last_saved_at: result.saved_at } : current,
+      );
     } catch (e) {
-      setAttempt((current) => ({
-        ...current,
-        questions: current.questions.map((item) =>
-          item.id === questionId
-            ? { ...item, selected_option_id: previous }
-            : item,
-        ),
-        answers: { ...current.answers, [questionId]: previous },
-      }));
-      setSaveError(`Your answer was not saved: ${e.message}`);
+      setSaveError(
+        e.status === 0
+          ? "Connection unavailable. Your answer is stored in this tab and will retry when you reconnect."
+          : `Your answer is stored in this tab but is not yet confirmed by the server: ${e.message}`,
+      );
+      if (e.status === 409) {
+        try {
+          const latest = await api.request(
+            `/attempts/${attempt.attempt_id}`,
+            { headers: { "X-Exam-Session": sessionId } },
+          );
+          setAttempt(latest);
+          if (latest.status !== "IN_PROGRESS") {
+            storePendingAnswers((current) => {
+              const next = { ...current };
+              delete next[questionId];
+              return next;
+            });
+            setSaveError(
+              "The exam closed before this answer reached the server. That answer was not saved.",
+            );
+          }
+        } catch {
+          // Keep the local answer until the server can be checked again.
+        }
+      }
     } finally {
+      savingAnswersRef.current.delete(questionId);
       setSavingAnswers((current) => {
         const next = { ...current };
         delete next[questionId];
