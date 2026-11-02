@@ -251,9 +251,7 @@ class ExamBatches(APIView):
         ExamBatch.objects.filter(exam=exam).delete()
         ExamBatch.objects.bulk_create([ExamBatch(exam=exam, batch=b) for b in batches])
         for batch in batches:
-            queue_scheduled_exam_notifications(
-                exam, batch.students.filter(role="STUDENT", is_active=True)
-            )
+            queue_scheduled_exam_notifications(exam, batch.students.filter(role="STUDENT", is_active=True))
         AuditLog.objects.create(actor=request.user, action="EXAM_BATCHES_SET", target=str(pk))
         return Response({"exam_id": str(pk), "batches_assigned": len(batches)})
 
