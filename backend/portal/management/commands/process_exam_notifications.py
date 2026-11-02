@@ -68,7 +68,7 @@ class Command(BaseCommand):
                     item.last_error = type(exc).__name__[:120]
                     item.due_at = timezone.now() + timedelta(minutes=min(2**item.attempts, 60))
                     failed += 1
-                item.save(update_fields=["attempts", "status", "sent_at", "last_error"])
+                item.save(update_fields=["attempts", "status", "sent_at", "last_error", "due_at"])
 
         schedule_candidates = ScheduledExamNotification.objects.filter(
             status__in=[ScheduledExamNotification.PENDING, ScheduledExamNotification.FAILED],
