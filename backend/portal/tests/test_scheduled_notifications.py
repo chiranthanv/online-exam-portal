@@ -57,9 +57,7 @@ class ScheduledExamNotificationTests(TestCase):
         ExamBatch.objects.create(exam=self.exam, batch=self.batch)
         queue_scheduled_exam_notifications(self.exam, self.batch.students.all())
         queue_scheduled_exam_notifications(self.exam, self.batch.students.all())
-        self.assertEqual(
-            ScheduledExamNotification.objects.filter(exam=self.exam).count(), 2
-        )
+        self.assertEqual(ScheduledExamNotification.objects.filter(exam=self.exam).count(), 2)
 
     def test_rescheduling_cancels_obsolete_pending_notice(self):
         ExamBatch.objects.create(exam=self.exam, batch=self.batch)
@@ -83,12 +81,7 @@ class ScheduledExamNotificationTests(TestCase):
         queue_scheduled_exam_notifications(self.exam, self.batch.students.all())
         call_command("process_exam_notifications")
         self.assertEqual(len(mail.outbox), 2)
-        self.assertEqual(
-            ScheduledExamNotification.objects.filter(
-                status=ScheduledExamNotification.SENT
-            ).count(),
-            2
-        )
+        self.assertEqual(ScheduledExamNotification.objects.filter(status=ScheduledExamNotification.SENT).count(), 2)
         call_command("process_exam_notifications")
         self.assertEqual(len(mail.outbox), 2)
 
@@ -172,9 +165,7 @@ class ScheduledExamNotificationTests(TestCase):
     def test_notification_scheduler_runs_one_batch_in_once_mode(self):
         from unittest.mock import patch
 
-        with patch(
-            "portal.management.commands.run_notification_scheduler.call_command"
-        ) as run_batch:
+        with patch("portal.management.commands.run_notification_scheduler.call_command") as run_batch:
             call_command("run_notification_scheduler", once=True, interval=60)
         run_batch.assert_called_once_with("process_exam_notifications")
 
