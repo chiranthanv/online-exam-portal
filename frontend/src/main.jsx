@@ -6,6 +6,7 @@ import { Questions } from "./questions";
 import { Students } from "./students";
 import { Exams, AvailableExams } from "./exams";
 import { Reports } from "./reports";
+import { StudentResults } from "./results";
 import "./style.css";
 
 function SignIn({ onLogin, initialError }) {
@@ -166,7 +167,10 @@ function Workspace({ user, onLogout }) {
         ["students", "Students & batches", "03"],
         ["reports", "Reports & review", "04"],
       ]
-    : [["available", "Available exams", "01"]];
+    : [
+        ["available", "Available exams", "01"],
+        ["results", "Results", "02"],
+      ];
   return (
     <div className="workspace">
       <a className="skip-link" href="#content">
@@ -237,6 +241,8 @@ function Workspace({ user, onLogout }) {
             <Exams />
           ) : page === "reports" && admin ? (
             <Reports />
+          ) : page === "results" && !admin ? (
+            <StudentResults />
           ) : (
             <AvailableExams />
           )}

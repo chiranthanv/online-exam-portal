@@ -7,12 +7,13 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import AuditLog, Exam, ExamAttempt, ExamQuestion, NotificationOutbox, Option, ProctoringEvent
 from .permissions import IsAdmin, IsStudent
-from .views import _expire_attempt_if_due
+from .views import _expire_attempt_if_due, _require_attempt_session
 
 
 def _report_rows(exam):
@@ -98,6 +99,46 @@ def _export(request, title, fields, rows, filename):
     return None
 
 
+class StudentResults(APIView):
+    permission_classes = [IsStudent]
+
+    def get(self, request):
+        attempts = (
+            ExamAttempt.objects.filter(
+                student=request.user,
+                status__in=[ExamAttempt.SUBMITTED, ExamAttempt.AUTO_SUBMITTED, ExamAttempt.DISQUALIFIED],
+                submitted_at__isnull=False,
+            )
+            .select_related("exam")
+            .order_by("-submitted_at", "id")
+        )
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(attempts, request, view=self)
+        now = timezone.now()
+        rows = []
+        for attempt in page:
+            if attempt.status == ExamAttempt.DISQUALIFIED or attempt.disqualification_reason:
+                availability = "withheld"
+            elif attempt.evaluated_at is None:
+                availability = "evaluating"
+            elif now < attempt.exam.result_visible_from:
+                availability = "pending_release"
+            else:
+                availability = "released"
+            row = {
+                "attempt_id": str(attempt.id),
+                "exam_id": str(attempt.exam_id),
+                "exam_title": attempt.exam.title,
+                "submitted_at": attempt.submitted_at.isoformat(),
+                "result_visible_from": attempt.exam.result_visible_from.isoformat(),
+                "availability": availability,
+            }
+            if availability == "released":
+                row.update(score=str(attempt.score), total_marks=str(attempt.exam.total_marks))
+            rows.append(row)
+        return paginator.get_paginated_response(rows)
+
+
 class AttemptResult(APIView):
     permission_classes = [IsStudent]
 
@@ -137,8 +178,7 @@ class AttemptProctoringEvent(APIView):
         attempt = get_object_or_404(
             ExamAttempt.objects.select_for_update(of=("self",)), pk=pk, student=request.user
         )
-        if request.headers.get("X-Exam-Session") != str(attempt.session_key):
-            return Response({"detail": "Invalid exam session."}, status=409)
+        _require_attempt_session(request, attempt)
         _expire_attempt_if_due(attempt)
         if attempt.status != ExamAttempt.IN_PROGRESS:
             return Response(

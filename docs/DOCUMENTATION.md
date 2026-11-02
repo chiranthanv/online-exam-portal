@@ -15,6 +15,7 @@ freeze remain pending actual readiness and operator approval.
 | [Development and deployment](DEVELOPMENT.md) | Detailed local/Docker setup, fixtures, workers, checks, browser launcher limits and deployment configuration |
 | [API contract](API.md) | Administrative, attempt and merged assessment/result/report/proctoring routes |
 | [Lead integration review](testing/LEAD_REVIEW_2026-11-02.md) | Review inputs, reproduced defects/fixes, exact verification scope and pre-video gates |
+| [Recovery and result-access closeout](testing/RECOVERY_CLOSEOUT_2026-11-02.md) | Durable attempt-scoped recovery, cookie guards, ended-exam results and verification boundaries |
 | [Implementation deviations](DEVIATIONS.md) | Historical decisions plus current schema/lock/scoring/measurement differences from submitted baselines |
 | [Team handoff](TEAM_HANDOFF.md) | Current responsibilities and resolved Jira assignments; original Sprint 1 handoff retained below |
 | [Sprint 2 status](testing/SPRINT2_STATUS.md) | Exact merged revisions, inspected PR #43 head/checks, all 13 stories and remaining acceptance |

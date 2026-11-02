@@ -571,6 +571,11 @@ test("faculty Reports and Review screen uses the current report APIs", async ({
   await expect(
     page.getByRole("heading", { name: "Reports & attempt review" }),
   ).toBeVisible();
+  // Recovery fixtures also create released exams; exercise the seeded,
+  // unreleased exam explicitly instead of relying on API ordering.
+  await page.getByLabel("Exam", { exact: true }).selectOption({
+    label: "[DEMO] Available practice exam",
+  });
   await expect(
     page.getByRole("heading", { name: "Class results" }),
   ).toBeVisible();

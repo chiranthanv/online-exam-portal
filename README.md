@@ -47,9 +47,9 @@ See the [recorded walkthrough](docs/DEMO.md) for the demonstration's source revi
 | **Question bank** | MCQs with marks and penalties, subject/topic/difficulty filters, validation and protection for questions already used in exams |
 | **Students & batches** | CSV/XLSX roster import, row-level error reporting and batch membership management |
 | **Exam preparation** | Schedules, manual or random question selection, calculated total marks and batch-based eligibility |
-| **Exam attempts** | One attempt per student/exam, session binding, answer autosave, refresh recovery and bounded save retries |
+| **Exam attempts** | One attempt per student/exam, HttpOnly session binding, autosave, scoped durable offline recovery and bounded save retries |
 | **Timing & submission** | Server-calculated deadlines, manual submission, background expiry processing and immutable closed responses |
-| **Evaluation & results** | Server-side marking of saved answers, penalties for incorrect answers and results withheld until the scheduled release |
+| **Evaluation & results** | Server-side marking, negative penalties, scheduled release and an own-results history available after exams end |
 | **Reports & review** | Faculty class/question reports, authenticated CSV/PDF exports, focus-event observations and audited disqualify/re-permit actions |
 | **Notifications** | Durable, deduplicated schedule/result outboxes, retry handling and a background notification scheduler |
 | **Operations** | Database health endpoint, external availability monitor, disposable load benchmark and query-plan inspection |

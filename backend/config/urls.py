@@ -25,6 +25,7 @@ urlpatterns = [
     path("api/v1/exams", views.ExamList.as_view()),
     path("api/v1/exams/available", views.AvailableExams.as_view()),
     path("api/v1/exams/<uuid:pk>/attempt", views.StudentExamAttempt.as_view()),
+    path("api/v1/attempts/results", assessment.StudentResults.as_view()),
     path("api/v1/attempts/<uuid:pk>", views.ExamAttemptDetail.as_view()),
     path("api/v1/attempts/<uuid:pk>/answers", views.ExamAttemptAnswers.as_view()),
     path("api/v1/attempts/<uuid:pk>/submit", views.ExamAttemptSubmit.as_view()),

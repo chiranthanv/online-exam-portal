@@ -165,6 +165,35 @@ class AssessmentAcceptanceTests(TestCase):
         self.assertEqual(question_row["submitted_attempts"], "1")
         self.assertEqual(question_row["correct"], "0")
 
+    def test_results_dashboard_survives_exam_end_and_enforces_owner_and_release(self):
+        own = self.make_attempt(self.students[0])
+        self.make_attempt(self.students[1])
+        client = APIClient()
+        client.force_authenticate(self.students[0])
+        response = client.get("/api/v1/attempts/results")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["results"][0]["attempt_id"], str(own.id))
+        self.assertEqual(response.data["results"][0]["score"], "1.00")
+        self.assertNotIn("session_key", str(response.data))
+        self.assertNotIn("is_correct", str(response.data))
+        self.exam.result_visible_from = timezone.now() + timedelta(hours=1)
+        self.exam.save(update_fields=["result_visible_from"])
+        pending = client.get("/api/v1/attempts/results").data["results"][0]
+        self.assertEqual(pending["availability"], "pending_release")
+        self.assertNotIn("score", pending)
+        self.exam.result_visible_from = timezone.now() - timedelta(minutes=1)
+        self.exam.save(update_fields=["result_visible_from"])
+        own.status = ExamAttempt.DISQUALIFIED
+        own.save(update_fields=["status"])
+        hidden = client.get("/api/v1/attempts/results").data["results"][0]
+        self.assertEqual(hidden["availability"], "withheld")
+        self.assertNotIn("score", hidden)
+        client.force_authenticate(self.admin)
+        self.assertEqual(client.get("/api/v1/attempts/results").status_code, 403)
+        client.force_authenticate(None)
+        self.assertEqual(client.get("/api/v1/attempts/results").status_code, 401)
+
     def test_reports_are_admin_only_and_hidden_until_release(self):
         client = APIClient()
         client.force_authenticate(self.students[0])
