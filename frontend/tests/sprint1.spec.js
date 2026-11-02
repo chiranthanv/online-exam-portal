@@ -529,6 +529,117 @@ test("exam attempt keeps its timer visible, meets contrast and recovers pending 
   );
 });
 
+
+test("unsynced answers survive a browser context restart without JavaScript-stored session credentials", async ({
+  browser,
+}) => {
+  const baseURL = "http://localhost:5173";
+  const context = await browser.newContext({ baseURL });
+  const page = await context.newPage();
+  await login(page, "student");
+
+  let failedSaveRequests = 0;
+  await page.route(
+    /\/api\/v1\/attempts\/[^/]+\/answers$/,
+    async (route) => {
+      if (route.request().method() === "PATCH") {
+        failedSaveRequests += 1;
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ detail: "Temporary offline simulation" }),
+        });
+        return;
+      }
+      await route.continue();
+    },
+  );
+
+  await page.getByRole("button", { name: "Start exam", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Submit exam", exact: true }),
+  ).toBeVisible();
+  const firstQuestion = page.locator("fieldset.attempt-question").first();
+  const firstRadio = firstQuestion.getByRole("radio").first();
+  const optionId = await firstRadio.getAttribute("value");
+  await firstRadio.check();
+  const status = page.locator(".attempt-save-status [role='status']");
+  await expect(status).toContainText("waiting to sync", { timeout: 10000 });
+  expect(failedSaveRequests).toBe(3);
+
+  const cookie = (await context.cookies(baseURL)).find((item) =>
+    item.name.startsWith("oep_attempt_session_"),
+  );
+  expect(cookie).toBeTruthy();
+  expect(cookie.httpOnly).toBe(true);
+  expect(cookie.sameSite).toBe("Lax");
+
+  const browserStorage = await page.evaluate(() => ({
+    session: Object.entries(sessionStorage),
+    local: Object.entries(localStorage),
+  }));
+  expect(JSON.stringify(browserStorage)).not.toContain("session_id");
+  expect(JSON.stringify(browserStorage)).not.toContain("X-Exam-Session");
+  expect(JSON.stringify(browserStorage)).not.toContain("access_token");
+
+  const persisted = await page.evaluate(async (examId) => {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open("oep-attempt-recovery", 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    try {
+      return await new Promise((resolve, reject) => {
+        const request = db
+          .transaction("pending-answers", "readonly")
+          .objectStore("pending-answers")
+          .get(examId);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    } finally {
+      db.close();
+    }
+  }, await page.locator(".attempt-sticky-bar").getAttribute("data-exam-id").catch(() => null));
+
+  // The exam ID is the key in IndexedDB. Read it from the single seeded active attempt.
+  const state = await context.storageState({ indexedDB: true });
+  await context.close();
+
+  const resumedContext = await browser.newContext({
+    baseURL,
+    storageState: state,
+  });
+  try {
+    const resumedPage = await resumedContext.newPage();
+    await resumedPage.goto("/");
+    await expect(
+      resumedPage.getByRole("navigation", { name: "Main navigation" }),
+    ).toBeVisible();
+    await expect(
+      resumedPage.getByRole("button", { name: "Start exam", exact: true }),
+    ).toBeVisible();
+    await resumedPage
+      .getByRole("button", { name: "Start exam", exact: true })
+      .click();
+    await expect(
+      resumedPage.getByRole("button", { name: "Submit exam", exact: true }),
+    ).toBeVisible();
+    const recoveredRadio = resumedPage
+      .locator("fieldset.attempt-question")
+      .first()
+      .getByRole("radio")
+      .first();
+    await expect(recoveredRadio).toBeChecked();
+    await expect(
+      resumedPage.locator(".attempt-save-status [role='status']"),
+    ).toContainText("Last saved", { timeout: 15000 });
+    expect(optionId).toBeTruthy();
+  } finally {
+    await resumedContext.close();
+  }
+});
+
 test("faculty Reports and Review screen uses the current report APIs", async ({
   page,
 }) => {
