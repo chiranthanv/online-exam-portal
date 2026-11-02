@@ -36,18 +36,25 @@ class AssessmentAcceptanceTests(TestCase):
         cls.questions = []
         for i, (marks, penalty) in enumerate([("2.00", "0.50"), ("3.00", "1.00")], 1):
             question = Question.objects.create(
-                text=f"Question {i}", subject="Math", topic="Arithmetic",
+                text=f"Question {i}",
+                subject="Math",
+                topic="Arithmetic",
                 difficulty="EASY" if i == 1 else "MEDIUM",
-                default_marks=marks, negative_marks=penalty, created_by=cls.admin,
+                default_marks=marks,
+                negative_marks=penalty,
+                created_by=cls.admin,
             )
             Option.objects.create(question=question, text="Correct", is_correct=True)
             Option.objects.create(question=question, text="Wrong", is_correct=False)
             cls.questions.append(question)
         now = timezone.now()
         cls.exam = Exam.objects.create(
-            title="Report acceptance exam", duration_minutes=30,
-            start_time=now - timedelta(hours=2), end_time=now - timedelta(hours=1),
-            result_visible_from=now - timedelta(minutes=1), total_marks="5.00",
+            title="Report acceptance exam",
+            duration_minutes=30,
+            start_time=now - timedelta(hours=2),
+            end_time=now - timedelta(hours=1),
+            result_visible_from=now - timedelta(minutes=1),
+            total_marks="5.00",
             created_by=cls.admin,
         )
         for seq, question in enumerate(cls.questions, 1):
@@ -56,14 +63,18 @@ class AssessmentAcceptanceTests(TestCase):
     def make_attempt(self, student, status=ExamAttempt.SUBMITTED, selected=None, evaluated=True):
         now = timezone.now()
         attempt = ExamAttempt.objects.create(
-            exam=self.exam, student=student, status=status,
-            deadline_at=now + timedelta(minutes=5), submitted_at=now,
+            exam=self.exam,
+            student=student,
+            status=status,
+            deadline_at=now + timedelta(minutes=5),
+            submitted_at=now,
             score="1.00" if evaluated else None,
             evaluated_at=now if evaluated else None,
         )
         for question, option in selected or []:
             AttemptAnswer.objects.create(
-                attempt=attempt, question=question,
+                attempt=attempt,
+                question=question,
                 selected_option_id=option.id if option else None,
             )
         return attempt
