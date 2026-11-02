@@ -1,6 +1,6 @@
 # Online Exam Portal — Team 15
 
-**React + Django REST Framework + PostgreSQL** online exam portal. Sprint 1 administration is integrated. Current main also includes Dwijesh's session-bound attempts, autosave/recovery and server-deadline submission, plus Chiranthan's terminal-response locks. This isolated Sprint 2 candidate combines the passing performance recovery and availability monitor. Harkirat's evaluation, reports, proctoring and notifications exist on an older branch and still need current-schema integration. A measured accessibility audit found timer-visibility and contrast defects requiring Dwijesh's fixes. See the [current Sprint 2 status](docs/testing/SPRINT2_STATUS.md) for exact implementation, evidence and release boundaries.
+**React + Django REST Framework + PostgreSQL** online exam portal. Sprint 1 administration is integrated. Current main also includes Dwijesh's session-bound attempts, autosave/recovery and server-deadline submission, plus Chiranthan's terminal-response locks. This isolated Sprint 2 candidate combines the passing performance recovery and availability monitor. Harkirat's current-schema evaluation, reports, proctoring and notification worker are under review in `sprint2/harkirat-attempt-evaluation-integration`. A measured accessibility audit found timer-visibility and contrast defects requiring Dwijesh's fixes. See the [current Sprint 2 status](docs/testing/SPRINT2_STATUS.md) for exact implementation, evidence and release boundaries.
 
 - [GitHub Project: backlog and two-sprint plan](https://github.com/users/chiranthanv/projects/1)
 - [SRS-linked backlog](docs/planning/BACKLOG.md) · [structured stories](docs/planning/backlog.json)
@@ -61,7 +61,7 @@ docker compose run --rm api python manage.py seed_demo
 docker compose up -d api worker
 ```
 
-Open **http://localhost:8000** for the compiled application. The `worker` service polls expired attempts once per second and auto-submits them even if a browser is closed. For a non-Docker local run, start `python backend/manage.py expire_exam_attempts --loop --interval 1` in another terminal after migrations. `docker compose logs api` shows API startup status. `docker compose down` preserves the database volume. `docker compose down -v` deletes development data; use it only deliberately.
+Open **http://localhost:8000** for the compiled application. The `worker` service polls expired attempts once per second, scores and auto-submits them even if a browser is closed. Schedule `python backend/manage.py process_exam_notifications` at least once per minute after configuring SMTP to deliver result-release emails. For a non-Docker local run, start `python backend/manage.py expire_exam_attempts --loop --interval 1` in another terminal after migrations. `docker compose logs api` shows API startup status. `docker compose down` preserves the database volume. `docker compose down -v` deletes development data; use it only deliberately.
 
 ## Run checks
 
