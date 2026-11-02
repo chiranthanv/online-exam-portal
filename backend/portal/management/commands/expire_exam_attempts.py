@@ -1,9 +1,8 @@
 import time
+from decimal import Decimal
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from decimal import Decimal
-
 from django.utils import timezone
 
 from portal.models import AuditLog, ExamAttempt, NotificationOutbox, Option
