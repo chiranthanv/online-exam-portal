@@ -147,6 +147,7 @@ class AssessmentAcceptanceTests(TestCase):
 
     def test_student_payload_does_not_expose_correct_option_flags(self):
         from portal.views import _attempt_payload
+
         payload = _attempt_payload(self.make_attempt(self.students[0]))
         self.assertNotIn("is_correct", str(payload))
         self.assertTrue(

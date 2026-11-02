@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .assessment import evaluate_attempt
+from .assessment import evaluate_attempt
 from .models import (
     AttemptAnswer,
     AuditLog,
