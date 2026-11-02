@@ -56,3 +56,6 @@ screen-reader testing or full exam-lifecycle acceptance. Manual verification of
 all error/expiry/confirmation states, keyboard interactions, assistive technology
 and a retest after UI fixes remain required. See the dated report under
 `docs/testing/accessibility/` for actual results and environment limits.
+## Automated post-fix CI audit
+
+The frontend GitHub Actions workflow runs the existing authenticated-exam audit against a **fresh disposable SQLite database** after browser tests. It starts temporary Django and Vite services, uses the seeded synthetic student, and uploads an `authenticated-exam-accessibility` artifact containing the summary, screenshots and raw Lighthouse JSON at 1440/390/320 widths. The step keeps the original audit's nonzero failure behavior: a contrast/WCAG/timer/overflow failure fails CI rather than being masked by a Lighthouse score. It never uses the PostgreSQL CI dataset or real student records. This automated snapshot does not replace manual screen-reader, zoom, forced-colors or full keyboard acceptance.
