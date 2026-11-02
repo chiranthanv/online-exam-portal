@@ -2,7 +2,8 @@
 
 These are messages for Chiranthan to send. No messages have been sent on his behalf.
 Each teammate owns the actual changes and opens the PR from their own account.
-The lead candidate is local branch `sprint2/lead-closeout`; it is not yet published.
+The lead candidate is branch `sprint2/lead-closeout`, published for review in
+[draft PR #42](https://github.com/chiranthanv/online-exam-portal/pull/42).
 Until the lead supplies a reviewed integration base, branch from current remote main
 and keep changes scoped; do not invent a remote closeout branch that does not exist.
 

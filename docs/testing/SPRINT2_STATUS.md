@@ -1,6 +1,8 @@
 # Sprint 2 implementation and release status
 
 Owner: Chiranthan V. This is a closeout candidate, not a frozen release.
+Published for review in [draft PR #42](https://github.com/chiranthanv/online-exam-portal/pull/42)
+on branch `sprint2/lead-closeout`. Main remains unmerged.
 The supplied course screenshot confirms Sprint 2 as **26–30 October 2026** and
 requires implemented sprint items, a two-minute working-product video, complete
 documentation and development freeze. Actual work dates remain unchanged.
