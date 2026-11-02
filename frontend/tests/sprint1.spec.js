@@ -501,3 +501,48 @@ test(
     );
   },
 );
+
+test("faculty Reports and Review screen uses the current report APIs", async ({ page }) => {
+  await login(page, "admin");
+  const reportRequests = [];
+  page.on("request", (request) => {
+    if (/\/api\/v1\/(reports\/(class|questions)|admin\/attempts)/.test(request.url())) {
+      reportRequests.push(request.url());
+    }
+  });
+
+  await page.getByRole("button", { name: "04 Reports & review" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Reports & attempt review" }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Class results" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Question analysis" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Attempt review & proctoring flags" }),
+  ).toBeVisible();
+
+  await expect
+    .poll(() => reportRequests.some((url) => url.includes("/reports/class?exam_id=")))
+    .toBe(true);
+  await expect
+    .poll(() =>
+      reportRequests.some((url) => url.includes("/reports/questions?exam_id=")),
+    )
+    .toBe(true);
+  await expect
+    .poll(() => reportRequests.some((url) => url.includes("/admin/attempts?exam_id=")))
+    .toBe(true);
+
+  const exportResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes("/reports/class?exam_id=") &&
+      response.url().includes("export=csv"),
+  );
+  await page.getByRole("button", { name: "Class CSV", exact: true }).click();
+  expect((await exportResponse).status()).toBe(400);
+  await expect(page.getByRole("alert")).toContainText(
+    "Reports are unavailable until the scheduled result release.",
+  );
+});
