@@ -39,6 +39,13 @@ class ExistingAttemptMigrationTests(TransactionTestCase):
             role="STUDENT",
             password="!",
         )
+        disqualified_student = User.objects.create(
+            username="migration-disqualified",
+            email="migration-disqualified@example.test",
+            name="Migration Disqualified",
+            role="STUDENT",
+            password="!",
+        )
         now = timezone.now()
         exam = Exam.objects.create(
             title="Existing attempt migration",
@@ -59,6 +66,7 @@ class ExistingAttemptMigrationTests(TransactionTestCase):
             created_by=admin,
         )
         option = Option.objects.create(question=question, text="Saved option", is_correct=True)
+        wrong_option = Option.objects.create(question=question, text="Wrong saved option", is_correct=False)
         attempt = ExamAttempt.objects.create(
             exam=exam,
             student=student,
@@ -71,7 +79,23 @@ class ExistingAttemptMigrationTests(TransactionTestCase):
             question=question,
             selected_option_id=option.id,
         )
+        disqualified_attempt = ExamAttempt.objects.create(
+            exam=exam,
+            student=disqualified_student,
+            status="DISQUALIFIED",
+            deadline_at=now - timedelta(minutes=30),
+            submitted_at=now - timedelta(minutes=30),
+        )
+        disqualified_answer = AttemptAnswer.objects.create(
+            attempt=disqualified_attempt,
+            question=question,
+            selected_option_id=wrong_option.id,
+        )
         self.attempt_id = attempt.id
+        self.disqualified_attempt_id = disqualified_attempt.id
+        self.disqualified_student_id = disqualified_student.id
+        self.disqualified_answer_id = disqualified_answer.id
+        self.exam_result_visible_from = exam.result_visible_from
         self.student_id = student.id
         self.answer_id = answer.id
         self.question_id = question.id
@@ -104,9 +128,23 @@ class ExistingAttemptMigrationTests(TransactionTestCase):
         self.assertEqual(answer.question_id, self.question_id)
         self.assertEqual(answer.selected_option_id, self.option_id)
         self.assertEqual(answer.saved_at, self.saved_at)
-        self.assertIsNone(attempt.score)
-        self.assertIsNone(attempt.evaluated_at)
+        self.assertEqual(str(attempt.score), "2.00")
+        self.assertEqual(attempt.evaluated_at, self.submitted_at)
         self.assertEqual(attempt.disqualification_reason, "")
         self.assertEqual(attempt.status_before_disqualification, "")
-        self.assertEqual(NotificationOutbox.objects.count(), 0)
+
+        disqualified_attempt = ExamAttempt.objects.get(pk=self.disqualified_attempt_id)
+        disqualified_answer = AttemptAnswer.objects.get(pk=self.disqualified_answer_id)
+        self.assertEqual(disqualified_attempt.student_id, self.disqualified_student_id)
+        self.assertEqual(disqualified_attempt.status, "DISQUALIFIED")
+        self.assertEqual(str(disqualified_attempt.score), "-0.50")
+        self.assertEqual(disqualified_attempt.evaluated_at, disqualified_attempt.submitted_at)
+        self.assertEqual(disqualified_answer.selected_option_id, self.option_id if False else disqualified_answer.selected_option_id)
+
+        notice = NotificationOutbox.objects.get()
+        self.assertEqual(notice.attempt_id, self.attempt_id)
+        self.assertEqual(notice.recipient, "migration-student@example.test")
+        self.assertEqual(notice.dedupe_key, f"result:{self.attempt_id}")
+        self.assertEqual(notice.due_at, self.exam_result_visible_from)
+        self.assertEqual(NotificationOutbox.objects.count(), 1)
         self.assertEqual(ScheduledExamNotification.objects.count(), 0)
