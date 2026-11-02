@@ -5,7 +5,6 @@ from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.utils import timezone
-
 from rest_framework.test import APIClient
 
 from portal.models import (
