@@ -163,3 +163,11 @@ class ScheduledExamNotificationTests(TestCase):
         self.assertEqual(notice.attempts, 1)
         self.assertNotIn("password", notice.last_error.lower())
         self.assertGreater(notice.due_at, timezone.now())
+
+
+    def test_notification_scheduler_runs_one_batch_in_once_mode(self):
+        from unittest.mock import patch
+
+        with patch("portal.management.commands.run_notification_scheduler.call_command") as run_batch:
+            call_command("run_notification_scheduler", once=True, interval=60)
+        run_batch.assert_called_once_with("process_exam_notifications")
