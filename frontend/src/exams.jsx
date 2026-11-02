@@ -605,7 +605,9 @@ function ExamAttemptRunner({ exam, onBack }) {
         }
         const validPending = Object.fromEntries(
           Object.entries(pending).filter(([questionId, optionId]) => {
-            const question = data.questions.find((item) => item.id === questionId);
+            const question = data.questions.find(
+              (item) => item.id === questionId,
+            );
             return (
               question &&
               (optionId === null ||
@@ -907,10 +909,9 @@ function ExamAttemptRunner({ exam, onBack }) {
       );
       if (e.status === 409) {
         try {
-          const latest = await api.request(
-            `/attempts/${attempt.attempt_id}`,
-            { headers: { "X-Exam-Session": sessionId } },
-          );
+          const latest = await api.request(`/attempts/${attempt.attempt_id}`, {
+            headers: { "X-Exam-Session": sessionId },
+          });
           setAttempt(latest);
           if (latest.status !== "IN_PROGRESS") {
             storePendingAnswers({});
@@ -1056,8 +1057,8 @@ function ExamAttemptRunner({ exam, onBack }) {
           {Object.keys(pendingAnswers).length > 0 && (
             <p className="notice error" role="alert">
               {Object.keys(pendingAnswers).length} answer(s) were still waiting
-              to sync when the exam closed. Those answers may not be included
-              in evaluation.
+              to sync when the exam closed. Those answers may not be included in
+              evaluation.
             </p>
           )}
           <div className="row-actions">
