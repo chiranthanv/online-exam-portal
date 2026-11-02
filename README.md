@@ -58,10 +58,10 @@ cp .env.example .env
 docker compose up -d db
 docker compose run --rm api python manage.py migrate --noinput
 docker compose run --rm api python manage.py seed_demo
-docker compose up -d api worker
+docker compose up -d api worker scheduler
 ```
 
-Open **http://localhost:8000** for the compiled application. The `worker` service polls expired attempts once per second, scores and auto-submits them even if a browser is closed. Schedule `python backend/manage.py process_exam_notifications` at least once per minute after configuring SMTP to deliver scheduled-exam and result-release emails. For a non-Docker local run, start `python backend/manage.py expire_exam_attempts --loop --interval 1` in another terminal after migrations. `docker compose logs api` shows API startup status. `docker compose down` preserves the database volume. `docker compose down -v` deletes development data; use it only deliberately.
+Open **http://localhost:8000** for the compiled application. The `worker` service polls expired attempts once per second, scores and auto-submits them even if a browser is closed. The `scheduler` service runs `process_exam_notifications` on a 60-second start-to-start cadence for scheduled-exam and result-release outboxes. For a non-Docker local run, start `python backend/manage.py expire_exam_attempts --loop --interval 1` and `python backend/manage.py run_notification_scheduler --interval 60` in separate terminals after migrations. The default local file-email backend writes messages to disk; it is not real SMTP delivery. Configure SMTP and verify a controlled mailbox before claiming delivery. `docker compose logs api` shows API startup status; `docker compose logs scheduler` shows notification processing. `docker compose down` preserves the database volume. `docker compose down -v` deletes development data; use it only deliberately.
 
 ## Run checks
 
