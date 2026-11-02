@@ -425,6 +425,29 @@ test("exam attempt keeps its timer visible, meets contrast and recovers pending 
   const questions = page.locator("fieldset.attempt-question");
   const firstRadio = questions.nth(0).getByRole("radio").first();
 
+  // The clear control is outside the disabled fieldset; keep it disabled while
+  // the corresponding answer PATCH is in flight rather than silently dropping clicks.
+  const answerRoute = /\\/api\\/v1\\/attempts\\/[^/]+\\/answers$/;
+  let releaseFirstSave;
+  const firstSaveGate = new Promise((resolve) => {
+    releaseFirstSave = resolve;
+  });
+  await page.route(answerRoute, async (route) => {
+    await firstSaveGate;
+    await route.continue();
+  });
+  await firstRadio.focus();
+  await page.keyboard.press("Space");
+  const clearButton = questions.nth(0).getByRole("button", {
+    name: "Clear answer",
+  });
+  await expect(clearButton).toBeVisible();
+  await expect(clearButton).toBeDisabled();
+  releaseFirstSave();
+  await expect(status).toContainText("Last saved", { timeout: 10000 });
+  await expect(clearButton).toBeEnabled();
+  await page.unroute(answerRoute);
+
   // Keyboard interaction is supported by the labelled radio group.
   await firstRadio.focus();
   await page.keyboard.press("Space");
