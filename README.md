@@ -49,6 +49,9 @@ See the [recorded walkthrough](docs/DEMO.md) for the demonstration's source revi
 | **Exam preparation** | Schedules, manual or random question selection, calculated total marks and batch-based eligibility |
 | **Exam attempts** | One attempt per student/exam, session binding, answer autosave, refresh recovery and bounded save retries |
 | **Timing & submission** | Server-calculated deadlines, manual submission, background expiry processing and immutable closed responses |
+| **Evaluation & results** | Server-side marking of saved answers, penalties for incorrect answers and results withheld until the scheduled release |
+| **Reports & review** | Faculty class/question reports, authenticated CSV/PDF exports, focus-event observations and audited disqualify/re-permit actions |
+| **Notifications** | Durable, deduplicated schedule/result outboxes, retry handling and a background notification scheduler |
 | **Operations** | Database health endpoint, external availability monitor, disposable load benchmark and query-plan inspection |
 
 ### Exam workflow
@@ -76,7 +79,7 @@ Set a local database password in `.env` before starting. URL-encode any URL-spec
 docker compose up -d db
 docker compose run --rm api python manage.py migrate --noinput
 docker compose run --rm api python manage.py seed_demo
-docker compose up -d api worker
+docker compose up -d api worker scheduler
 ```
 
 Open **[http://localhost:8000](http://localhost:8000)**.
@@ -115,6 +118,12 @@ For automatic submission while browsers are closed, activate the Python environm
 python backend/manage.py expire_exam_attempts --loop --interval 1
 ```
 
+Run the notification scheduler in another activated terminal:
+
+```bash
+python backend/manage.py run_notification_scheduler --interval 60
+```
+
 Local development defaults to SQLite and file-based email. Django does not automatically load `.env` outside Docker Compose; export environment variables explicitly when needed. See [development and deployment](docs/DEVELOPMENT.md) for the full configuration.
 
 </details>
@@ -140,6 +149,7 @@ flowchart LR
     Browser[React interface] --> API[Django REST API]
     API --> DB[(PostgreSQL)]
     Worker[Expiry worker] --> DB
+    Scheduler[Notification scheduler] --> DB
     Monitor[External health monitor] --> API
 ```
 
@@ -152,7 +162,7 @@ flowchart LR
 | HTTPS | Optional Caddy reverse-proxy profile |
 | Verification | Django tests, PostgreSQL concurrency checks, Vitest, Playwright and GitHub Actions |
 
-The container serves the compiled interface and API from one origin. Attempts and answers are persisted in the database rather than worker memory. The expiry worker applies server deadlines even when a student disconnects.
+The container serves the compiled interface and API from one origin. Attempts and answers are persisted in the database rather than worker memory. The expiry worker applies server deadlines even when a student disconnects; the notification scheduler processes the durable outboxes. Actual mailbox delivery requires configured SMTP.
 
 ### Repository layout
 

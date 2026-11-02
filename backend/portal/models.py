@@ -143,7 +143,8 @@ class ExamAttempt(models.Model):
     submitted_at = models.DateTimeField(null=True, blank=True)
     last_saved_at = models.DateTimeField(null=True, blank=True)
     session_key = models.UUIDField(default=uuid.uuid4)
-    score = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    # 500 allowed questions at a 999.99 penalty can total -499995.00.
+    score = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
     evaluated_at = models.DateTimeField(null=True, blank=True)
     disqualification_reason = models.CharField(max_length=500, blank=True, default="")
     overridden_at = models.DateTimeField(null=True, blank=True)

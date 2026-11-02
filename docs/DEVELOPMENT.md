@@ -54,7 +54,7 @@ cp .env.example .env
 docker compose up -d db
 docker compose run --rm api python manage.py migrate --noinput
 docker compose run --rm api python manage.py seed_demo
-docker compose up -d api worker
+docker compose up -d api worker scheduler
 ```
 
 Open **http://localhost:8000** for the compiled application. The `worker` service polls expired attempts once per second and auto-submits them even if a browser is closed. For a non-Docker local run, start `python backend/manage.py expire_exam_attempts --loop --interval 1` in another terminal after migrations. `docker compose logs api` shows API startup status. `docker compose down` preserves the database volume. `docker compose down -v` deletes development data; use it only deliberately.
@@ -91,9 +91,26 @@ The committed Playwright launcher currently expects the POSIX path
 `../.venv/bin/python`; Windows activation alone does not change that path. Use
 the documented POSIX/CI setup for those browser commands until the launcher is
 made portable. `record:demo` remains the historical Sprint 1 recorder and does
-not produce the required final two-minute Sprint 2 video. Frontend CI also runs
-that one-minute recorder except on the performance branch; its workflow/artifact
-names still refer to Sprint 1.
+not produce the required final two-minute Sprint 2 video. Ordinary frontend CI
+runs with test video disabled and skips the walkthrough. Recording requires an
+explicit manual workflow dispatch with `record_demo` enabled, after operator
+approval; no such dispatch is part of verification. Workflow/artifact names still
+refer to Sprint 1.
+
+## Notification scheduler
+
+Keep both background services running: `worker` closes expired attempts and
+`scheduler` processes schedule/result notification outboxes. For a non-Docker
+environment, run the following in another activated terminal:
+
+```bash
+python backend/manage.py run_notification_scheduler --interval 60
+```
+
+For a single operational batch, use `python backend/manage.py process_exam_notifications`.
+The scheduler targets a 60-second start-to-start interval; a delivery batch that
+takes longer cannot preserve that interval. Queueing/retry tests do not establish
+controlled-mailbox SMTP delivery. Local file-backed email remains development-only.
 
 ## Deployment configuration
 

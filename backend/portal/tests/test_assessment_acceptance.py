@@ -142,6 +142,50 @@ class AssessmentAcceptanceTests(TestCase):
         hidden = admin.get(f"/api/v1/reports/class?exam_id={self.exam.id}")
         self.assertEqual(hidden.status_code, 400)
 
+    def test_class_csv_neutralizes_formula_text_without_changing_score_or_json(self):
+        attempt = self.make_attempt(self.students[0])
+        attempt.score = "-1.50"
+        attempt.save(update_fields=["score"])
+        client = self.admin_client()
+        url = f"/api/v1/reports/class?exam_id={self.exam.id}"
+        for text in ("=1+1", "+1+1", "-1+1", "@SUM(1)", "\t=1+1", "  +1+1"):
+            with self.subTest(text=text):
+                student = self.students[0]
+                student.name = text
+                student.usn = text
+                student.save(update_fields=["name", "usn"])
+                response = client.get(url + "&export=csv")
+                self.assertEqual(response.status_code, 200)
+                row = next(csv.DictReader(StringIO(response.content.decode())))
+                self.assertEqual(row["student_name"], "'" + text)
+                self.assertEqual(row["usn"], "'" + text)
+                self.assertEqual(row["score"], "-1.50")
+                self.assertEqual(row["total_marks"], "5.00")
+                original = client.get(url).data["results"][0]
+                self.assertEqual(original["student_name"], text)
+                self.assertEqual(original["usn"], text)
+
+    def test_question_csv_neutralizes_formula_text_without_changing_counts_or_json(self):
+        self.make_attempt(self.students[0])
+        client = self.admin_client()
+        url = f"/api/v1/reports/questions?exam_id={self.exam.id}"
+        for text in ("=1+1", "+1+1", "-1+1", "@SUM(1)", "\t=1+1", "  +1+1"):
+            with self.subTest(text=text):
+                question = self.questions[0]
+                question.subject = text
+                question.topic = text
+                question.save(update_fields=["subject", "topic"])
+                response = client.get(url + "&export=csv")
+                self.assertEqual(response.status_code, 200)
+                row = next(csv.DictReader(StringIO(response.content.decode())))
+                self.assertEqual(row["subject"], "'" + text)
+                self.assertEqual(row["topic"], "'" + text)
+                self.assertEqual(row["submitted_attempts"], "1")
+                self.assertEqual(row["unanswered"], "1")
+                original = client.get(url).data["results"][0]
+                self.assertEqual(original["subject"], text)
+                self.assertEqual(original["topic"], text)
+
     def test_student_result_requires_evaluation_and_release(self):
         pending = self.make_attempt(self.students[0], evaluated=False)
         client = APIClient()
