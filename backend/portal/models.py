@@ -147,7 +147,9 @@ class ExamAttempt(models.Model):
     evaluated_at = models.DateTimeField(null=True, blank=True)
     disqualification_reason = models.CharField(max_length=500, blank=True, default="")
     overridden_at = models.DateTimeField(null=True, blank=True)
-    overridden_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.PROTECT, related_name="attempt_overrides")
+    overridden_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.PROTECT, related_name="attempt_overrides"
+    )
 
     class Meta:
         db_table = "exam_attempts"
