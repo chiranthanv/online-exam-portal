@@ -174,12 +174,21 @@ test("committed offline answers recover after renderer crash and browser restart
     await resumed
       .getByRole("button", { name: "Submit exam", exact: true })
       .click();
-    await resumed
-      .getByRole("button", { name: "Confirm submission", exact: true })
-      .click();
+    const [submitted] = await Promise.all([
+      resumed.waitForResponse(
+        (response) =>
+          response.url().endsWith(`/attempts/${attempt.attempt_id}/submit`) &&
+          response.request().method() === "POST",
+      ),
+      resumed
+        .getByRole("button", { name: "Confirm submission", exact: true })
+        .click(),
+    ]);
+    expect(submitted.status()).toBe(200);
+    expect((await submitted.json()).status).toBe("SUBMITTED");
     await expect(
-      resumed.getByRole("status").filter({ hasText: "Attempt submitted" }),
-    ).toBeVisible();
+      resumed.getByRole("button", { name: "Submit exam", exact: true }),
+    ).not.toBeVisible();
   } finally {
     await context?.close().catch(() => {});
     if (profile.startsWith(path.join(tmpdir(), "oep-recovery-"))) {
