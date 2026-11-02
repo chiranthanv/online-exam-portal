@@ -1,0 +1,121 @@
+{
+  "startedAt": "2026-10-30T09:45:00.266Z",
+  "commit": "3ae652a59d72c834bb8ca0525465f3bb197d4f82",
+  "node": "v24.22.1",
+  "base": "http://127.0.0.1:5173",
+  "findings": [
+    {
+      "check": "Skip link first in keyboard order",
+      "passed": true
+    },
+    {
+      "check": "Skip link moves focus to main",
+      "passed": true
+    },
+    {
+      "check": "Every answer radio has a label and question group",
+      "passed": true
+    },
+    {
+      "check": "Lighthouse accessibility >=90 at 1440px",
+      "passed": true,
+      "score": 96,
+      "failures": [
+        {
+          "id": "color-contrast",
+          "title": "Background and foreground colors do not have a sufficient contrast ratio."
+        }
+      ]
+    },
+    {
+      "check": "No automated WCAG 2.0/2.1 AA failures at 1440px",
+      "passed": false
+    },
+    {
+      "check": "No horizontal page overflow at 1440px",
+      "passed": true,
+      "scrollWidth": 1440,
+      "viewport": 1440
+    },
+    {
+      "check": "Timer stays visible at page bottom 1440px",
+      "passed": false,
+      "top": -1022,
+      "bottom": -937.5,
+      "viewportHeight": 900
+    },
+    {
+      "check": "Lighthouse accessibility >=90 at 390px",
+      "passed": true,
+      "score": 91,
+      "failures": [
+        {
+          "id": "color-contrast",
+          "title": "Background and foreground colors do not have a sufficient contrast ratio."
+        },
+        {
+          "id": "target-size",
+          "title": "Touch targets do not have sufficient size or spacing."
+        }
+      ]
+    },
+    {
+      "check": "No automated WCAG 2.0/2.1 AA failures at 390px",
+      "passed": false
+    },
+    {
+      "check": "No horizontal page overflow at 390px",
+      "passed": true,
+      "scrollWidth": 390,
+      "viewport": 390
+    },
+    {
+      "check": "Timer stays visible at page bottom 390px",
+      "passed": false,
+      "top": -1087.59375,
+      "bottom": -1003.09375,
+      "viewportHeight": 844
+    },
+    {
+      "check": "Lighthouse accessibility >=90 at 320px",
+      "passed": true,
+      "score": 91,
+      "failures": [
+        {
+          "id": "color-contrast",
+          "title": "Background and foreground colors do not have a sufficient contrast ratio."
+        },
+        {
+          "id": "target-size",
+          "title": "Touch targets do not have sufficient size or spacing."
+        }
+      ]
+    },
+    {
+      "check": "No automated WCAG 2.0/2.1 AA failures at 320px",
+      "passed": false
+    },
+    {
+      "check": "No horizontal page overflow at 320px",
+      "passed": true,
+      "scrollWidth": 320,
+      "viewport": 320
+    },
+    {
+      "check": "Timer stays visible at page bottom 320px",
+      "passed": false,
+      "top": -1088.125,
+      "bottom": -1003.625,
+      "viewportHeight": 844
+    }
+  ],
+  "browser": "HeadlessChrome/153.0.8010.0",
+  "questions": 5,
+  "keyboardFocus": {
+    "tag": "INPUT",
+    "text": "",
+    "outline": "rgb(192, 146, 55) solid 3px",
+    "outlineOffset": "3px"
+  },
+  "completedAt": "2026-10-30T09:45:08.014Z"
+}

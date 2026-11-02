@@ -131,6 +131,40 @@ class AssessmentAcceptanceTests(TestCase):
             (3, 1, 1, 1),
         )
 
+    def test_csv_exports_neutralize_formula_prefixes_only_in_text_columns(self):
+        student = self.students[0]
+        student.name = '=HYPERLINK("https://example.test","open")'
+        student.usn = "+SUM(1,1)"
+        student.save(update_fields=["name", "usn"])
+        self.make_attempt(student)
+
+        question = self.questions[0]
+        question.difficulty = "-cmd"
+        question.subject = "@SUM(1,1)"
+        question.topic = " =1+1"
+        question.save(update_fields=["difficulty", "subject", "topic"])
+
+        client = self.admin_client()
+        class_csv = client.get(f"/api/v1/reports/class?exam_id={self.exam.id}&export=csv")
+        self.assertEqual(class_csv.status_code, 200)
+        class_row = next(
+            row
+            for row in csv.DictReader(StringIO(class_csv.content.decode()))
+            if row["student_id"] == str(student.id)
+        )
+        self.assertEqual(class_row["student_name"], '\'=HYPERLINK("https://example.test","open")')
+        self.assertEqual(class_row["usn"], "'+SUM(1,1)")
+        self.assertEqual(class_row["score"], "1.00")
+
+        question_csv = client.get(f"/api/v1/reports/questions?exam_id={self.exam.id}&export=csv")
+        self.assertEqual(question_csv.status_code, 200)
+        question_row = next(iter(csv.DictReader(StringIO(question_csv.content.decode()))))
+        self.assertEqual(question_row["difficulty"], "'-cmd")
+        self.assertEqual(question_row["subject"], "'@SUM(1,1)")
+        self.assertEqual(question_row["topic"], "' =1+1")
+        self.assertEqual(question_row["submitted_attempts"], "1")
+        self.assertEqual(question_row["correct"], "0")
+
     def test_reports_are_admin_only_and_hidden_until_release(self):
         client = APIClient()
         client.force_authenticate(self.students[0])

@@ -3,7 +3,7 @@
 Owner: Chiranthan V. This is a closeout candidate, not a frozen release.
 Lead closeout [PR #42](https://github.com/chiranthanv/online-exam-portal/pull/42) is merged
 into `main` at `9ca18cdd021152d9b0822caf195712ae253aa437`. Harkirat's current-schema
-feature integration is in [PR #43](https://github.com/chiranthanv/online-exam-portal/pull/43)
+feature integration was merged via [PR #43](https://github.com/chiranthanv/online-exam-portal/pull/43); review follow-up is in [PR #48](https://github.com/chiranthanv/online-exam-portal/pull/48)
 on branch `sprint2/harkirat-attempt-evaluation-integration`; it remains under review.
 The supplied course screenshot confirms Sprint 2 as **26–30 October 2026** and
 requires implemented sprint items, a two-minute working-product video, complete
@@ -14,7 +14,7 @@ documentation and development freeze. Actual work dates remain unchanged.
 The merged lead closeout includes performance recovery head `2006e63da9d566bfb2d283e0aefe3103f314ee44`
 and availability head `c9efbcc5564263ae2a340130e2e89064eea1821f`, while preserving the
 current attempt/session/autosave/timer lifecycle and both PostgreSQL lock/race regressions.
-Harkirat's PR #43 is based directly on the post-PR-42 `main` and adds the current-schema
+Harkirat's PR #43 was merged into `main` on 2 November 2026. The current-schema
 assessment/report/proctoring/notification integration.
 
 GitHub PR and CI metadata were read during this closeout. PR #37 and #40 have
@@ -28,15 +28,15 @@ no submitted reviews; passing automated checks do not supply human approval.
 | SCRUM-22 / BL-11 | Dwijesh | PR #35 merged; one attempt/session, owner guards and durable state | Independent acceptance of final integrated flow |
 | SCRUM-23 / BL-12 | Dwijesh | Main autosave, refresh restoration and bounded retry; browser checks pass | Finish reconnect/crash/error-state acceptance and include integrated result flow |
 | SCRUM-24 / BL-13 | Dwijesh | Server deadline, expiry worker and monotonic timer fixes merged | Keep countdown visible while scrolling; check closed-browser expiry in final environment |
-| SCRUM-25 / BL-14 | Harkirat | PR #43 evaluates persisted answers on manual/request expiry/worker paths exactly once; release-gated result UI/API; CI pass | Independent review; controlled end-to-end acceptance on final release |
+| SCRUM-25 / BL-14 | Harkirat | PR #43 merged; persisted-answer evaluation, manual/request expiry/worker paths exactly once, release-gated result UI/API; main backend CI passed | Final end-to-end acceptance on release |
 | SCRUM-26 / BL-15 | Chiranthan | PR #36 merged; terminal answers immutable, PostgreSQL race checks pass | Genuine independent review; preserve guarantees during teammate integration |
-| SCRUM-27 / BL-16 | Harkirat | PR #43 adds class/question JSON/CSV/PDF reports and faculty UI; acceptance tests and CI pass | Independent review and final screen/export walkthrough |
-| SCRUM-28 / BL-17 | Harkirat | PR #43 adds session-bound focus events, terminal overrides and append-only actor/time/action audit; CI pass | Independent review and final proctoring/override walkthrough |
-| SCRUM-29 / BL-18 | Harkirat | PR #43 adds durable result/schedule outboxes, deduplication, bounded retries and Compose 60-second scheduler; CI pass | Real SMTP controlled-mailbox delivery remains environment-specific |
+| SCRUM-27 / BL-16 | Harkirat | PR #43 merged; class/question JSON/CSV/PDF reports and faculty UI; main CI pass; CSV formula-injection follow-up in PR #48 | PR #48 review and final screen/export walkthrough |
+| SCRUM-28 / BL-17 | Harkirat | PR #43 merged; session-bound focus events, terminal overrides and append-only actor/time/action audit; CI pass | Final proctoring/override walkthrough |
+| SCRUM-29 / BL-18 | Harkirat | PR #43 merged; durable result/schedule outboxes, deduplication, bounded retries and Compose 60-second scheduler; CI pass | Controlled-mailbox SMTP delivery remains environment-specific |
 | SCRUM-30 / BL-21 | Chiranthan | PR #37 performance recovery passes 200-student API and five-browser benchmark; assembled here | Human review and final integration; repeat measurement if workload/queries change |
 | SCRUM-31 / BL-22 | Chiranthan | PR #40 monitor and nine regressions pass; assembled here | **Blocked:** actual HTTPS/PostgreSQL deployment and published window; no representative availability acceptance |
 | SCRUM-32 / BL-23 | Dwijesh | PR #41 measures Lighthouse 96/91/91 but timer visibility and contrast fail | Fix timer/contrast, check keyboard/focus/mobile and attach focused rerun |
-| SCRUM-33 / BL-24 | Harkirat | PR #43 integrated backend CI: 95.83% line / 84.07% branch portal coverage; assessment 95.00%, assessment_views 89.54%, services 97.87% | Independent review; attach final verification summary after PR review |
+| SCRUM-33 / BL-24 | Harkirat | Main backend CI run 41459714593: 92 tests, 94% portal line coverage; exam/evaluation engine 96% | PR #48 review; manual screen-reader/zoom/forced-colors acceptance remains separate |
 
 Do not convert this table into a completion percentage: implemented, integrated,
 measured and independently accepted are different states. Original estimates are
@@ -98,4 +98,4 @@ Latest verification on exact head `f08bbc3f1d7ef264b68a1bb4fa60450289d3f6fd`:
 - Latest backend coverage: portal 95.94% line (1041/1085) and 85.22% branch (196/230); `assessment.py` 95% line / 90% branch; `services.py` 97.87% / 95%; `assessment_views.py` 90.51% line; `views.py` 93.36% line. CI's >=70% exam/evaluation engine threshold passes. See [coverage artifact](https://github.com/chiranthanv/online-exam-portal/actions/runs/41450839677).
 - [200-student/PostgreSQL performance workflow](https://github.com/chiranthanv/online-exam-portal/actions/runs/41447099376) passed on earlier integration head `c7f7a8d`; latest backend CI independently reruns the PostgreSQL lock/race regressions. No performance regression is claimed beyond the recorded benchmark revision.
 
-PR #43 is ready for independent review; Dwijesh is the requested reviewer and has posted a handoff comment describing his separate accessibility/recovery PR. The PR is not merged. Real SMTP controlled-mailbox delivery remains external; local file-email output is not SMTP proof. Final release, two-minute lead video and freeze remain Chiranthan's responsibilities.
+PR #43 merged at `5be3e5408c89337f330eaabc4e526803a36962f1`. Follow-up PR #48 restores the historical 30 October accessibility baseline assets and closes the CSV formula-injection review finding; Dwijesh is requested as reviewer. Latest main backend/frontend checks pass; PR #48 checks and review are pending. Real SMTP controlled-mailbox delivery remains external; local file-email output is not SMTP proof. Final release, two-minute lead video and freeze remain Chiranthan's responsibilities.
