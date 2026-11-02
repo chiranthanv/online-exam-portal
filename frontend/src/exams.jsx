@@ -1136,6 +1136,7 @@ function ExamAttemptRunner({ exam, onBack }) {
                 <button
                   className="quiet"
                   type="button"
+                  disabled={!isOpen || !!savingAnswers[question.id]}
                   onClick={() => saveAnswer(question.id, null)}
                 >
                   Clear answer
