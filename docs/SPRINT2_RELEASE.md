@@ -1,8 +1,10 @@
 # Sprint 2 lead release procedure
 
 This procedure is ready to execute once the remaining owners deliver. It does not
-declare a freeze. The present candidate includes Chiranthan's response integrity,
-performance and availability tools; the full feature integration is still pending.
+declare a freeze. The candidate includes Chiranthan's response integrity,
+performance and availability tools plus Harkirat's current-schema feature
+integration in PR #43. Independent review, Dwijesh's accessibility/recovery
+handoff, real SMTP verification and lead-owned release gates remain open.
 See [current status](testing/SPRINT2_STATUS.md) and [teammate tasks](planning/SPRINT2_TEAM_TASKS.md).
 
 ## Integration prerequisites
