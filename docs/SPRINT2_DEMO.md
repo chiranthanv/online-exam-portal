@@ -4,11 +4,6 @@ This is the prepared final run sheet, not a recording. The course screenshot req
 **two minutes** of the working Sprint 2 product. The historical one-minute Sprint 1
 video and its `npm run record:demo` command do not satisfy that requirement.
 
-Status on 2 November: closeout and recording remain paused at Chiranthan's request.
-PR #42 is merged; assessment/UI integration is proposed in draft PR #43, with
-remaining Dwijesh accessibility fixes still open. The run sheet becomes executable
-only after those reviewed features actually exist in the integrated application.
-
 Record the integrated product only after Harkirat's APIs and Dwijesh's UI/fixes are
 combined and the short working-flow check in [release procedure](SPRINT2_RELEASE.md)
 passes. Do not fill missing features with slides, mocked results or edited success states.

@@ -1,9 +1,5 @@
 # Actual Sprint 1 product demonstration
 
-Historical Sprint 1 evidence. The current [Sprint 2 two-minute run sheet](SPRINT2_DEMO.md)
-is separate; its recording/final closeout is paused and no final Sprint 2 MP4 is
-claimed. The one-minute media and source references below remain unchanged.
-
 [Play/download the 60-second MP4](evidence/sprint1-product-demo.mp4).
 
 Recorded on 27 October 2026 by Playwright against the real React + Django + PostgreSQL application using synthetic demo accounts. No API mocks or slides are used. The silent recording is 60.04 seconds, H.264/yuv420p MP4, 1280 × 900. Browser dates in this CI recording use UTC.

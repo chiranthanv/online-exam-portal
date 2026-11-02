@@ -4,7 +4,8 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
-from portal.models import AuditLog, ExamAttempt
+from portal.assessment import evaluate_attempt
+from portal.models import AuditLog, ExamAttempt, NotificationOutbox
 
 
 class Command(BaseCommand):
@@ -19,8 +20,8 @@ class Command(BaseCommand):
         while True:
             with transaction.atomic():
                 expired = list(
-                    ExamAttempt.objects.select_for_update()
-                    .select_related("student")
+                    ExamAttempt.objects.select_for_update(of=("self",))
+                    .select_related("student", "exam")
                     .filter(status=ExamAttempt.IN_PROGRESS, deadline_at__lte=timezone.now())
                     .order_by("deadline_at")
                 )
@@ -31,11 +32,17 @@ class Command(BaseCommand):
                         continue
                     attempt.status = ExamAttempt.AUTO_SUBMITTED
                     attempt.submitted_at = now
-                    attempt.save(update_fields=["status", "submitted_at"])
+                    evaluate_attempt(attempt, now=now)
+                    NotificationOutbox.objects.get_or_create(
+                        dedupe_key="result:" + str(attempt.id),
+                        defaults={
+                            "attempt": attempt,
+                            "recipient": attempt.student.email,
+                            "due_at": attempt.exam.result_visible_from,
+                        },
+                    )
                     AuditLog.objects.create(
-                        actor=attempt.student,
-                        action="EXAM_ATTEMPT_AUTO_SUBMITTED",
-                        target=str(attempt.id),
+                        actor=attempt.student, action="EXAM_ATTEMPT_AUTO_SUBMITTED", target=str(attempt.id)
                     )
             if expired:
                 self.stdout.write(self.style.SUCCESS(f"Auto-submitted {len(expired)} expired attempt(s)."))

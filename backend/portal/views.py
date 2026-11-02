@@ -11,6 +11,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .assessment import evaluate_attempt
 from .models import (
     AttemptAnswer,
     AuditLog,
@@ -19,11 +20,13 @@ from .models import (
     ExamAttempt,
     ExamBatch,
     ExamQuestion,
+    NotificationOutbox,
     Option,
     Question,
     StudentBatch,
     User,
 )
+from .notifications import queue_scheduled_exam_notifications
 from .permissions import IsAdmin, IsStudent
 from .roster import import_roster
 from .serializers import (
@@ -41,6 +44,16 @@ from .services import require_not_started, select_questions
 class Conflict(APIException):
     status_code = 409
     default_detail = "This resource is in use."
+
+
+def _lock_exam_for_attempt_start(exam_id):
+    """Take a PostgreSQL shared row lock so starts coexist but schedule edits wait."""
+    if connection.vendor == "postgresql":
+        table = connection.ops.quote_name(Exam._meta.db_table)
+        primary_key = connection.ops.quote_name(Exam._meta.pk.column)
+        with connection.cursor() as cursor:
+            cursor.execute(f"SELECT {primary_key} FROM {table} WHERE {primary_key} = %s FOR SHARE", [exam_id])
+    return get_object_or_404(Exam, pk=exam_id)
 
 
 class HealthView(APIView):
@@ -104,9 +117,17 @@ class BatchStudents(APIView):
         if len(students) != len(ids):
             raise ValidationError("Every ID must identify an active student.")
         mapped = 0
+        newly_added = []
         for student in students:
             _, created = StudentBatch.objects.get_or_create(batch=batch, student=student)
             mapped += int(created)
+            if created:
+                newly_added.append(student)
+        now = timezone.now()
+        for assignment in ExamBatch.objects.filter(
+            batch=batch, exam__start_time__gt=now, exam__end_time__gt=now
+        ).select_related("exam"):
+            queue_scheduled_exam_notifications(assignment.exam, newly_added)
         AuditLog.objects.create(actor=request.user, action="BATCH_STUDENTS_ADDED", target=str(pk))
         return Response({"batch_id": str(pk), "mapped": mapped})
 
@@ -187,6 +208,8 @@ class ExamDetail(generics.RetrieveUpdateAPIView):
         if payload.validated_data.get("start_time", exam.start_time) <= timezone.now():
             raise ValidationError("Start time must remain in the future.")
         payload.save()
+        for batch in exam.batches.all():
+            queue_scheduled_exam_notifications(exam, batch.students.filter(role="STUDENT", is_active=True))
         AuditLog.objects.create(actor=request.user, action="EXAM_UPDATED", target=str(exam.id))
         return Response(payload.data)
 
@@ -238,6 +261,8 @@ class ExamBatches(APIView):
         # Replace the assignment set atomically, matching question selection semantics.
         ExamBatch.objects.filter(exam=exam).delete()
         ExamBatch.objects.bulk_create([ExamBatch(exam=exam, batch=b) for b in batches])
+        for batch in batches:
+            queue_scheduled_exam_notifications(exam, batch.students.filter(role="STUDENT", is_active=True))
         AuditLog.objects.create(actor=request.user, action="EXAM_BATCHES_SET", target=str(pk))
         return Response({"exam_id": str(pk), "batches_assigned": len(batches)})
 
@@ -271,7 +296,18 @@ def _expire_attempt_if_due(attempt, now=None):
     if attempt.status == ExamAttempt.IN_PROGRESS and now >= attempt.deadline_at:
         attempt.status = ExamAttempt.AUTO_SUBMITTED
         attempt.submitted_at = now
-        attempt.save(update_fields=["status", "submitted_at"])
+        # GET/resume and rejected post-deadline answer writes can be the first
+        # request to observe expiry. They must use the same evaluator/outbox
+        # path as explicit submit and the background expiry worker.
+        if evaluate_attempt(attempt, now=now):
+            NotificationOutbox.objects.get_or_create(
+                dedupe_key="result:" + str(attempt.id),
+                defaults={
+                    "attempt": attempt,
+                    "recipient": attempt.student.email,
+                    "due_at": attempt.exam.result_visible_from,
+                },
+            )
         AuditLog.objects.create(
             actor=attempt.student,
             action="EXAM_ATTEMPT_AUTO_SUBMITTED",
@@ -354,7 +390,12 @@ class StudentExamAttempt(APIView):
         if header_session != session_key:
             raise Conflict("The exam session header does not match the requested session.")
 
-        exam = get_object_or_404(Exam.objects.select_for_update(), pk=pk)
+        # Shared locks let all students start the same exam concurrently while
+        # still preventing an administrator from changing its schedule mid-start.
+        exam = _lock_exam_for_attempt_start(pk)
+        # Serialize only this student's starts; the unique constraint remains the
+        # final guard if another code path creates an attempt concurrently.
+        User.objects.select_for_update().only("id").get(pk=request.user.pk)
         attempt = ExamAttempt.objects.select_for_update().filter(exam=exam, student=request.user).first()
         now = timezone.now()
         if attempt:
@@ -470,12 +511,25 @@ class ExamAttemptSubmit(APIView):
         _require_attempt_session(request, attempt)
         now = timezone.now()
         _expire_attempt_if_due(attempt, now)
-        if attempt.status == ExamAttempt.IN_PROGRESS:
+        newly_submitted = attempt.status == ExamAttempt.IN_PROGRESS
+        if newly_submitted:
             attempt.status = ExamAttempt.SUBMITTED
             attempt.submitted_at = now
-            attempt.save(update_fields=["status", "submitted_at"])
             AuditLog.objects.create(
                 actor=request.user, action="EXAM_ATTEMPT_SUBMITTED", target=str(attempt.id)
+            )
+        # Both manual submission and request-triggered expiry use the same
+        # idempotent evaluation path. The background expiry worker mirrors it.
+        if evaluate_attempt(attempt, now=now):
+            from .models import NotificationOutbox
+
+            NotificationOutbox.objects.get_or_create(
+                dedupe_key="result:" + str(attempt.id),
+                defaults={
+                    "attempt": attempt,
+                    "recipient": request.user.email,
+                    "due_at": attempt.exam.result_visible_from,
+                },
             )
         return Response(_attempt_payload(attempt))
 

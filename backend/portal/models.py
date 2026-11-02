@@ -143,6 +143,14 @@ class ExamAttempt(models.Model):
     submitted_at = models.DateTimeField(null=True, blank=True)
     last_saved_at = models.DateTimeField(null=True, blank=True)
     session_key = models.UUIDField(default=uuid.uuid4)
+    score = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    evaluated_at = models.DateTimeField(null=True, blank=True)
+    disqualification_reason = models.CharField(max_length=500, blank=True, default="")
+    overridden_at = models.DateTimeField(null=True, blank=True)
+    overridden_by = models.ForeignKey(
+        User, null=True, blank=True, on_delete=models.PROTECT, related_name="attempt_overrides"
+    )
+    status_before_disqualification = models.CharField(max_length=20, blank=True, default="")
 
     class Meta:
         db_table = "exam_attempts"
@@ -203,3 +211,71 @@ class PasswordResetGrant(models.Model):
 
     class Meta:
         db_table = "password_reset_grants"
+
+
+class ProctoringEvent(models.Model):
+    TAB_SWITCH = "TAB_SWITCH"
+    WINDOW_BLUR = "WINDOW_BLUR"
+    EVENT_CHOICES = [(TAB_SWITCH, "Tab switch"), (WINDOW_BLUR, "Window blur")]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    attempt = models.ForeignKey(ExamAttempt, on_delete=models.CASCADE, related_name="proctoring_events")
+    event_type = models.CharField(max_length=20, choices=EVENT_CHOICES)
+    occurred_at = models.DateTimeField(default=timezone.now)
+    received_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "proctoring_events"
+        ordering = ["occurred_at", "id"]
+
+
+class NotificationOutbox(models.Model):
+    PENDING = "PENDING"
+    SENT = "SENT"
+    FAILED = "FAILED"
+    STATUS_CHOICES = [(PENDING, "Pending"), (SENT, "Sent"), (FAILED, "Failed")]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    attempt = models.ForeignKey(ExamAttempt, on_delete=models.CASCADE, related_name="notifications")
+    recipient = models.EmailField(max_length=150)
+    kind = models.CharField(max_length=40, default="RESULT_AVAILABLE")
+    dedupe_key = models.CharField(max_length=200, unique=True)
+    due_at = models.DateTimeField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PENDING)
+    attempts = models.PositiveIntegerField(default=0)
+    last_error = models.CharField(max_length=500, blank=True, default="")
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "notification_outbox"
+        ordering = ["due_at", "id"]
+
+
+class ScheduledExamNotification(models.Model):
+    PENDING = "PENDING"
+    SENT = "SENT"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+    STATUS_CHOICES = [
+        (PENDING, "Pending"),
+        (SENT, "Sent"),
+        (FAILED, "Failed"),
+        (CANCELLED, "Cancelled"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name="scheduled_notifications")
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="scheduled_exam_notifications")
+    recipient = models.EmailField(max_length=150)
+    dedupe_key = models.CharField(max_length=200, unique=True)
+    due_at = models.DateTimeField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=PENDING)
+    attempts = models.PositiveIntegerField(default=0)
+    last_error = models.CharField(max_length=500, blank=True, default="")
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "scheduled_exam_notifications"
+        ordering = ["due_at", "id"]

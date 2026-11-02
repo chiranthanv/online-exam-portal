@@ -1,4 +1,4 @@
-> Historical backend checkpoint. The [Sprint 1 integration report](SPRINT1_INTEGRATION_REPORT.md) supersedes the pending frontend/demo status below. For present implementation and release boundaries use [Sprint 2 status](SPRINT2_STATUS.md); historical deferred-scope statements are not current-main status.
+> Historical backend checkpoint. The [current integration report](SPRINT1_INTEGRATION_REPORT.md) supersedes the pending frontend/demo status below.
 
 # Chiranthan's Sprint 1 backend verification
 

@@ -1,23 +1,9 @@
 # Actual performance measurements
 
-## Latest lead integration check — 2 November 2026
-
-PR #37 and lead #42 are merged; main baseline is
-`9ca18cdd021152d9b0822caf195712ae253aa437`. Lead head
-`bc7e574c9144e431036f729ad7c1a71c9cd00a3a` passed
-[benchmark](https://github.com/chiranthanv/online-exam-portal/actions/runs/41426460524),
-[backend](https://github.com/chiranthanv/online-exam-portal/actions/runs/41426460536)
-and [frontend/browser](https://github.com/chiranthanv/online-exam-portal/actions/runs/41426460665)
-CI. Only completed workflow outcomes are recorded here; no new latency numbers
-are reconstructed from the older evidence files. The earlier measured values and
-failed-run history below remain intact. Final acceptance, PR #43 integration and
-any resulting remeasurement are still pending; no deployment availability follows.
-
 ## Recovery run — 1 November 2026 IST
 
-**API and real-browser targets passed in the measured CI environment. At this
-recovery checkpoint review/merge were pending; those PRs have since merged.
-Final integrated-release acceptance remains pending.**
+**API and real-browser targets passed in the measured CI environment. Independent
+review, merge and final integrated-release verification remain pending.**
 
 - PR head: `ff666788a3fa795e2e19ce537f2bca1743d6b0e8`, incorporating main `3ae652a`.
 - Actual tested GitHub merge revision: `58d7e35d8f83b1ff297f70d388fc5863575ab0a8`.
@@ -172,7 +158,7 @@ Existing frontend unit/browser CI passed; its coverage did not detect the timing
 race that the new benchmark found. Its demo-recording step was skipped:
 https://github.com/chiranthanv/online-exam-portal/actions/runs/40811772671
 
-At the historical 29 October checkpoint the branch remained open for human review. No merge, invented review,
+The branch remains open for genuine human review. No merge, invented review,
 availability measurement, Day 3 integration, teammate feature implementation or
 submission action is part of this result. Horizontal shared-state behavior is
 measured across local instances; separate hosts, load balancer, database HA and

@@ -2,14 +2,6 @@
 
 ## Scope and acceptance
 
-Current integration status (2 November 2026): PR #37 and lead PR #42 are merged.
-The lead head `bc7e574` passed the [200-student benchmark](https://github.com/chiranthanv/online-exam-portal/actions/runs/41426460524),
-[backend](https://github.com/chiranthanv/online-exam-portal/actions/runs/41426460536)
-and [frontend/browser](https://github.com/chiranthanv/online-exam-portal/actions/runs/41426460665)
-checks. The dated measurements below retain their original environments and counts;
-they do not certify unmerged PR #43 or a final frozen product. See the
-[current Sprint 2 status](../SPRINT2_STATUS.md) and [measurement history](RESULTS.md).
-
 SRS OEP-NF-001 requires 200 concurrent students, attempt page within 2 seconds,
 and API p95 at most 3 seconds. OEP-NF-002 requires horizontal application scaling
 and lookup index review. This benchmark measures those criteria separately and
@@ -123,7 +115,7 @@ remain unmeasured. File-based development email is unsuitable for replicated
 production instances; existing production settings require SMTP. Worker rollout,
 failover and exam-window availability belong to Day 3, not this benchmark.
 
-## Historical initial local verification and limitations
+## Local verification and limitations
 
 Local run: 58 backend tests discovered, 54 passed and 4 PostgreSQL-only tests
 skipped. Ruff lint/format and migration consistency checks passed. PostgreSQL CI then passed all 58 tests
@@ -131,6 +123,4 @@ with 96% backend coverage. Those local skips
 are not concurrency/performance evidence. The local container has no PostgreSQL
 or Docker executable; its identity/group permissions prevent package installation.
 The dedicated GitHub CI service is the execution path for genuine PostgreSQL
-measurements and lock tests at that checkpoint. Passing recovery and subsequent
-lead-head outcomes are now recorded in RESULTS.md; this initial environment account
-does not describe every later execution machine.
+measurements and lock tests. See RESULTS.md for the measured outcome when available.

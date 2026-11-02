@@ -25,18 +25,13 @@ The course screenshots specify backlog planning on 12 October, an optional pract
 
 ## Team
 
-| Member | GitHub account | Responsibility | Current Jira assignment |
+| Member | GitHub account | Responsibility | Assignment status at planning |
 |---|---|---|---|
 | Chiranthan V | @chiranthanv | Backend, architecture, integration and team coordination | Assigned |
-| Dwijesh Krishna Ghattamaraju | @Dwijesh60 | Frontend and exam engine | Assigned; verified Jira account `dwijesh.gh` |
+| Dwijesh Krishna Ghattamaraju | @Dwijesh60 | Frontend and exam engine | Named owner; GitHub rejected assignment with current repository eligibility |
 | Harkirat Singh | @h4ki06 | Evaluation, security and testing | Assigned |
 
-Both teammate usernames were supplied by Chiranthan. The initial 26 October
-assignment/access limitations are historical; by 2 November all 27 backlog stories
-have their recorded owners assigned in Jira. Both teammates have authored PRs from
-their own accounts; current work is linked in the [Sprint 2 status](../testing/SPRINT2_STATUS.md).
-Responsibility for a story does not rewrite authorship of earlier changes made
-through another member's account.
+Both teammate usernames were supplied by Chiranthan. Harkirat has repository write access. Dwijesh currently has read access; Chiranthan authorized a write-access invitation on 26 October; completion/acceptance still needs verification. Do not attribute commits or PRs made through Chiranthan's connection to another teammate.
 
 ## Estimation and workflow
 

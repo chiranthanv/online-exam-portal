@@ -1,4 +1,4 @@
-# Design clarifications and deviations
+# Design clarifications and deviations — Sprint 1
 
 Historical Sprint 1 decisions are retained below. Current Sprint 2 integration and
 measurement limits are recorded in [Sprint 2 status](testing/SPRINT2_STATUS.md).
@@ -28,20 +28,15 @@ No attempt engine, result scoring, reporting, autosave, proctoring, notification
 
 The runtime image now builds React with Node.js 24 and serves its static assets through WhiteNoise alongside Django on one origin. Gunicorn access logs omit query strings; reset-page HTML uses no-referrer/no-store and a restrictive CSP.
 
-## Current Sprint 2 implementation notes — 2 November 2026
 
-The submitted PDFs/diagrams remain the original baselines; the following makes
-implementation differences explicit rather than silently changing those submissions.
+## Sprint 2 scoring clarification
 
-| Area | Current main / pending change | Acceptance boundary |
-| --- | --- | --- |
-| Attempt persistence | Main has `ExamAttempt` with session key, status, deadline and saved-answer UUIDs, plus migrations through `0004`. | Retain existing state and terminal-answer locks. Old PR #33's alternative `Attempt` schema is not a compatible replacement. |
-| Lock scope | Merged PR #37 locks only the attempt during detail/save/submit, retaining the exam lock for safe creation. | Preserve both PostgreSQL regressions; remeasure if integrated queries/workload change. |
-| Assessment integration | Draft PR #43 proposes current-schema evaluation/results, reporting/exports, focus signals/overrides, notification outbox and migration `0005`. | Branch-specific until passing checks, review and merge; its proposed routes/worker do not exist in main. |
-| Scoring floor | PR #43 describes clamping negative totals to zero. The backlog states correct marks minus incorrect penalties and zero for unanswered questions. | Reconcile with the submitted specification and document the accepted policy; this documentation update does not approve the deviation. |
-| Browser launcher | Current Playwright configuration uses `../.venv/bin/python`; workflow names/one-minute recorder still refer to Sprint 1. | POSIX/CI reproduction applies. Windows environment activation alone does not make that launcher portable; a one-minute CI video is not the final two-minute Sprint 2 deliverable. |
-| Health measurement | Monitor is merged and its nine focused regressions pass. Sampling uses full slot weights and no maintenance exclusions. | No representative HTTPS/PostgreSQL window is supplied. Socket-operation timeouts are not hard total request/DNS deadlines; no 99.5% acceptance is asserted. |
-| Course delivery | Sprint 2 course dates are 26–30 October; real work/CI/Jira timestamps are retained. | Final closeout is paused. Video, final acceptance and frozen release remain pending, not backdated. |
+SRS v1.0 OEP-F-017 requires automatic server-side evaluation with negative marking, but does not specify a minimum-zero clamp. SCRUM-25's acceptance formula is explicit: correct answers add their marks, incorrect answers subtract the configured penalty, and unanswered questions add zero. The current-schema implementation follows that arithmetic sum and permits a negative total. The zero-floor behavior in legacy PR #33 is intentionally not retained because it is not stated in the SRS or the Sprint 2 acceptance formula. Regression coverage confirms that one incorrect answer with a 0.50 penalty yields -0.50. Revisit only if the product owner supplies an explicit specification amendment.
 
-See [current status and exact CI sources](testing/SPRINT2_STATUS.md),
-[current API](API.md) and the [documentation/baseline index](DOCUMENTATION.md).
+## Sprint 2 integration clarifications
+
+- **Negative marking:** SRS OEP-F-017 and BL-14 specify correct marks minus incorrect penalties, with unanswered questions scoring zero, but no minimum-zero floor. The current evaluator follows the arithmetic sum and allows a negative result. Legacy PR #33's zero clamp is not carried forward without a specification amendment.
+- **Proctoring evidence:** `TAB_SWITCH` and `WINDOW_BLUR` are separate session-bound, client-reported observations. They are review signals, not proof of misconduct; administrators make attributable decisions through reason-required overrides.
+- **Notification delivery:** schedule/result notifications are queued durably with unique dedupe keys and bounded retry. The Compose scheduler starts processing on a 60-second cadence. The default development file-email backend is not SMTP; real delivery requires operator-supplied SMTP settings and a controlled mailbox check. SMTP delivery is not claimed by CI.
+- **Re-permission:** if a result notice was suppressed while an attempt was disqualified, a subsequent admin re-permit requeues that undelivered notice. Already delivered messages are not resent.
+- **Migration compatibility:** migration `0005` adds nullable scoring/override state and notification/proctoring tables to the current `ExamAttempt` lifecycle, backfills scores for pre-existing terminal attempts from their saved answers, and queues a deduplicated result notice for eligible submitted attempts. Migrations `0006`–`0007` add scheduled notices and re-permit state. The migration regression verifies existing attempt/answer identifiers, statuses, deadlines, submission times and answer references survive, correct/negative scores are backfilled, disqualified attempts stay excluded and only eligible attempts receive an outbox row.
