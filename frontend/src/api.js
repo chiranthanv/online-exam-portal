@@ -154,6 +154,33 @@ export function createApi(fetcher = (...args) => fetch(...args)) {
         withCsrf: true,
       });
     },
+    async download(path, filename) {
+      if (!access) await refresh();
+      let response = await fetcher(ROOT + path, {
+        headers: { Authorization: `Bearer ${access}`, Accept: "*/*" },
+        credentials: "include",
+      });
+      if (response.status === 401) {
+        await refresh();
+        response = await fetcher(ROOT + path, {
+          headers: { Authorization: `Bearer ${access}`, Accept: "*/*" },
+          credentials: "include",
+        });
+      }
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ detail: "Download failed." }));
+        throw new ApiError(response.status, data);
+      }
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    },
     async all(path) {
       const items = [];
       for (let next = path; next; ) {
