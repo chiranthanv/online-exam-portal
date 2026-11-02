@@ -41,9 +41,6 @@ jobs:
           .venv/bin/python backend/manage.py seed_demo
       - run: npm ci
         working-directory: frontend
-      - name: Diagnose Prettier output (temporary)
-        run: npx prettier src/exams.jsx tests/sprint1.spec.js
-        working-directory: frontend
       - run: npm run lint && npm test && npm run build
         working-directory: frontend
       - run: npx playwright install --with-deps chromium
