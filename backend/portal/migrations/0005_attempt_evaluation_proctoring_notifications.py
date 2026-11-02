@@ -22,7 +22,7 @@ def backfill_existing_terminal_attempts(apps, schema_editor):
         .prefetch_related("answers__question")
         .order_by("submitted_at", "id")
     )
-    for attempt in attempts.iterator():
+    for attempt in attempts.iterator(chunk_size=200):
         score = Decimal("0.00")
         for answer in attempt.answers.all():
             if answer.selected_option_id is None:
