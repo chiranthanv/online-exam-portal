@@ -41,6 +41,9 @@ jobs:
           .venv/bin/python backend/manage.py seed_demo
       - run: npm ci
         working-directory: frontend
+      - name: Diagnose exam runner formatting (temporary)
+        run: npx prettier --write src/exams.jsx && git diff -- src/exams.jsx
+        working-directory: frontend
       - run: npm run lint && npm test && npm run build
         working-directory: frontend
       - run: npx playwright install --with-deps chromium
