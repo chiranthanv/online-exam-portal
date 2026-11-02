@@ -604,7 +604,14 @@ function ExamAttemptRunner({ exam, onBack }) {
           JSON.stringify({ attempt_id: data.attempt_id }),
         );
 
-        const recovery = await loadPendingAnswers(exam.exam_id);
+        let recovery = { answers: {}, age_ms: null, clock_skew: false };
+        try {
+          recovery = await loadPendingAnswers(exam.exam_id);
+        } catch {
+          setSaveError(
+            "This browser's local recovery storage is unavailable. Server-confirmed answers remain safe; keep this page open while working.",
+          );
+        }
         let legacyPending = {};
         try {
           const parsed = JSON.parse(
@@ -618,8 +625,14 @@ function ExamAttemptRunner({ exam, onBack }) {
         }
         const pending = { ...recovery.answers, ...legacyPending };
         if (Object.keys(legacyPending).length) {
-          await savePendingAnswers(exam.exam_id, pending);
-          sessionStorage.removeItem(pendingStorageKey);
+          try {
+            await savePendingAnswers(exam.exam_id, pending);
+            sessionStorage.removeItem(pendingStorageKey);
+          } catch {
+            setSaveError(
+              "Older unsynced answers could not be migrated to durable recovery storage. Keep this tab open and retry.",
+            );
+          }
         }
 
         const validPending = Object.fromEntries(
@@ -635,13 +648,21 @@ function ExamAttemptRunner({ exam, onBack }) {
           }),
         );
         if (active) {
-          await storePendingAnswers(
-            data.status === "IN_PROGRESS" ? validPending : {},
-          );
+          try {
+            await storePendingAnswers(
+              data.status === "IN_PROGRESS" ? validPending : {},
+            );
+          } catch {
+            setSaveError(
+              "This browser could not update local recovery storage. Server-confirmed answers remain safe; keep this page open while retrying.",
+            );
+          }
           if (Object.keys(validPending).length && data.status === "IN_PROGRESS") {
-            const age = recovery.clock_skew
-              ? "age unavailable because the device clock differs from the stored save time"
-              : formatRecoveryAge(recovery.age_ms);
+            const age = legacyPending && Object.keys(legacyPending).length
+              ? "recovered from this tab's previous session"
+              : recovery.clock_skew
+                ? "age unavailable because the device clock differs from the stored save time"
+                : formatRecoveryAge(recovery.age_ms);
             setRecoveredMessage(
               `Recovered ${Object.keys(validPending).length} unsynced answer(s) from this device (${age}). The server deadline remains authoritative.`,
             );
@@ -1062,6 +1083,11 @@ function ExamAttemptRunner({ exam, onBack }) {
       {saveError && (
         <p className="notice error" role="alert">
           {saveError}
+        </p>
+      )}
+      {recoveredMessage && (
+        <p className="hint" role="status" aria-live="polite">
+          {recoveredMessage}
         </p>
       )}
       <div className="attempt-save-status">
