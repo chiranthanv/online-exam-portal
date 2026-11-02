@@ -567,7 +567,7 @@ test("unsynced answers survive a browser context restart without JavaScript-stor
   await expect(status).toContainText("waiting to sync", { timeout: 10000 });
   expect(failedSaveRequests).toBe(3);
 
-  const cookie = (await context.cookies(baseURL)).find((item) =>
+  const cookie = (await context.cookies()).find((item) =>
     item.name.startsWith("oep_attempt_session_"),
   );
   expect(cookie).toBeTruthy();
@@ -582,27 +582,6 @@ test("unsynced answers survive a browser context restart without JavaScript-stor
   expect(JSON.stringify(browserStorage)).not.toContain("X-Exam-Session");
   expect(JSON.stringify(browserStorage)).not.toContain("access_token");
 
-  const persisted = await page.evaluate(async (examId) => {
-    const db = await new Promise((resolve, reject) => {
-      const request = indexedDB.open("oep-attempt-recovery", 1);
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
-    try {
-      return await new Promise((resolve, reject) => {
-        const request = db
-          .transaction("pending-answers", "readonly")
-          .objectStore("pending-answers")
-          .get(examId);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-    } finally {
-      db.close();
-    }
-  }, await page.locator(".attempt-sticky-bar").getAttribute("data-exam-id").catch(() => null));
-
-  // The exam ID is the key in IndexedDB. Read it from the single seeded active attempt.
   const state = await context.storageState({ indexedDB: true });
   await context.close();
 
