@@ -22,7 +22,7 @@ Snapshot: 2 November 2026. Current main revision: 3f7d0c38c1211b7b234bf947889d6f
 | 200-student API + browser benchmark | PR #48 tree identical to current main; PostgreSQL 16, two loopback app instances, 200 synthetic identities, 50 MCQs, six save/resume cycles, five Chromium contexts | 200/200 completed; zero request errors. Start p95 1.688s; save 0.376s; resume 0.416s; submit 0.698s; closed-write rejection 0.586s. Five actual SPA exam openings rendered all 50 questions in 0.148–0.266s, with no page errors or unexpected submissions. Authentication issuance is excluded (pre-issued real JWTs); this is not 200 simultaneous full browsers or production-network capacity evidence. |
 | Historical accessibility baseline | 30 October 2026 local authenticated SQLite fixture; retained unchanged under docs/testing/accessibility/2026-10-30-verified/ by #48 | Lighthouse 96 desktop / 91 at 390px / 91 at 320px, but the baseline failed contrast and sticky-timer visibility. It is historical evidence for the pre-fix revision, not the current UI. |
 
-PR #49 adds the wall-clock regression and traceability update. Local execution is not claimed; current GitHub Actions is the verification gate. This environment could not create a local Git worktree because the container could not resolve github.com; the change is isolated on a new remote branch from current main.
+PR #50 adds the wall-clock regression and traceability update. Local execution is not claimed; current GitHub Actions is the verification gate. This environment could not create a local Git worktree because the container could not resolve github.com; the change is isolated on a new remote branch from current main.
 
 ## Acceptance still open
 
