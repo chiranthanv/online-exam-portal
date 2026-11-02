@@ -27,3 +27,8 @@ This record accompanies the original SRS, SAD and Test Plan; it does not silentl
 No attempt engine, result scoring, reporting, autosave, proctoring, notifications, performance or uptime claims are made by this Sprint 1 backend. The React application and automated system tests have been implemented in PR #30 through Chiranthan’s account at his request. Genuine teammate review/contribution evidence is still a human team dependency. The actual product recording and execution results are recorded in the integration report.
 
 The runtime image now builds React with Node.js 24 and serves its static assets through WhiteNoise alongside Django on one origin. Gunicorn access logs omit query strings; reset-page HTML uses no-referrer/no-store and a restrictive CSP.
+
+
+## Sprint 2 scoring clarification
+
+SRS v1.0 OEP-F-017 requires automatic server-side evaluation with negative marking, but does not specify a minimum-zero clamp. SCRUM-25's acceptance formula is explicit: correct answers add their marks, incorrect answers subtract the configured penalty, and unanswered questions add zero. The current-schema implementation follows that arithmetic sum and permits a negative total. The zero-floor behavior in legacy PR #33 is intentionally not retained because it is not stated in the SRS or the Sprint 2 acceptance formula. Regression coverage confirms that one incorrect answer with a 0.50 penalty yields -0.50. Revisit only if the product owner supplies an explicit specification amendment.
