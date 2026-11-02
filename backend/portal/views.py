@@ -1,6 +1,6 @@
 import uuid
-from decimal import Decimal
 from datetime import timedelta
+from decimal import Decimal
 
 from django.db import connection, transaction
 from django.shortcuts import get_object_or_404
