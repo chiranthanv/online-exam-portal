@@ -1,5 +1,13 @@
 # Dwijesh — Sprint 2 acceptance evidence
 
+**3 November closeout update:** this file's older source/evidence snapshot is retained
+below. The [current checkpoint](CLOSEOUT_2026-11-03.md) supersedes statements that
+durable recovery is absent or the final video is missing. PR #56's actual crash/restart,
+attempt-scoped IndexedDB and age checks passed; SCRUM-22/23 remain In Review.
+SCRUM-24 is Done after scoped lead review and a separate-process expiry check.
+SCRUM-32 has passed the keyboard/forced-colors-emulation flow but still needs the
+remaining manual acceptance described in the current checkpoint.
+
 Owner: Dwijesh Krishna Ghattamaraju (@Dwijesh60). Jira: SCRUM-22, SCRUM-23, SCRUM-24 and SCRUM-32.
 
 Snapshot: 2 November 2026. Current main revision: `8f9aaf131e4b4d719bfd445ff1d5f2a2bfbba6ee` (2 November 2026). Backend and integrated frontend checks pass on this revision. This file distinguishes merged implementation, automated verification, and acceptance that still requires separate evidence. It does not close the stories or represent a release approval.

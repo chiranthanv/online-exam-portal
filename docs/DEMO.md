@@ -3,6 +3,8 @@
 ## Sprint 2
 
 [Play/download the final 3:27 Sprint 2 video](evidence/sprint2-product-demo.mp4).
+For the stated two-minute submission limit, use the preserved
+[exactly 2:00 overview](evidence/sprint2-product-demo-2min.mp4).
 It includes the integrated product, GitHub and actual Jira website footage.
 See the [recording and closeout evidence](testing/CLOSEOUT_2026-11-03.md) for source,
 environment, media hash and remaining acceptance gates.
