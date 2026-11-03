@@ -1,5 +1,12 @@
 # Two-minute Sprint 2 working-product demonstration
 
+**Recorded version:** [Sprint 2 final overview](evidence/sprint2-product-demo.mp4)
+is 3:27, including the original two-minute overview and the user-requested actual
+Jira/GitHub website footage. The [capture/verification record](testing/CLOSEOUT_2026-11-03.md)
+states its source, environment, edits and limits. This older two-minute run sheet
+remains planning history; its complete sequence is not claimed to be executed in
+the overview, and the longer cut requires evaluator acceptance if timing is strict.
+
 This is the prepared final run sheet, not a recording. The course screenshot requires
 **two minutes** of the working Sprint 2 product. The historical one-minute Sprint 1
 video and its `npm run record:demo` command do not satisfy that requirement.

@@ -1,4 +1,13 @@
-# Actual Sprint 1 product demonstration
+# Product demonstrations
+
+## Sprint 2
+
+[Play/download the final 3:27 Sprint 2 video](evidence/sprint2-product-demo.mp4).
+It includes the integrated product, GitHub and actual Jira website footage.
+See the [recording and closeout evidence](testing/CLOSEOUT_2026-11-03.md) for source,
+environment, media hash and remaining acceptance gates.
+
+## Preserved Sprint 1 demonstration
 
 [Play/download the 60-second MP4](evidence/sprint1-product-demo.mp4).
 
