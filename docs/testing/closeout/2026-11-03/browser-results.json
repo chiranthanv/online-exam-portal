@@ -1,0 +1,41 @@
+{
+  "completedAt": "2026-11-03T08:12:13.767Z",
+  "source": "e29c111",
+  "checks": [
+    {
+      "name": "Keyboard-only sign-in",
+      "passed": true,
+      "details": "Tab and typing/Enter; no pointer input"
+    },
+    {
+      "name": "Keyboard answer selection and server save",
+      "passed": true,
+      "details": {
+        "outline": "solid",
+        "width": "3px",
+        "forced": true
+      }
+    },
+    {
+      "name": "Keyboard cancellation of submit confirmation",
+      "passed": true,
+      "details": "Returned to working attempt"
+    },
+    {
+      "name": "Keyboard submission and released-result privacy",
+      "passed": true,
+      "details": "Completed attempt visible; score remains withheld before release"
+    },
+    {
+      "name": "Forced-colors browser emulation",
+      "passed": true,
+      "details": "Full keyboard flow completed under forced-colors: active; visual human review remains separate"
+    }
+  ],
+  "notClaimed": [
+    "screen-reader listening",
+    "actual browser zoom",
+    "human visual forced-colors inspection",
+    "production acceptance"
+  ]
+}

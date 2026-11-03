@@ -5,7 +5,8 @@ is 3:27, including the original two-minute overview and the user-requested actua
 Jira/GitHub website footage. The [capture/verification record](testing/CLOSEOUT_2026-11-03.md)
 states its source, environment, edits and limits. This older two-minute run sheet
 remains planning history; its complete sequence is not claimed to be executed in
-the overview, and the longer cut requires evaluator acceptance if timing is strict.
+the overview. Use the published [exactly two-minute cut](evidence/sprint2-product-demo-2min.mp4)
+if the evaluator enforces the original timing requirement.
 
 This is the prepared final run sheet, not a recording. The course screenshot requires
 **two minutes** of the working Sprint 2 product. The historical one-minute Sprint 1

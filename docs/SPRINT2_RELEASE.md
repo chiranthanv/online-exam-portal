@@ -57,20 +57,25 @@ PowerShell; the exact interpreter has been configured. These commands do not alt
 the separately active audit checkout or remote branches.
 
 ```powershell
-Set-Location 'C:/Users/91984/Downloads/online-exam-portal/.sprint2-lead-closeout'
+Set-Location 'C:/Users/91984/Downloads/online-exam-portal/.sprint2-lead-recovery'
 $leadPython = 'C:/Users/91984/Downloads/online-exam-portal/.submission-demo/runtime/python311/python.exe'
+$leadBackend = (Join-Path (Get-Location) 'backend').Replace('\', '/')
+$leadManage = "import runpy,sys;sys.path.insert(0,r'$leadBackend');sys.argv[0]=r'$leadBackend/manage.py';runpy.run_path(sys.argv[0],run_name='__main__')"
 git status --short
 git rev-parse HEAD
 git diff --check
 & $leadPython -m ruff check .
 & $leadPython -m ruff format --check .
 & $leadPython -m unittest discover -s scripts -p test_monitor_availability.py -v
-& $leadPython backend/manage.py check
-& $leadPython backend/manage.py makemigrations --check --dry-run
+& $leadPython -c $leadManage check
+& $leadPython -c $leadManage makemigrations --check --dry-run
 ```
 
 Use a new disposable database and set `DATABASE_URL` explicitly for any migration,
 seed, browser or concurrency run. SQLite skips do not prove PostgreSQL locking.
+The explicit backend bootstrap above is required for this embedded interpreter:
+its shared search-path configuration also contains a different checkout. Do not
+edit that shared configuration or assume a direct manage.py launch imports this worktree.
 Final teammate commands/API endpoints must be updated from their reviewed PRs;
 `run_notification_scheduler --interval 60` is wired as the Compose `scheduler`
 service; verify its runtime and SMTP delivery in the final environment.
