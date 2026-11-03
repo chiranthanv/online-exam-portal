@@ -1,0 +1,10 @@
+{
+  "environment": "fresh isolated synthetic SQLite database",
+  "method": "separate expire_exam_attempts --loop --interval 1 process without a browser or API request during expiry",
+  "attempt_id": "865fd7a6-692f-4373-b477-9dbde3bbf2bb",
+  "status": "AUTO_SUBMITTED",
+  "submitted": true,
+  "evaluated": true,
+  "audit_count": 1,
+  "outbox_count": 1
+}
