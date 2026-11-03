@@ -1,5 +1,12 @@
 # Sprint 2 lead release procedure
 
+**Current checkpoint, 3 November 2026:** the user authorized recording and the
+completed [Sprint 2 video](evidence/sprint2-product-demo.mp4) is available.
+PR #56 is merged and its exact-head backend/browser/performance workflows passed.
+Use the [closeout record](testing/CLOSEOUT_2026-11-03.md) for current source,
+verification and remaining gates. References below to a recording hold or missing
+video describe the earlier preparation; final acceptance/freeze is still pending.
+
 This procedure does not declare a freeze. Harkirat's current-schema PR #43 and
 Dwijesh's existing UI/verification work are now integrated in main. The lead
 review adds the score-capacity migration, extra report regressions, retained

@@ -1,5 +1,10 @@
 # Documentation index and maintenance record
 
+**Latest checkpoint: 3 November 2026.** The [closeout record](testing/CLOSEOUT_2026-11-03.md)
+supersedes the current-state statements in older snapshots below. PR #56 is merged,
+the [final Sprint 2 video](evidence/sprint2-product-demo.mp4) is recorded, and external
+deployment/SMTP plus manual/independent acceptance remain separate gates.
+
 Checked 2 November 2026 against main `9ca18cdd021152d9b0822caf195712ae253aa437`,
 live GitHub PR/check metadata and the Jira backlog. This update covers repository
 documentation, not feature integration or release closeout. The later lead

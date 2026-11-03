@@ -1,5 +1,11 @@
 # Sprint 2 implementation and release status
 
+**3 November 2026 update:** PR #56 is merged at `e29c111f36a976a85b992716ffca6f2aef904d65`.
+The final 3:27 video is recorded and included in the repository. See the
+[current closeout checkpoint](CLOSEOUT_2026-11-03.md) for exact CI, media and Jira
+evidence plus remaining acceptance gates. The older revision/status statements
+below are historical snapshots, not the latest main or a current recording hold.
+
 Owner: Chiranthan V. This is a closeout candidate, not a frozen release.
 
 Latest lead review reconciles main `e053bc0dabe44b761fc38bb5fd39350a708f91e6`,

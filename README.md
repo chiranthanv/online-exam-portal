@@ -219,7 +219,8 @@ Follow the [deployment configuration guide](docs/DEVELOPMENT.md#deployment-confi
 | [Design decisions](docs/DEVIATIONS.md) | Implementation decisions and differences from the submitted baselines |
 | [Requirements traceability](docs/testing/RTM.md) | SRS requirements mapped to implementation and evidence |
 | [Dwijesh Sprint 2 acceptance evidence](docs/testing/SPRINT2_DWIJESH_ACCEPTANCE.md) | Current implementation, CI evidence and remaining acceptance limits for SCRUM-22/23/24/32 |
-| [Demonstration](docs/DEMO.md) | Recorded one-minute walkthrough with source and environment details |
+| [Demonstrations](docs/DEMO.md) | Final Sprint 2 overview and preserved Sprint 1 walkthrough |
+| [Sprint 2 closeout checkpoint](docs/testing/CLOSEOUT_2026-11-03.md) | Current merged source, CI/video evidence and remaining release gates |
 | [Implementation & release status](docs/testing/SPRINT2_STATUS.md) | Integrated scope, pending feature integration and acceptance requirements |
 
 The submitted SRS, architecture document and Test Plan are preserved at the repository root. Current integration and acceptance details are maintained in the release-status guide; this README describes the capabilities available in the main branch.
