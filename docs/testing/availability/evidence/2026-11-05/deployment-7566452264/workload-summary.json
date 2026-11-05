@@ -1,0 +1,11 @@
+{
+  "source_sha": "216fd043df0ff91b3be8c5f6a9f5755138014133",
+  "started_at_utc": "2026-11-05T06:03:23+00:00",
+  "finished_at_utc": "2026-11-05T06:33:23.000151+00:00",
+  "active_students": 200,
+  "cycles": 60,
+  "requests": 24200,
+  "errors": 0,
+  "scope": "200 active synthetic API students; 20 request workers; save/resume every 30 seconds",
+  "route": "Loopback origin with proxy headers; TLS/tunnel cost excluded from load"
+}

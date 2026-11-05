@@ -1,5 +1,11 @@
 # Sprint 2 implementation and release status
 
+**5 November 2026:** use the [current closeout](CLOSEOUT_2026-11-05.md).
+The scoped accessibility audit/fixes are merged and a real, bounded external
+HTTPS/PostgreSQL test-window measurement is complete. SMTP is user-deferred.
+Independent SCRUM-22/23 review is requested from Harkirat/Dwijesh on PR #61;
+final sprint completion/freeze still awaits that genuine response.
+
 **3 November 2026 update:** PR #56 is merged at `e29c111f36a976a85b992716ffca6f2aef904d65`.
 The final 3:27 video is recorded and included in the repository. See the
 [current closeout checkpoint](CLOSEOUT_2026-11-03.md) for exact CI, media and Jira

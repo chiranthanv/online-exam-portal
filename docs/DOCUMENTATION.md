@@ -1,5 +1,10 @@
 # Documentation index and maintenance record
 
+**Current checkpoint: [5 November closeout](testing/CLOSEOUT_2026-11-05.md)**,
+including the [scoped accessibility audit](testing/ACCESSIBILITY_CLOSEOUT_2026-11-05.md)
+and [controlled availability result](testing/availability/RESULT_2026-11-05.md).
+Earlier checkpoint statements below remain historical for their named sources.
+
 **Latest checkpoint: 3 November 2026.** The [closeout record](testing/CLOSEOUT_2026-11-03.md)
 supersedes the current-state statements in older snapshots below. PR #56 is merged,
 the [final Sprint 2 video](evidence/sprint2-product-demo.mp4) is recorded, and external

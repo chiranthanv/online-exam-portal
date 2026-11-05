@@ -1,5 +1,11 @@
 # Sprint 2 lead release procedure
 
+**5 November closeout:** see the [current evidence and freeze gate](testing/CLOSEOUT_2026-11-05.md).
+Accessibility basics and the named controlled test-window measurement are now
+recorded; both video cuts are published and SMTP is user-deferred. The selected
+Harkirat/Dwijesh independent review on PR #61 remains a prerequisite for the final
+freeze. Older missing-deployment/video/manual-audit statements below are historical.
+
 **Current checkpoint, 3 November 2026:** the user authorized recording and the
 completed [Sprint 2 video](evidence/sprint2-product-demo.mp4) is available.
 PR #56 is merged and its exact-head backend/browser/performance workflows passed.
