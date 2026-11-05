@@ -529,15 +529,48 @@ test("exam attempt keeps its timer visible, meets contrast and recovers pending 
 
   // Do not submit while any answer remains unconfirmed.
   expect(submissions).toHaveLength(0);
-  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.setViewportSize({ width: 320, height: 255 });
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.getByRole("button", { name: "Submit exam", exact: true }).click();
+  const keepWorking = page.getByRole("button", {
+    name: "Keep working",
+    exact: true,
+  });
+  const confirmSubmission = page.getByRole("button", {
+    name: "Confirm submission",
+    exact: true,
+  });
+  await expect(keepWorking).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(confirmSubmission).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("button", { name: "Submit exam", exact: true }),
+  ).toBeFocused();
+  await expect
+    .poll(async () => {
+      const control = await page
+        .getByRole("button", { name: "Submit exam", exact: true })
+        .boundingBox();
+      const timer = await page.locator(".attempt-sticky-bar").boundingBox();
+      return control && timer ? control.y - (timer.y + timer.height) : -1;
+    })
+    .toBeGreaterThanOrEqual(0);
+  await page.keyboard.press("Enter");
+  await expect(keepWorking).toBeFocused();
+  await keepWorking.click();
+  await expect(
+    page.getByRole("button", { name: "Submit exam", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(keepWorking).toBeFocused();
   await page
     .getByRole("button", { name: "Confirm submission", exact: true })
     .click();
   await expect(page.getByRole("status").last()).toContainText(
     "Your attempt has been submitted.",
   );
+  await page.setViewportSize({ width: 1440, height: 900 });
 
   const resultRequest = page.waitForResponse(
     (response) =>

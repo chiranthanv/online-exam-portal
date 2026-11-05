@@ -1,0 +1,110 @@
+{
+  "source": "c4da03532142e653c383c7546e36a820b173fda5 with the inspected focus patch",
+  "method": "Native Chromium page zoom via isolated profile preference; no CSS scaling; private screenshots for live visual inspection only",
+  "results": [
+    {
+      "zoom": 1,
+      "metrics": {
+        "dpr": 1,
+        "cssWidth": 1280,
+        "cssHeight": 1020,
+        "physicalOuterWidth": 1306,
+        "scrollWidth": 1280,
+        "visualScale": 1
+      },
+      "noHorizontalOverflow": true,
+      "timerAtBottom": true,
+      "radioNames": [
+        {
+          "name": "Ignoring defects",
+          "checked": "true"
+        },
+        {
+          "name": "Testing",
+          "checked": "false"
+        },
+        {
+          "name": "Removing all assertions",
+          "checked": "false"
+        }
+      ],
+      "initialFocusOnKeepWorking": true,
+      "escapeRestoresFocus": true,
+      "cancelRestoresFocus": true,
+      "restoredControlNotObscured": true,
+      "forcedColors": true,
+      "initialFocusTarget": "Keep working"
+    },
+    {
+      "zoom": 2,
+      "metrics": {
+        "dpr": 2,
+        "cssWidth": 640,
+        "cssHeight": 510,
+        "physicalOuterWidth": 1306,
+        "scrollWidth": 640,
+        "visualScale": 1
+      },
+      "noHorizontalOverflow": true,
+      "timerAtBottom": true,
+      "radioNames": [
+        {
+          "name": "Ignoring defects",
+          "checked": "true"
+        },
+        {
+          "name": "Testing",
+          "checked": "false"
+        },
+        {
+          "name": "Removing all assertions",
+          "checked": "false"
+        }
+      ],
+      "initialFocusOnKeepWorking": true,
+      "escapeRestoresFocus": true,
+      "cancelRestoresFocus": true,
+      "restoredControlNotObscured": true,
+      "forcedColors": true,
+      "initialFocusTarget": "Keep working"
+    },
+    {
+      "zoom": 4,
+      "metrics": {
+        "dpr": 4,
+        "cssWidth": 320,
+        "cssHeight": 255,
+        "physicalOuterWidth": 1306,
+        "scrollWidth": 320,
+        "visualScale": 1
+      },
+      "noHorizontalOverflow": true,
+      "timerAtBottom": true,
+      "radioNames": [
+        {
+          "name": "Ignoring defects",
+          "checked": "true"
+        },
+        {
+          "name": "Testing",
+          "checked": "false"
+        },
+        {
+          "name": "Removing all assertions",
+          "checked": "false"
+        }
+      ],
+      "initialFocusOnKeepWorking": true,
+      "escapeRestoresFocus": true,
+      "cancelRestoresFocus": true,
+      "restoredControlNotObscured": true,
+      "forcedColors": true,
+      "initialFocusTarget": "Keep working"
+    }
+  ],
+  "screenshotsAddedToReport": false,
+  "screenReaderAudioTest": false,
+  "observedRunCompletedAtUtc": "2026-11-05T06:19:40.864Z",
+  "frontendSourceSha256": "9203664f285324a98142573a873ab630a0546e9401fbb28ba99982d825d1a50e",
+  "visualInspection": "Unclipped CDP captures reviewed privately at native 100/200/400 percent zoom; images not added to report."
+}
