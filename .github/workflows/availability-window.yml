@@ -1,0 +1,73 @@
+name: Controlled exam-window availability staging
+on:
+  push:
+    branches: ['availability/controlled-window']
+    paths:
+      - '.github/workflows/availability-window.yml'
+      - 'scripts/availability_staging/**'
+permissions:
+  contents: read
+  deployments: write
+concurrency:
+  group: scrum31-controlled-window
+  cancel-in-progress: false
+jobs:
+  controlled-window:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: portal
+          POSTGRES_PASSWORD: disposable-availability-ci-only
+          POSTGRES_DB: oep_perf_availability
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U portal -d oep_perf_availability"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://portal:disposable-availability-ci-only@localhost:5432/oep_perf_availability
+      AVAILABILITY_OUTPUT: /tmp/oep-controlled-window-${{ github.run_id }}-${{ github.run_attempt }}
+      CLOUDFLARED: /tmp/oep-cloudflared
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: python -m pip install -r requirements-dev.txt
+      - run: npm ci && npm run build
+        working-directory: frontend
+      - name: Validate staging scripts and retained monitor regressions
+        run: |
+          ruff check scripts/availability_staging
+          ruff format --check scripts/availability_staging
+          python -m unittest discover -s scripts -p test_monitor_availability.py -v
+      - name: Download official temporary-tunnel client
+        run: |
+          curl --fail --location https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 --output "$CLOUDFLARED"
+          chmod +x "$CLOUDFLARED"
+          "$CLOUDFLARED" --version
+      - name: Host the bounded synthetic exam window
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/availability_staging/host.py
+      - name: Retain non-secret environment and workload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: controlled-exam-window-evidence
+          path: |
+            ${{ env.AVAILABILITY_OUTPUT }}/environment.json
+            ${{ env.AVAILABILITY_OUTPUT }}/workload.jsonl
+            ${{ env.AVAILABILITY_OUTPUT }}/workload-summary.json
+            ${{ env.AVAILABILITY_OUTPUT }}/origin.log
+            ${{ env.AVAILABILITY_OUTPUT }}/tunnel.log
+            ${{ env.AVAILABILITY_OUTPUT }}/worker.log
+          retention-days: 30
