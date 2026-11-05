@@ -559,6 +559,20 @@ function ExamAttemptRunner({ exam, onBack }) {
   const syncingPendingRef = useRef(false);
   const pendingWriteRef = useRef(Promise.resolve());
   const attemptIdRef = useRef(null);
+  const submitButtonRef = useRef(null);
+  const keepWorkingRef = useRef(null);
+  const confirmationWasOpenRef = useRef(false);
+  const stickyBarRef = useRef(null);
+
+  useEffect(() => {
+    if (submitPending) {
+      confirmationWasOpenRef.current = true;
+      keepWorkingRef.current?.focus();
+    } else if (confirmationWasOpenRef.current) {
+      confirmationWasOpenRef.current = false;
+      submitButtonRef.current?.focus();
+    }
+  }, [submitPending]);
 
   function storePendingAnswers(nextOrUpdate, savedAt = Date.now()) {
     const next =
@@ -1079,7 +1093,23 @@ function ExamAttemptRunner({ exam, onBack }) {
 
   const isOpen = attempt.status === "IN_PROGRESS";
   return (
-    <section className="card padded attempt-shell">
+    <section
+      className="card padded attempt-shell"
+      onFocusCapture={(event) => {
+        const target = event.target;
+        window.requestAnimationFrame(() => {
+          const bar = stickyBarRef.current;
+          if (!target.isConnected || !bar || bar.contains(target)) return;
+          const sticky = bar.getBoundingClientRect();
+          if (sticky.top > 1) return;
+          const control = target.closest(".attempt-option") || target;
+          const bounds = control.getBoundingClientRect();
+          if (bounds.top < sticky.bottom + 8) {
+            window.scrollBy(0, bounds.top - sticky.bottom - 8);
+          }
+        });
+      }}
+    >
       <div className="section-title attempt-header">
         <div>
           <p className="eyebrow">EXAM IN PROGRESS</p>
@@ -1089,7 +1119,7 @@ function ExamAttemptRunner({ exam, onBack }) {
           </p>
         </div>
       </div>
-      <div className="attempt-sticky-bar">
+      <div ref={stickyBarRef} className="attempt-sticky-bar">
         <div
           className={
             remainingSeconds <= 60 && isOpen ? "timer urgent" : "timer"
@@ -1236,6 +1266,7 @@ function ExamAttemptRunner({ exam, onBack }) {
           ))}
           {!submitPending ? (
             <button
+              ref={submitButtonRef}
               className="primary"
               onClick={() => setSubmitPending(true)}
               disabled={
@@ -1251,9 +1282,17 @@ function ExamAttemptRunner({ exam, onBack }) {
               className="notice"
               role="alertdialog"
               aria-labelledby="submit-confirm-title"
+              aria-describedby="submit-confirm-description"
+              aria-modal="false"
+              onKeyDown={(event) => {
+                if (event.key === "Escape" && !submitting) {
+                  event.preventDefault();
+                  setSubmitPending(false);
+                }
+              }}
             >
               <strong id="submit-confirm-title">Submit this exam?</strong>
-              <p>
+              <p id="submit-confirm-description">
                 You will not be able to change your answers after submission.
               </p>
               <div className="row-actions">
@@ -1269,6 +1308,7 @@ function ExamAttemptRunner({ exam, onBack }) {
                   {submitting ? "Submitting…" : "Confirm submission"}
                 </button>
                 <button
+                  ref={keepWorkingRef}
                   className="secondary"
                   onClick={() => setSubmitPending(false)}
                   disabled={submitting}
