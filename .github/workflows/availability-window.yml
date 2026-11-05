@@ -1,10 +1,6 @@
 name: Controlled exam-window availability staging
 on:
-  push:
-    branches: ['availability/controlled-window']
-    paths:
-      - '.github/workflows/availability-window.yml'
-      - 'scripts/availability_staging/**'
+  workflow_dispatch:
 permissions:
   contents: read
   deployments: write
