@@ -1,0 +1,16 @@
+{
+  "duration_seconds": 1810.0,
+  "interval_seconds": 5.0,
+  "timeout_seconds": 3.0,
+  "samples": 362,
+  "failed_samples": 0,
+  "estimated_downtime_seconds": 0.0,
+  "sampled_availability_percent": 100.0,
+  "elapsed_seconds": 1810.015,
+  "maintenance_excluded_seconds": 0,
+  "scope": "External HTTP health probes; slot-weighted estimate, not continuous uptime or exam-flow proof",
+  "url": "https://vincent-expansion-acrobat-actors.trycloudflare.com/health",
+  "started_at_utc": "2026-11-05T06:03:18.005475+00:00",
+  "finished_at_utc": "2026-11-05T06:33:28.016329+00:00",
+  "meets_99_5_percent": true
+}

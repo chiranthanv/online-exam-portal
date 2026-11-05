@@ -1,0 +1,25 @@
+{
+  "scope": "Controlled synthetic test-exam window; temporary staging, not production/SLA",
+  "base_url": "https://vincent-expansion-acrobat-actors.trycloudflare.com",
+  "source_sha": "216fd043df0ff91b3be8c5f6a9f5755138014133",
+  "window_start_utc": "2026-11-05T06:03:23+00:00",
+  "window_end_utc": "2026-11-05T06:33:23+00:00",
+  "window_start_epoch": 1793858603,
+  "window_seconds": 1800,
+  "interval_seconds": 5,
+  "timeout_seconds": 3,
+  "maintenance_excluded_seconds": 0,
+  "database": "PostgreSQL 16, fresh isolated test DB",
+  "application": "DEBUG=0, trusted-proxy HTTPS, two Gunicorn workers, compiled frontend",
+  "load": "200 active synthetic API students; 20 request workers; save/resume every 30 seconds",
+  "load_route": "Loopback origin with proxy headers; TLS/tunnel cost excluded from load",
+  "probe_route": "External Windows host over public HTTPS; TLS verification enabled",
+  "limitations": [
+    "Temporary Cloudflare test tunnel has no uptime guarantee",
+    "Not 200 full browsers, production capacity or semester-long reliability",
+    "SMTP deferred; scheduler not started; no email sent",
+    "All fixture passwords disabled; no real student/exam data"
+  ],
+  "workflow_run": "https://github.com/chiranthanv/online-exam-portal/actions/runs/41967642824",
+  "deployment_id": 7566452264
+}

@@ -1,0 +1,18 @@
+{
+  "deployment_id": 7566452264,
+  "source_sha": "216fd043df0ff91b3be8c5f6a9f5755138014133",
+  "window_start_utc": "2026-11-05T06:03:23+00:00",
+  "window_end_utc": "2026-11-05T06:33:23+00:00",
+  "published_window_seconds": 1800,
+  "covered_seconds": 1800.0,
+  "fully_covered": true,
+  "samples_intersecting_window": 361,
+  "failed_samples_intersecting_window": 0,
+  "estimated_downtime_seconds": 0.0,
+  "sampled_availability_percent": 100.0,
+  "raw_monitor_exit_code": 0,
+  "raw_monitor_duration_seconds": 1810,
+  "meets_99_5_percent": true,
+  "method": "Fixed predeclared 5-second guards; raw-slot intersections with the published window",
+  "limitations": "Sampled slot-weighted health estimate; not continuous uptime or production SLA"
+}
