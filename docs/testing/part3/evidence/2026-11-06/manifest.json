@@ -1,0 +1,82 @@
+{
+  "report_date": "2026-11-06",
+  "project": "Online Exam Portal",
+  "source_head": "fa38c385bd64c86603fa4970db873971b994eaf8",
+  "tested_github_merge": "ee9b05cf0ee801885530630d0f4e6af7c6d3462d",
+  "tested_tree": "1996695ff26429136dc05a9d4e5d31af00a495dc",
+  "backend_run": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42198702219",
+  "frontend_run": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42198702163",
+  "ci_artifact_sha256": {
+    "13492968082": "497e3c31c120a96f634fd0c6b616dc7a3a6f2b75e6d759ffff48e785562663e3",
+    "13493347526": "2929996b6b1011f6b8b20b88e3359080d296918ca0c93b31b22fce3815453880",
+    "13492818059": "3a590c4d714df37a9ca1c1fddbb4d3ff602940b7d4934002c2559afe5ed5a5c6",
+    "13492573706": "69b5054dba344de22c0e3b3603e8712294c18c68db70470f3d12fddd15bbd79d"
+  },
+  "backend": {
+    "passed": 100,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 12.818
+  },
+  "monitor": {
+    "passed": 9,
+    "failed": 0
+  },
+  "frontend_unit": {
+    "passed": 16,
+    "failed": 0
+  },
+  "browser": {
+    "startTime": "2026-11-06T09:56:41.345Z",
+    "duration": 22238.461,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "coverage_scope": "backend/portal; omit migrations, tests, management commands",
+  "totals": {
+    "covered_lines": 1099,
+    "num_statements": 1144,
+    "percent_covered": 93.98280802292264,
+    "percent_covered_display": "94",
+    "missing_lines": 45,
+    "excluded_lines": 0,
+    "percent_statements_covered": 96.06643356643356,
+    "percent_statements_covered_display": "96",
+    "num_branches": 252,
+    "num_partial_branches": 37,
+    "covered_branches": 213,
+    "missing_branches": 39,
+    "percent_branches_covered": 84.52380952380952,
+    "percent_branches_covered_display": "85"
+  },
+  "core": {
+    "covered_statements": 65,
+    "statements": 67,
+    "covered_branches": 28,
+    "branches": 30,
+    "combined_percent": 95.87628865979381
+  },
+  "limitations": [
+    "SMTP receipt user-deferred",
+    "Independent SCRUM-22/23 acceptance pending",
+    "No full WCAG, penetration, cross-browser or production-availability certification"
+  ],
+  "files_sha256": {
+    ".gitattributes": "cad88b46b4af6d1f13d5523baec76c989f477b2c541e36fe6e128ef6c6a45338",
+    "accessibility-summary.json": "5c25e99c2986b407b27b9db89986e7e4ec22043363e85bcfe06906e94d49b0e0",
+    "backend-coverage-original.zip": "497e3c31c120a96f634fd0c6b616dc7a3a6f2b75e6d759ffff48e785562663e3",
+    "backend-coverage.txt": "0ad0c34f5a5a4985e2f96bd73cfc099e6d6977b3d3966f83038106b563e3d7d1",
+    "backend-tests.log": "4fddf19549e555b94ba683a0893091935af8c380c0345c933c5ea70102e42e1e",
+    "coverage.json": "f84eebfae6d90db3ee98ae911a49060616d466198b702f7729ffd35ac9d7a33e",
+    "coverage.xml": "35d0c5f0d1c44dc11ac46dfb9ad2454dfe064992d74ee6743778b4bdbdb4200c",
+    "e2e-results.json": "bab06107b9a393e05992e454dde209ab9810a802ec2bc6a867c69eaba9cca3e9",
+    "local-monitor-tests.log": "eeafae3f8ef1c7794fbeaceee683464910ebb57e131565ee8c9bf764fbf1a4ca",
+    "local-sqlite-coverage.json": "270218cbc520537d368145e25f95d0422944075af401075855dd11e4442b1fd9",
+    "local-sqlite-tests.log": "6a8cb7430bca86f62989b3af1012b7e8e8c858d31f45eeb244cfde70f454ad3a",
+    "local-unit-results.json": "2727d3b9ae7e0cdc097a2b1980132119410c6ecfd1a6c392ed95a2fdf5a1dc94",
+    "tls-verification.txt": "54cb99bf100df2bdce84155a16f7547c7c46b428ef013618adfa8380b55b23cc",
+    "unit-results.json": "0d032f2c28eec7e883a4d1c9241bc99f3d022a45a1d000d185582768025b3866"
+  }
+}

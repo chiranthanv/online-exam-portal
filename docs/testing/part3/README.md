@@ -2,6 +2,30 @@
 
 Course testing period: 2-6 November 2026. Actual executions keep their real dates.
 
+## Upload-ready PDFs
+
+The submission form requires exactly these three files, each below 10 MB:
+
+- [Unit Test Report](pdf/Unit_Test_Report.pdf)
+- [System Validation Report](pdf/System_Validation_Report.pdf)
+- [Code Coverage and Branch Coverage - combined PDF](pdf/Code_and_Branch_Coverage_Report.pdf)
+
+Fresh measured source: `fa38c385bd64c86603fa4970db873971b994eaf8`;
+GitHub executed merge: `ee9b05cf0ee801885530630d0f4e6af7c6d3462d` (same tree).
+[Backend CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42198702219)
+and [frontend/browser CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42198702163)
+both passed. Raw evidence and source/run/hash metadata are preserved in
+[the evidence manifest](evidence/2026-11-06/manifest.json), including the original
+backend HTML/JSON/XML coverage artifact. No report screenshots are included.
+
+Measured results: 100 PostgreSQL backend tests, 9 monitor regressions, 16 frontend
+unit/component tests and 10 Chromium scenarios passed. Backend statements:
+1,099/1,144 = **96.07%**; branches: 213/252 = **84.52%**. The combined coverage.py
+metric is **93.98%**, and the two core engine files' combined metric is **95.88%**.
+These are different denominators; frontend code coverage was not measured.
+
+## Editable reports and updated cases
+
 1. [Updated Test Case Document](TEST_CASES.md)
 2. [Unit Test Report](UNIT_TEST_REPORT.md)
 3. [System Validation Report](SYSTEM_VALIDATION_REPORT.md)
