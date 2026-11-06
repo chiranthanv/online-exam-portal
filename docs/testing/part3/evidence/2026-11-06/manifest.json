@@ -64,7 +64,6 @@
     "No full WCAG, penetration, cross-browser or production-availability certification"
   ],
   "files_sha256": {
-    ".gitattributes": "cad88b46b4af6d1f13d5523baec76c989f477b2c541e36fe6e128ef6c6a45338",
     "accessibility-summary.json": "5c25e99c2986b407b27b9db89986e7e4ec22043363e85bcfe06906e94d49b0e0",
     "backend-coverage-original.zip": "497e3c31c120a96f634fd0c6b616dc7a3a6f2b75e6d759ffff48e785562663e3",
     "backend-coverage.txt": "0ad0c34f5a5a4985e2f96bd73cfc099e6d6977b3d3966f83038106b563e3d7d1",
