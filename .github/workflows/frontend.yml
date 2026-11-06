@@ -48,12 +48,14 @@ jobs:
           .venv/bin/python backend/manage.py seed_demo
       - run: npm ci
         working-directory: frontend
-      - run: npm run lint && npm test && npm run build
+      - run: npm run lint && npm test -- --reporter=default --reporter=json --outputFile=unit-results.json && npm run build
         working-directory: frontend
       - run: npx playwright install --with-deps chromium
         working-directory: frontend
-      - run: npm run test:e2e
+      - run: npm run test:e2e -- --reporter=list,html,json
         working-directory: frontend
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_FILE: e2e-results.json
       - name: Run authenticated exam Lighthouse audit on disposable SQLite data
         run: bash tools/accessibility/run-ci.sh
         env:
@@ -77,3 +79,5 @@ jobs:
             frontend/playwright-report/
             frontend/test-results/
             frontend/demo-results/
+            frontend/unit-results.json
+            frontend/e2e-results.json

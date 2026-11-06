@@ -1,5 +1,10 @@
 # Documentation index and maintenance record
 
+**Part 3 testing deliverables - 6 November 2026:**
+[three upload-ready PDFs, updated test cases and raw verification evidence](testing/part3/README.md).
+The coverage submission combines statement/code and branch coverage in one PDF.
+Final peer acceptance/release freeze and user-deferred SMTP remain explicitly scoped.
+
 **Current checkpoint: [5 November closeout](testing/CLOSEOUT_2026-11-05.md)**,
 including the [scoped accessibility audit](testing/ACCESSIBILITY_CLOSEOUT_2026-11-05.md)
 and [controlled availability result](testing/availability/RESULT_2026-11-05.md).

@@ -1,0 +1,5 @@
+PASS: verified CA and hostname; real TLS 1.2 health request succeeded.
+PASS: real HTTPS login; refresh cookie has Secure, HttpOnly, SameSite=Lax and restricted path.
+PASS: HTTPS response has HSTS max-age=31536000.
+Scope: temporary CI deployment of the backend; not a public production site.
+PASS: compiled React entry is served over certificate-verified HTTPS.
