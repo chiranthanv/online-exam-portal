@@ -1,0 +1,87 @@
+{
+  "report_date": "2026-11-06",
+  "project": "Online Exam Portal",
+  "source_head": "d9567f7deeb240389e88603fe15b8729bdea1dc3",
+  "tested_github_merge": "2373b86fe393577b10f90aea0b1ef8c8152b6d6d",
+  "tested_tree": "ca0d3693d25444ed8dfd60db9b6e182df50ac38b",
+  "backend_run": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784226",
+  "frontend_run": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784318",
+  "ci_artifact_sha256": {
+    "13494597080": "72599b72fefffe7ce5cc6d257b01401f0dcf1cdb37d675083cce4474090a29a4",
+    "13495520197": "04c475387a2c0aefb443906efdc358faaee194756c127c0d3545c66b0f3606df",
+    "13495006906": "ccb09b265e17144dfa8d772d796de6967aa00a6b9f4c64298d659298741c9474",
+    "13494876944": "87534e01d37c95c3449764fb93a22556760855911641fc13b3327610a20f43f8",
+    "13494253405": "4b4683c7ce732612d1a31fd253baf3d8dbb9d7fde513ee015194bfccde58fbdd"
+  },
+  "backend": {
+    "passed": 101,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 15.971
+  },
+  "monitor": {
+    "passed": 9,
+    "failed": 0
+  },
+  "frontend_unit": {
+    "passed": 16,
+    "failed": 0
+  },
+  "browser": {
+    "startTime": "2026-11-06T10:20:21.835Z",
+    "duration": 19581.232,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "coverage_scope": "backend/portal; omit migrations, tests, management commands",
+  "totals": {
+    "covered_lines": 1099,
+    "num_statements": 1144,
+    "percent_covered": 93.98280802292264,
+    "percent_covered_display": "94",
+    "missing_lines": 45,
+    "excluded_lines": 0,
+    "percent_statements_covered": 96.06643356643356,
+    "percent_statements_covered_display": "96",
+    "num_branches": 252,
+    "num_partial_branches": 37,
+    "covered_branches": 213,
+    "missing_branches": 39,
+    "percent_branches_covered": 84.52380952380952,
+    "percent_branches_covered_display": "85"
+  },
+  "core": {
+    "covered_statements": 65,
+    "statements": 67,
+    "covered_branches": 28,
+    "branches": 30,
+    "combined_percent": 95.87628865979381
+  },
+  "limitations": [
+    "SMTP receipt user-deferred",
+    "Independent SCRUM-22/23 acceptance pending",
+    "No full WCAG, penetration, cross-browser or production-availability certification"
+  ],
+  "files_sha256": {
+    "accessibility-summary.json": "2897422f5703bcd848d67d1c0fe90f793342e28a75ca1302468d4e0d82bfa1d3",
+    "backend-coverage-original.zip": "72599b72fefffe7ce5cc6d257b01401f0dcf1cdb37d675083cce4474090a29a4",
+    "backend-coverage.txt": "0ad0c34f5a5a4985e2f96bd73cfc099e6d6977b3d3966f83038106b563e3d7d1",
+    "backend-tests.log": "83d87f8d5a049237894fc69695ba362615f67a2fdd1f73605b5e992508d807c6",
+    "coverage.json": "f5dc454e103a19689d12995d6bb3c317a0c733566d900d7256e2be18718303c1",
+    "coverage.xml": "d37b261fef74fca4be5ede48c1bcedeb20e8c5a8fe035b58550be797506c78b4",
+    "e2e-results.json": "d4496d8aed7d06bc3e8537764254b17d16c94f57737c5539c1ef141067ea0483",
+    "local-monitor-tests.log": "eeafae3f8ef1c7794fbeaceee683464910ebb57e131565ee8c9bf764fbf1a4ca",
+    "local-sqlite-coverage.json": "270218cbc520537d368145e25f95d0422944075af401075855dd11e4442b1fd9",
+    "local-sqlite-tests.log": "6a8cb7430bca86f62989b3af1012b7e8e8c858d31f45eeb244cfde70f454ad3a",
+    "local-unit-results.json": "2727d3b9ae7e0cdc097a2b1980132119410c6ecfd1a6c392ed95a2fdf5a1dc94",
+    "performance-browser.json": "cba3171a6f939ced702d9da13825da355abb80487adc2772e2d247c913574a91",
+    "performance-explain.json": "d9173c06414896a4a7ba06386787433b798a49f13cd0c1eaa73f9eb9547adbc3",
+    "performance-hardware.txt": "97643c5489964e3de07b9a4336411db30c89c48a2492e222b9b057393de35b21",
+    "performance-load.json": "5ad3389c9f9b05b1cb4f518a22453b55298affe18495b11cb9ecd363c791ffb4",
+    "performance-summary.json": "203a9fbb4f8bae14e4f14d8b46f1be00abf56c40713899fe5b9d550676ac752a",
+    "tls-verification.txt": "54cb99bf100df2bdce84155a16f7547c7c46b428ef013618adfa8380b55b23cc",
+    "unit-results.json": "f545fac8da0c0c092de5b4ee9aa9fc57566edd7abb4d244ac2c8ad854eb6ee8e"
+  }
+}

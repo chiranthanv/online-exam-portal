@@ -31,6 +31,7 @@ Evidence abbreviations link to executable definitions:
 - [Acceptance](../../../backend/portal/tests/test_assessment_acceptance.py)
 - [Assessment](../../../backend/portal/tests/test_assessment_integration.py)
 - [Concurrency](../../../backend/portal/tests/test_postgres.py)
+- [Simultaneous attempt-start recheck](../../../backend/portal/tests/test_part3_concurrency.py)
 - [Notifications](../../../backend/portal/tests/test_scheduled_notifications.py)
 - [Security](../../../backend/portal/tests/test_injection_security.py)
 - [Migration](../../../backend/portal/tests/test_sprint2_migration_compatibility.py)
@@ -63,7 +64,7 @@ Evidence abbreviations link to executable definitions:
 
 | Case ID | Requirement(s) | Preconditions and actions | Expected observable result | Automated implementation |
 | --- | --- | --- | --- | --- |
-| P3-ATTEMPT-01 | F-014, SR-005 | Start once; repeat with same binding; use new browser/session, other student and administrator. | One exam/student attempt; permitted session resumes; fresh/foreign session cannot read/write. | API: test_attempt_starts_once_and_blocks_a_second_session; test_attempt_write_routes_reject_other_students_and_admins |
+| P3-ATTEMPT-01 | F-014, SR-005 | Start once; repeat with same binding; use new browser/session, other student and administrator. Also synchronize two PostgreSQL transactions inside the start route before creation. | One exam/student attempt; permitted session resumes; fresh/foreign session cannot read/write. Simultaneous starts yield one 201 and one 409, one start audit record, and resume access only for the winner. | API: test_attempt_starts_once_and_blocks_a_second_session; test_attempt_write_routes_reject_other_students_and_admins; test_part3_concurrency.py: test_simultaneous_sessions_create_one_attempt_and_only_winner_can_resume |
 | P3-ATTEMPT-02 | F-014, SR-002, SR-005 | Resume with server-issued attempt cookie after browser storage loss; send proctor event; repeat without cookie; use deployment settings. | HttpOnly cookie binds attempt, Secure when deployed; legitimate cookie event accepted; fresh profile rejected; legacy header compatibility retained. | API: test_attempt_session_httponly_cookie_resumes_without_browser_storage; test_cookie_session_records_proctoring_and_rejects_a_fresh_browser; test_attempt_binding_cookie_is_secure_for_deployment |
 | TC-TIMER-02 | F-015, NF-004 | Save and clear answer, refresh permitted session; choose foreign option. | Persisted choice restored; clear persists; foreign option rejected; saved indicator reflects server acknowledgement. | API: test_attempt_answers_autosave_and_recover_after_refresh; test_attempt_rejects_foreign_options_and_late_writes; Browser: exam attempt keeps its timer visible, meets contrast and recovers pending answers |
 | TC-TIMER-03 | F-015, NF-004 | Disconnect; commit pending choice to IndexedDB; test another attempt; crash renderer and relaunch same persistent profile; reconnect. | Queue isolated per attempt, original local age retained, choice recovered and synchronized; pending not falsely shown saved. Erased profiles and never-committed choices are outside guarantee. | Recovery: offline recovery isolates attempts and preserves original local age; committed offline answers recover after renderer crash and browser restart |
