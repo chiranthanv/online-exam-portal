@@ -10,19 +10,25 @@ The submission form requires exactly these three files, each below 10 MB:
 - [System Validation Report](pdf/System_Validation_Report.pdf)
 - [Code Coverage and Branch Coverage - combined PDF](pdf/Code_and_Branch_Coverage_Report.pdf)
 
-Fresh measured source: `fa38c385bd64c86603fa4970db873971b994eaf8`;
-GitHub executed merge: `ee9b05cf0ee801885530630d0f4e6af7c6d3462d` (same tree).
-[Backend CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42198702219)
-and [frontend/browser CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42198702163)
+Rechecked source: `d9567f7deeb240389e88603fe15b8729bdea1dc3`;
+GitHub executed merge: `2373b86fe393577b10f90aea0b1ef8c8152b6d6d` (same tree).
+[Backend CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784226)
+and [frontend/browser CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784318)
 both passed. Raw evidence and source/run/hash metadata are preserved in
-[the evidence manifest](evidence/2026-11-06/manifest.json), including the original
+[the recheck manifest](evidence/2026-11-06-recheck/manifest.json), including the original
 backend HTML/JSON/XML coverage artifact. No report screenshots are included.
+The original [100-test baseline](evidence/2026-11-06/manifest.json) is preserved.
+The [recheck record](RECHECK.md) describes the audit and added concurrency case.
+The PDFs use black text, plain tables and neutral academic formatting.
 
-Measured results: 100 PostgreSQL backend tests, 9 monitor regressions, 16 frontend
+Measured results: 101 PostgreSQL backend tests, 9 monitor regressions, 16 frontend
 unit/component tests and 10 Chromium scenarios passed. Backend statements:
 1,099/1,144 = **96.07%**; branches: 213/252 = **84.52%**. The combined coverage.py
 metric is **93.98%**, and the two core engine files' combined metric is **95.88%**.
 These are different denominators; frontend code coverage was not measured.
+The [fresh performance workflow](https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784383)
+also passed: 200 API identities, 3,000 requests without errors and five actual
+Chromium attempt-opening probes. The system report states the loopback and timing limits.
 
 ## Editable reports and updated cases
 
@@ -60,6 +66,7 @@ Unit, integration, concurrency and browser test counts are kept distinct. Scoped
 operational tests retain their original revision/environment and are not relabelled
 as fresh measurements of another source revision.
 
-SMTP receipt was user-deferred. Peer acceptance of SCRUM-22/23 remains independent
-of automation. The Test Plan's final exit/approval criteria must not be declared
-unconditionally satisfied while either acceptance or planned execution is pending.
+This package records the completed automated execution and its measured scope.
+Live SMTP receipt was excluded by user choice; local email tests are not a delivery
+receipt. Peer/instructor acceptance and release approval are separate from automated
+test results. The reports do not certify those approvals or unexecuted operational checks.

@@ -1,0 +1,539 @@
+{
+  "config": {
+    "argv": [
+      "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
+      "/home/runner/work/online-exam-portal/online-exam-portal/frontend/node_modules/.bin/playwright",
+      "test",
+      "--reporter=list,html,json"
+    ],
+    "configFile": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/playwright.config.js",
+    "rootDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "ci": {
+        "commitHref": "https://github.com/chiranthanv/online-exam-portal/commit/2373b86fe393577b10f90aea0b1ef8c8152b6d6d",
+        "commitHash": "2373b86fe393577b10f90aea0b1ef8c8152b6d6d",
+        "prHref": "https://github.com/chiranthanv/online-exam-portal/pull/63",
+        "prTitle": "Part 3 recheck: simultaneous-start regression and neutral PDF formatting",
+        "prBaseHash": "faa14e6b8b260471a7f44b91558a27110a250bb9",
+        "buildHref": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784318"
+      },
+      "gitCommit": {
+        "shortHash": "2373b86",
+        "hash": "2373b86fe393577b10f90aea0b1ef8c8152b6d6d",
+        "subject": "Merge d9567f7deeb240389e88603fe15b8729bdea1dc3 into faa14e6b8b260471a7f44b91558a27110a250bb9",
+        "body": "Merge d9567f7deeb240389e88603fe15b8729bdea1dc3 into faa14e6b8b260471a7f44b91558a27110a250bb9\n",
+        "author": {
+          "name": "chiranthanv",
+          "email": "chiranthanv851@gmail.com",
+          "time": 1793960368000
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "time": 1793960368000
+        },
+        "branch": "HEAD"
+      },
+      "gitDiff": "diff --git a/backend/portal/tests/test_part3_concurrency.py b/backend/portal/tests/test_part3_concurrency.py\nnew file mode 100644\nindex 0000000..18abd38\n--- /dev/null\n+++ b/backend/portal/tests/test_part3_concurrency.py\n@@ -0,0 +1,103 @@\n+\"\"\"Part 3 follow-up: two real database sessions starting the same exam attempt.\"\"\"\n+\n+import uuid\n+from concurrent.futures import ThreadPoolExecutor\n+from datetime import timedelta\n+from threading import Barrier\n+from unittest import skipUnless\n+from unittest.mock import patch\n+\n+from django.db import close_old_connections, connection, connections\n+from django.test import TransactionTestCase\n+from django.utils import timezone\n+from rest_framework.test import APIClient\n+\n+from portal.models import (\n+    AuditLog,\n+    Batch,\n+    Exam,\n+    ExamAttempt,\n+    ExamBatch,\n+    ExamQuestion,\n+    Option,\n+    Question,\n+    StudentBatch,\n+    User,\n+)\n+from portal.views import _lock_exam_for_attempt_start\n+\n+\n+@skipUnless(connection.vendor == \"postgresql\", \"Requires PostgreSQL concurrent transactions; executed by CI\")\n+class ConcurrentAttemptStartTests(TransactionTestCase):\n+    def test_simultaneous_sessions_create_one_attempt_and_only_winner_can_resume(self):\n+        admin = User.objects.create_user(username=\"race-admin\", email=\"race-admin@example.test\", role=\"ADMIN\")\n+        student = User.objects.create_user(username=\"race-student\", email=\"race-student@example.test\")\n+        batch = Batch.objects.create(name=\"Concurrent attempt test\", year=2026)\n+        StudentBatch.objects.create(student=student, batch=batch)\n+        now = timezone.now()\n+        exam = Exam.objects.create(\n+            title=\"Concurrent attempt start\",\n+            created_by=admin,\n+            duration_minutes=30,\n+            start_time=now - timedelta(minutes=1),\n+            end_time=now + timedelta(hours=1),\n+            result_visible_from=now + timedelta(hours=2),\n+            total_marks=\"1.00\",\n+        )\n+        question = Question.objects.create(\n+            text=\"Concurrent-start fixture\",\n+            subject=\"SE\",\n+            topic=\"Concurrency\",\n+            difficulty=\"EASY\",\n+            default_marks=\"1.00\",\n+            created_by=admin,\n+        )\n+        Option.objects.create(question=question, text=\"One attempt\", is_correct=True)\n+        Option.objects.create(question=question, text=\"Two attempts\", is_correct=False)\n+        ExamQuestion.objects.create(exam=exam, question=question, sequence=1)\n+        ExamBatch.objects.create(exam=exam, batch=batch)\n+        session_ids = [uuid.uuid4(), uuid.uuid4()]\n+        both_inside_start = Barrier(2)\n+\n+        def lock_then_meet(exam_id):\n+            locked_exam = _lock_exam_for_attempt_start(exam_id)\n+            # Both real transactions reach the start path before either is\n+            # allowed to create an attempt. This avoids a sequential false pass.\n+            both_inside_start.wait(timeout=10)\n+            return locked_exam\n+\n+        def start(session_id):\n+            close_old_connections()\n+            try:\n+                with connection.cursor() as cursor:\n+                    cursor.execute(\"SET lock_timeout = '5s'\")\n+                client = APIClient()\n+                client.force_authenticate(student)\n+                response = client.post(\n+                    f\"/api/v1/exams/{exam.id}/attempt\",\n+                    {\"session_id\": str(session_id)},\n+                    format=\"json\",\n+                    HTTP_X_EXAM_SESSION=str(session_id),\n+                )\n+                return session_id, response.status_code\n+            finally:\n+                connections.close_all()\n+\n+        with patch(\"portal.views._lock_exam_for_attempt_start\", side_effect=lock_then_meet):\n+            with ThreadPoolExecutor(max_workers=2) as executor:\n+                futures = [executor.submit(start, session_id) for session_id in session_ids]\n+                outcomes = [future.result(timeout=20) for future in futures]\n+\n+        self.assertEqual(sorted(status for _, status in outcomes), [201, 409], outcomes)\n+        self.assertEqual(ExamAttempt.objects.filter(exam=exam, student=student).count(), 1)\n+        attempt = ExamAttempt.objects.get(exam=exam, student=student)\n+        winner = next(session_id for session_id, status in outcomes if status == 201)\n+        self.assertEqual(attempt.session_key, winner)\n+        self.assertEqual(\n+            AuditLog.objects.filter(action=\"EXAM_ATTEMPT_STARTED\", target=str(attempt.id)).count(), 1\n+        )\n+        for session_id, original_status in outcomes:\n+            client = APIClient()\n+            client.force_authenticate(student)\n+            response = client.get(f\"/api/v1/attempts/{attempt.id}\", HTTP_X_EXAM_SESSION=str(session_id))\n+            self.assertEqual(response.status_code, 200 if original_status == 201 else 409)",
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/chiranthanv/online-exam-portal/commit/2373b86fe393577b10f90aea0b1ef8c8152b6d6d",
+            "commitHash": "2373b86fe393577b10f90aea0b1ef8c8152b6d6d",
+            "prHref": "https://github.com/chiranthanv/online-exam-portal/pull/63",
+            "prTitle": "Part 3 recheck: simultaneous-start regression and neutral PDF formatting",
+            "prBaseHash": "faa14e6b8b260471a7f44b91558a27110a250bb9",
+            "buildHref": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784318"
+          },
+          "gitCommit": {
+            "shortHash": "2373b86",
+            "hash": "2373b86fe393577b10f90aea0b1ef8c8152b6d6d",
+            "subject": "Merge d9567f7deeb240389e88603fe15b8729bdea1dc3 into faa14e6b8b260471a7f44b91558a27110a250bb9",
+            "body": "Merge d9567f7deeb240389e88603fe15b8729bdea1dc3 into faa14e6b8b260471a7f44b91558a27110a250bb9\n",
+            "author": {
+              "name": "chiranthanv",
+              "email": "chiranthanv851@gmail.com",
+              "time": 1793960368000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1793960368000
+            },
+            "branch": "HEAD"
+          },
+          "gitDiff": "diff --git a/backend/portal/tests/test_part3_concurrency.py b/backend/portal/tests/test_part3_concurrency.py\nnew file mode 100644\nindex 0000000..18abd38\n--- /dev/null\n+++ b/backend/portal/tests/test_part3_concurrency.py\n@@ -0,0 +1,103 @@\n+\"\"\"Part 3 follow-up: two real database sessions starting the same exam attempt.\"\"\"\n+\n+import uuid\n+from concurrent.futures import ThreadPoolExecutor\n+from datetime import timedelta\n+from threading import Barrier\n+from unittest import skipUnless\n+from unittest.mock import patch\n+\n+from django.db import close_old_connections, connection, connections\n+from django.test import TransactionTestCase\n+from django.utils import timezone\n+from rest_framework.test import APIClient\n+\n+from portal.models import (\n+    AuditLog,\n+    Batch,\n+    Exam,\n+    ExamAttempt,\n+    ExamBatch,\n+    ExamQuestion,\n+    Option,\n+    Question,\n+    StudentBatch,\n+    User,\n+)\n+from portal.views import _lock_exam_for_attempt_start\n+\n+\n+@skipUnless(connection.vendor == \"postgresql\", \"Requires PostgreSQL concurrent transactions; executed by CI\")\n+class ConcurrentAttemptStartTests(TransactionTestCase):\n+    def test_simultaneous_sessions_create_one_attempt_and_only_winner_can_resume(self):\n+        admin = User.objects.create_user(username=\"race-admin\", email=\"race-admin@example.test\", role=\"ADMIN\")\n+        student = User.objects.create_user(username=\"race-student\", email=\"race-student@example.test\")\n+        batch = Batch.objects.create(name=\"Concurrent attempt test\", year=2026)\n+        StudentBatch.objects.create(student=student, batch=batch)\n+        now = timezone.now()\n+        exam = Exam.objects.create(\n+            title=\"Concurrent attempt start\",\n+            created_by=admin,\n+            duration_minutes=30,\n+            start_time=now - timedelta(minutes=1),\n+            end_time=now + timedelta(hours=1),\n+            result_visible_from=now + timedelta(hours=2),\n+            total_marks=\"1.00\",\n+        )\n+        question = Question.objects.create(\n+            text=\"Concurrent-start fixture\",\n+            subject=\"SE\",\n+            topic=\"Concurrency\",\n+            difficulty=\"EASY\",\n+            default_marks=\"1.00\",\n+            created_by=admin,\n+        )\n+        Option.objects.create(question=question, text=\"One attempt\", is_correct=True)\n+        Option.objects.create(question=question, text=\"Two attempts\", is_correct=False)\n+        ExamQuestion.objects.create(exam=exam, question=question, sequence=1)\n+        ExamBatch.objects.create(exam=exam, batch=batch)\n+        session_ids = [uuid.uuid4(), uuid.uuid4()]\n+        both_inside_start = Barrier(2)\n+\n+        def lock_then_meet(exam_id):\n+            locked_exam = _lock_exam_for_attempt_start(exam_id)\n+            # Both real transactions reach the start path before either is\n+            # allowed to create an attempt. This avoids a sequential false pass.\n+            both_inside_start.wait(timeout=10)\n+            return locked_exam\n+\n+        def start(session_id):\n+            close_old_connections()\n+            try:\n+                with connection.cursor() as cursor:\n+                    cursor.execute(\"SET lock_timeout = '5s'\")\n+                client = APIClient()\n+                client.force_authenticate(student)\n+                response = client.post(\n+                    f\"/api/v1/exams/{exam.id}/attempt\",\n+                    {\"session_id\": str(session_id)},\n+                    format=\"json\",\n+                    HTTP_X_EXAM_SESSION=str(session_id),\n+                )\n+                return session_id, response.status_code\n+            finally:\n+                connections.close_all()\n+\n+        with patch(\"portal.views._lock_exam_for_attempt_start\", side_effect=lock_then_meet):\n+            with ThreadPoolExecutor(max_workers=2) as executor:\n+                futures = [executor.submit(start, session_id) for session_id in session_ids]\n+                outcomes = [future.result(timeout=20) for future in futures]\n+\n+        self.assertEqual(sorted(status for _, status in outcomes), [201, 409], outcomes)\n+        self.assertEqual(ExamAttempt.objects.filter(exam=exam, student=student).count(), 1)\n+        attempt = ExamAttempt.objects.get(exam=exam, student=student)\n+        winner = next(session_id for session_id, status in outcomes if status == 201)\n+        self.assertEqual(attempt.session_key, winner)\n+        self.assertEqual(\n+            AuditLog.objects.filter(action=\"EXAM_ATTEMPT_STARTED\", target=str(attempt.id)).count(), 1\n+        )\n+        for session_id, original_status in outcomes:\n+            client = APIClient()\n+            client.force_authenticate(student)\n+            response = client.get(f\"/api/v1/attempts/{attempt.id}\", HTTP_X_EXAM_SESSION=str(session_id))\n+            self.assertEqual(response.status_code, 200 if original_status == 201 else 409)",
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 45000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/chiranthanv/online-exam-portal/commit/2373b86fe393577b10f90aea0b1ef8c8152b6d6d",
+            "commitHash": "2373b86fe393577b10f90aea0b1ef8c8152b6d6d",
+            "prHref": "https://github.com/chiranthanv/online-exam-portal/pull/63",
+            "prTitle": "Part 3 recheck: simultaneous-start regression and neutral PDF formatting",
+            "prBaseHash": "faa14e6b8b260471a7f44b91558a27110a250bb9",
+            "buildHref": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784318"
+          },
+          "gitCommit": {
+            "shortHash": "2373b86",
+            "hash": "2373b86fe393577b10f90aea0b1ef8c8152b6d6d",
+            "subject": "Merge d9567f7deeb240389e88603fe15b8729bdea1dc3 into faa14e6b8b260471a7f44b91558a27110a250bb9",
+            "body": "Merge d9567f7deeb240389e88603fe15b8729bdea1dc3 into faa14e6b8b260471a7f44b91558a27110a250bb9\n",
+            "author": {
+              "name": "chiranthanv",
+              "email": "chiranthanv851@gmail.com",
+              "time": 1793960368000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1793960368000
+            },
+            "branch": "HEAD"
+          },
+          "gitDiff": "diff --git a/backend/portal/tests/test_part3_concurrency.py b/backend/portal/tests/test_part3_concurrency.py\nnew file mode 100644\nindex 0000000..18abd38\n--- /dev/null\n+++ b/backend/portal/tests/test_part3_concurrency.py\n@@ -0,0 +1,103 @@\n+\"\"\"Part 3 follow-up: two real database sessions starting the same exam attempt.\"\"\"\n+\n+import uuid\n+from concurrent.futures import ThreadPoolExecutor\n+from datetime import timedelta\n+from threading import Barrier\n+from unittest import skipUnless\n+from unittest.mock import patch\n+\n+from django.db import close_old_connections, connection, connections\n+from django.test import TransactionTestCase\n+from django.utils import timezone\n+from rest_framework.test import APIClient\n+\n+from portal.models import (\n+    AuditLog,\n+    Batch,\n+    Exam,\n+    ExamAttempt,\n+    ExamBatch,\n+    ExamQuestion,\n+    Option,\n+    Question,\n+    StudentBatch,\n+    User,\n+)\n+from portal.views import _lock_exam_for_attempt_start\n+\n+\n+@skipUnless(connection.vendor == \"postgresql\", \"Requires PostgreSQL concurrent transactions; executed by CI\")\n+class ConcurrentAttemptStartTests(TransactionTestCase):\n+    def test_simultaneous_sessions_create_one_attempt_and_only_winner_can_resume(self):\n+        admin = User.objects.create_user(username=\"race-admin\", email=\"race-admin@example.test\", role=\"ADMIN\")\n+        student = User.objects.create_user(username=\"race-student\", email=\"race-student@example.test\")\n+        batch = Batch.objects.create(name=\"Concurrent attempt test\", year=2026)\n+        StudentBatch.objects.create(student=student, batch=batch)\n+        now = timezone.now()\n+        exam = Exam.objects.create(\n+            title=\"Concurrent attempt start\",\n+            created_by=admin,\n+            duration_minutes=30,\n+            start_time=now - timedelta(minutes=1),\n+            end_time=now + timedelta(hours=1),\n+            result_visible_from=now + timedelta(hours=2),\n+            total_marks=\"1.00\",\n+        )\n+        question = Question.objects.create(\n+            text=\"Concurrent-start fixture\",\n+            subject=\"SE\",\n+            topic=\"Concurrency\",\n+            difficulty=\"EASY\",\n+            default_marks=\"1.00\",\n+            created_by=admin,\n+        )\n+        Option.objects.create(question=question, text=\"One attempt\", is_correct=True)\n+        Option.objects.create(question=question, text=\"Two attempts\", is_correct=False)\n+        ExamQuestion.objects.create(exam=exam, question=question, sequence=1)\n+        ExamBatch.objects.create(exam=exam, batch=batch)\n+        session_ids = [uuid.uuid4(), uuid.uuid4()]\n+        both_inside_start = Barrier(2)\n+\n+        def lock_then_meet(exam_id):\n+            locked_exam = _lock_exam_for_attempt_start(exam_id)\n+            # Both real transactions reach the start path before either is\n+            # allowed to create an attempt. This avoids a sequential false pass.\n+            both_inside_start.wait(timeout=10)\n+            return locked_exam\n+\n+        def start(session_id):\n+            close_old_connections()\n+            try:\n+                with connection.cursor() as cursor:\n+                    cursor.execute(\"SET lock_timeout = '5s'\")\n+                client = APIClient()\n+                client.force_authenticate(student)\n+                response = client.post(\n+                    f\"/api/v1/exams/{exam.id}/attempt\",\n+                    {\"session_id\": str(session_id)},\n+                    format=\"json\",\n+                    HTTP_X_EXAM_SESSION=str(session_id),\n+                )\n+                return session_id, response.status_code\n+            finally:\n+                connections.close_all()\n+\n+        with patch(\"portal.views._lock_exam_for_attempt_start\", side_effect=lock_then_meet):\n+            with ThreadPoolExecutor(max_workers=2) as executor:\n+                futures = [executor.submit(start, session_id) for session_id in session_ids]\n+                outcomes = [future.result(timeout=20) for future in futures]\n+\n+        self.assertEqual(sorted(status for _, status in outcomes), [201, 409], outcomes)\n+        self.assertEqual(ExamAttempt.objects.filter(exam=exam, student=student).count(), 1)\n+        attempt = ExamAttempt.objects.get(exam=exam, student=student)\n+        winner = next(session_id for session_id, status in outcomes if status == 201)\n+        self.assertEqual(attempt.session_key, winner)\n+        self.assertEqual(\n+            AuditLog.objects.filter(action=\"EXAM_ATTEMPT_STARTED\", target=str(attempt.id)).count(), 1\n+        )\n+        for session_id, original_status in outcomes:\n+            client = APIClient()\n+            client.force_authenticate(student)\n+            response = client.get(f\"/api/v1/attempts/{attempt.id}\", HTTP_X_EXAM_SESSION=str(session_id))\n+            self.assertEqual(response.status_code, 200 if original_status == 201 else 409)",
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/tests",
+        "snapshotDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/tests",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 45000,
+        "use": {
+          "baseURL": "http://localhost:5173",
+          "headless": true,
+          "screenshot": "only-on-failure",
+          "trace": "retain-on-failure",
+          "video": "off"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "html"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "recovery.spec.js",
+      "file": "recovery.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "offline recovery isolates attempts and preserves original local age",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 326,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T10:20:23.251Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e50d5988c7958d4540fe-bbd2fa0cc1d67460d438",
+          "file": "recovery.spec.js",
+          "line": 37,
+          "column": 1
+        },
+        {
+          "title": "committed offline answers recover after renderer crash and browser restart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4351,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T10:20:23.815Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e50d5988c7958d4540fe-880a7adb4b3bce58990f",
+          "file": "recovery.spec.js",
+          "line": 74,
+          "column": 1
+        },
+        {
+          "title": "student can find released results after the exam window has ended",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 989,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T10:20:28.175Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e50d5988c7958d4540fe-971d97245b3f79c97541",
+          "file": "recovery.spec.js",
+          "line": 200,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "sprint1.spec.js",
+      "file": "sprint1.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "admin CRUD, stored XSS stays text, filters and session recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1414,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T10:20:29.186Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-1f29a75004ced37c651b",
+          "file": "sprint1.spec.js",
+          "line": 12,
+          "column": 1
+        },
+        {
+          "title": "partial roster import reports exact errors and memberships are editable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1054,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T10:20:30.608Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-9b582b0eaf841ef01404",
+          "file": "sprint1.spec.js",
+          "line": 61,
+          "column": 1
+        },
+        {
+          "title": "exam schedule, manual order, random selection and batch assignment persist",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1577,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T10:20:31.672Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-413083e6e892d5635b42",
+          "file": "sprint1.spec.js",
+          "line": 97,
+          "column": 1
+        },
+        {
+          "title": "students see eligible exams only; API rejects admin access; mobile layout",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 902,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T10:20:33.257Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-e4891825c9197cd1e3a1",
+          "file": "sprint1.spec.js",
+          "line": 151,
+          "column": 1
+        },
+        {
+          "title": "email reset is usable once and lockout appears in the browser",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2718,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T10:20:34.166Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-77155b88a10156faef83",
+          "file": "sprint1.spec.js",
+          "line": 206,
+          "column": 1
+        },
+        {
+          "title": "exam attempt keeps its timer visible, meets contrast and recovers pending answers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3763,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T10:20:36.892Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-ed34bc21b2d850de52ba",
+          "file": "sprint1.spec.js",
+          "line": 288,
+          "column": 1
+        },
+        {
+          "title": "faculty Reports and Review screen uses the current report APIs",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 654,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-06T10:20:40.663Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-fc662914a1b49fde65d3",
+          "file": "sprint1.spec.js",
+          "line": 588,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-06T10:20:21.835Z",
+    "duration": 19581.232,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -2,13 +2,13 @@
 
 Online Exam Portal | Software Engineering Mini-Project, Part 3 | 6 November 2026
 
-Prepared for Chiranthan V | PES2UG24CS138 | Section C | Test lead
+Student: Chiranthan V | SRN: PES2UG24CS138 | Section C
 
-Tested PR head: fa38c385bd64c86603fa4970db873971b994eaf8
+Tested PR head: d9567f7deeb240389e88603fe15b8729bdea1dc3
 
-GitHub executed merge: ee9b05cf0ee801885530630d0f4e6af7c6d3462d. Its file tree equals the PR head (verified with git rev-parse).
+GitHub executed merge: 2373b86fe393577b10f90aea0b1ef8c8152b6d6d. Its file tree equals the PR head (verified with git rev-parse).
 
-Report-only commits may follow; they do not change the application measured in this report. Exact historical operational revisions are stated separately.
+The results below refer to these code versions. Earlier operational tests are listed separately with their dates.
 
 ## 1. Measured scope and result
 
@@ -18,7 +18,7 @@ Core scope services.py + assessment.py: 65/67 statements = 97.01%; 28/30 branche
 
 ## 2. Instrumentation and denominator
 
-coverage.py 7.17.0, branch=true, executed with 100 PostgreSQL backend tests on the named GitHub merge revision. Configured source is backend/portal. Migrations, tests and management commands are omitted. Django configuration, scripts, frontend JavaScript, third-party dependencies and container files are outside this coverage denominator. Monitor/browser execution results are separate; frontend statement/branch coverage was not collected.
+coverage.py 7.17.0, branch=true, executed with 101 PostgreSQL backend tests on the named GitHub merge revision. Configured source is backend/portal. Migrations, tests and management commands are omitted. Django configuration, scripts, frontend JavaScript, third-party dependencies and container files are outside this coverage denominator. Monitor/browser execution results are separate; frontend statement/branch coverage was not collected. The recheck reproduced the original coverage percentages.
 
 A statement means an executable source line counted by coverage.py, not every physical line. Branches are instrumented possible exits/arcs, not a proof of every Boolean combination or MC/DC. Zero-denominator modules are shown N/A in the tables rather than inventing a measured 100% result.
 
@@ -43,10 +43,10 @@ TOTAL: 1,144 statements; 1,099 covered; 45 missing; 96.07% statement coverage. C
 
 ## Evidence and reproduction
 
-Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42198702219
+Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784226
 
-Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42198702163
+Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784318
 
-Permanent repository evidence: docs/testing/part3/evidence/2026-11-06/. The manifest records SHA-256 hashes; original backend ZIP was verified against GitHub's artifact digest before extraction. Other original ZIP digests are retained in the manifest; selected raw JSON/text files are preserved without report screenshots.
+Repository evidence: docs/testing/part3/evidence/2026-11-06-recheck/. The manifest records SHA-256 hashes. Downloaded archives were checked against GitHub's artifact digests before extraction. The selected JSON and text results are preserved without report screenshots. The original 100-test run remains in evidence/2026-11-06/.
 
 Detailed coverage: coverage.json, coverage.xml and backend-coverage-original.zip (includes the interactive htmlcov/index.html report). Backend log lists every test; frontend JSON lists each assertion/scenario and actual status.

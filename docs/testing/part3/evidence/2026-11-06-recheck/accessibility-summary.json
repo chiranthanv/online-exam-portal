@@ -1,0 +1,98 @@
+{
+  "startedAt": "2026-11-06T10:20:47.259Z",
+  "commit": "2373b86fe393577b10f90aea0b1ef8c8152b6d6d",
+  "node": "v24.22.2",
+  "base": "http://127.0.0.1:5173",
+  "findings": [
+    {
+      "check": "Skip link first in keyboard order",
+      "passed": true
+    },
+    {
+      "check": "Skip link moves focus to main",
+      "passed": true
+    },
+    {
+      "check": "Every answer radio has a label and question group",
+      "passed": true
+    },
+    {
+      "check": "Lighthouse accessibility >=90 at 1440px",
+      "passed": true,
+      "score": 100,
+      "failures": []
+    },
+    {
+      "check": "No automated WCAG 2.0/2.1 AA failures at 1440px",
+      "passed": true
+    },
+    {
+      "check": "No horizontal page overflow at 1440px",
+      "passed": true,
+      "scrollWidth": 1440,
+      "viewport": 1440
+    },
+    {
+      "check": "Timer stays visible at page bottom 1440px",
+      "passed": true,
+      "top": 10,
+      "bottom": 94.5,
+      "viewportHeight": 900
+    },
+    {
+      "check": "Lighthouse accessibility >=90 at 390px",
+      "passed": true,
+      "score": 100,
+      "failures": []
+    },
+    {
+      "check": "No automated WCAG 2.0/2.1 AA failures at 390px",
+      "passed": true
+    },
+    {
+      "check": "No horizontal page overflow at 390px",
+      "passed": true,
+      "scrollWidth": 390,
+      "viewport": 390
+    },
+    {
+      "check": "Timer stays visible at page bottom 390px",
+      "passed": true,
+      "top": 10,
+      "bottom": 94.5,
+      "viewportHeight": 844
+    },
+    {
+      "check": "Lighthouse accessibility >=90 at 320px",
+      "passed": true,
+      "score": 100,
+      "failures": []
+    },
+    {
+      "check": "No automated WCAG 2.0/2.1 AA failures at 320px",
+      "passed": true
+    },
+    {
+      "check": "No horizontal page overflow at 320px",
+      "passed": true,
+      "scrollWidth": 320,
+      "viewport": 320
+    },
+    {
+      "check": "Timer stays visible at page bottom 320px",
+      "passed": true,
+      "top": 10,
+      "bottom": 94.5,
+      "viewportHeight": 844
+    }
+  ],
+  "browser": "Chrome/156.0.8078.4",
+  "questions": 5,
+  "keyboardFocus": {
+    "tag": "INPUT",
+    "text": "",
+    "outline": "rgb(129, 90, 19) solid 3px",
+    "outlineOffset": "3px"
+  },
+  "completedAt": "2026-11-06T10:20:54.353Z"
+}
