@@ -38,10 +38,12 @@ jobs:
       - run: python backend/manage.py migrate --noinput
       - name: API, security and PostgreSQL concurrency tests
         run: |
-          coverage run backend/manage.py test portal.tests --verbosity 2
-          coverage report
+          coverage run backend/manage.py test portal.tests --verbosity 2 2>&1 | tee backend-tests.log
+          coverage report | tee backend-coverage.txt
           coverage report --include=backend/portal/services.py,backend/portal/assessment.py --fail-under=70
           coverage xml
+          coverage json -o coverage.json
+          coverage html
       - name: Synthetic development fixtures are repeatable
         run: |
           python backend/manage.py seed_demo
@@ -59,7 +61,12 @@ jobs:
         if: always()
         with:
           name: backend-coverage
-          path: coverage.xml
+          path: |
+            coverage.xml
+            coverage.json
+            htmlcov/
+            backend-tests.log
+            backend-coverage.txt
       - name: Build runtime image
         run: docker build -t online-exam-portal:test .
       - name: Verify the deployed backend over TLS 1.2
