@@ -19,6 +19,7 @@ from portal.models import (
     ExamAttempt,
     ExamBatch,
     ExamQuestion,
+    Option,
     Question,
     StudentBatch,
     User,
@@ -44,8 +45,15 @@ class ConcurrentAttemptStartTests(TransactionTestCase):
             total_marks="1.00",
         )
         question = Question.objects.create(
-            text="Concurrent-start fixture", subject="SE", topic="Concurrency", created_by=admin
+            text="Concurrent-start fixture",
+            subject="SE",
+            topic="Concurrency",
+            difficulty="EASY",
+            default_marks="1.00",
+            created_by=admin,
         )
+        Option.objects.create(question=question, text="One attempt", is_correct=True)
+        Option.objects.create(question=question, text="Two attempts", is_correct=False)
         ExamQuestion.objects.create(exam=exam, question=question, sequence=1)
         ExamBatch.objects.create(exam=exam, batch=batch)
         session_ids = [uuid.uuid4(), uuid.uuid4()]
