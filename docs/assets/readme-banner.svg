@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">Online Exam Portal</title>
+  <desc id="desc">Prepare. Assess. Review. A navy and teal banner with an exam sheet illustration.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#0B1222"/>
+      <stop offset="1" stop-color="#142C42"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#5EEAD4"/>
+      <stop offset="1" stop-color="#38BDF8"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#91B9CC" stroke-opacity="0.07"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="360" rx="20" fill="url(#background)"/>
+  <rect width="1200" height="360" rx="20" fill="url(#grid)"/>
+  <circle cx="1090" cy="80" r="190" fill="#38BDF8" opacity="0.04"/>
+  <circle cx="1035" cy="280" r="155" fill="#5EEAD4" opacity="0.04"/>
+  <rect x="58" y="58" width="5" height="26" rx="2.5" fill="url(#accent)"/>
+  <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    <text x="78" y="77" fill="#99F6E4" font-size="15" font-weight="600" letter-spacing="3">SOFTWARE ENGINEERING / TEAM 15</text>
+    <text x="56" y="160" fill="#F8FAFC" font-size="58" font-weight="700" letter-spacing="-2">Online Exam Portal</text>
+    <text x="59" y="207" fill="#AEC3D4" font-size="22">Prepare. Assess. Review.</text>
+    <path d="M59 245H119" stroke="url(#accent)" stroke-width="3" stroke-linecap="round"/>
+    <text x="59" y="291" fill="#7897AE" font-size="14" letter-spacing="2">QUESTION BANKS</text>
+    <circle cx="223" cy="286" r="2" fill="#5EEAD4"/>
+    <text x="240" y="291" fill="#7897AE" font-size="14" letter-spacing="2">TIMED EXAMS</text>
+    <circle cx="373" cy="286" r="2" fill="#5EEAD4"/>
+    <text x="390" y="291" fill="#7897AE" font-size="14" letter-spacing="2">RESULTS &amp; REPORTS</text>
+  </g>
+  <g transform="translate(925 68)">
+    <rect x="-15" y="16" width="172" height="214" rx="18" fill="#0A1827" stroke="#2A465B" transform="rotate(-9 71 123)"/>
+    <rect width="172" height="214" rx="18" fill="#162D42" stroke="#3A5A70"/>
+    <rect x="23" y="26" width="66" height="7" rx="3.5" fill="#D5E7F0"/>
+    <rect x="23" y="42" width="103" height="5" rx="2.5" fill="#55758C"/>
+    <g fill="none" stroke="#5EEAD4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="24" y="72" width="18" height="18" rx="5" stroke="#3B6276"/>
+      <path d="m28 81 4 4 7-8"/>
+      <rect x="24" y="111" width="18" height="18" rx="5" stroke="#3B6276"/>
+      <path d="m28 120 4 4 7-8"/>
+      <rect x="24" y="150" width="18" height="18" rx="5" stroke="#3B6276"/>
+      <path d="m28 159 4 4 7-8"/>
+    </g>
+    <g fill="#55758C">
+      <rect x="56" y="77" width="88" height="6" rx="3"/>
+      <rect x="56" y="116" width="70" height="6" rx="3"/>
+      <rect x="56" y="155" width="80" height="6" rx="3"/>
+    </g>
+    <circle cx="160" cy="196" r="33" fill="url(#accent)"/>
+    <path d="m146 196 9 9 19-21" fill="none" stroke="#0F2638" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
