@@ -12,7 +12,7 @@ on:
         required: false
         default: false
 permissions:
-  contents: read
+  contents: write
 jobs:
   temporary-dependency-audit:
     runs-on: ubuntu-latest
@@ -80,6 +80,18 @@ jobs:
           node -e 'const a=require(process.argv[1]); console.log("ACCESSIBILITY_AFTER_SUMMARY",JSON.stringify(a.metadata?.vulnerabilities ?? a.error ?? {})); for (const [name,v] of Object.entries(a.vulnerabilities ?? {})) console.log("ACCESSIBILITY_AFTER_ADVISORY",JSON.stringify({name,severity:v.severity,range:v.range,nodes:v.nodes,fixAvailable:v.fixAvailable,via:(v.via??[]).map(x=>typeof x==="string"?x:{name:x.name,title:x.title,url:x.url,range:x.range,severity:x.severity})}));' "$RUNNER_TEMP/accessibility-audit-after.json"
           npm ci
           npm audit --audit-level=moderate
+      - name: Commit validated dependency updates to diagnostic branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/package.json frontend/package-lock.json tools/accessibility/package-lock.json
+          if git diff --cached --quiet; then
+            echo "No dependency file changes to commit."
+            exit 0
+          fi
+          git commit -m "Update dependencies to remove npm audit findings"
+          git push origin HEAD:sprint2/npm-audit-report
       - name: Upload updated dependency files and audit reports
         uses: actions/upload-artifact@v4
         with:
