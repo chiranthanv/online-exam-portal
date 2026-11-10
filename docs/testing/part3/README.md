@@ -1,5 +1,9 @@
 # Part 3 - testing deliverables
 
+Final submission update: 10 November 2026. Release `sprint2-final-2026-11-10`.
+The three neutral PDFs below match the verified merged application; their evidence
+uses actual 10 November executions. Earlier raw records remain unchanged.
+
 Course testing period: 2-6 November 2026. Actual executions keep their real dates.
 
 ## Upload-ready PDFs
@@ -10,23 +14,23 @@ The submission form requires exactly these three files, each below 10 MB:
 - [System Validation Report](pdf/System_Validation_Report.pdf)
 - [Code Coverage and Branch Coverage - combined PDF](pdf/Code_and_Branch_Coverage_Report.pdf)
 
-Rechecked source: `d9567f7deeb240389e88603fe15b8729bdea1dc3`;
-GitHub executed merge: `2373b86fe393577b10f90aea0b1ef8c8152b6d6d` (same tree).
-[Backend CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784226)
-and [frontend/browser CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784318)
+Final merged application: `25c23e04f4c810a0cbd1e68397aa3d63a9c4740c`;
+Main CI revision: `25c23e04f4c810a0cbd1e68397aa3d63a9c4740c` (same tree).
+[Backend CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946825)
+and [frontend/browser CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946813)
 both passed. Raw evidence and source/run/hash metadata are preserved in
-[the recheck manifest](evidence/2026-11-06-recheck/manifest.json), including the original
+[the final manifest](evidence/2026-11-10-final/manifest.json), including the original
 backend HTML/JSON/XML coverage artifact. No report screenshots are included.
 The original [100-test baseline](evidence/2026-11-06/manifest.json) is preserved.
-The [recheck record](RECHECK.md) describes the audit and added concurrency case.
+The [recheck record](RECHECK.md) retains the original audit. Final acceptance is recorded in [the release notes](../../releases/SPRINT2_FINAL_2026-11-10.md).
 The PDFs use black text, plain tables and neutral academic formatting.
 
 Measured results: 101 PostgreSQL backend tests, 9 monitor regressions, 16 frontend
-unit/component tests and 10 Chromium scenarios passed. Backend statements:
+unit/component tests and 12 Chromium scenarios passed. Backend statements:
 1,099/1,144 = **96.07%**; branches: 213/252 = **84.52%**. The combined coverage.py
 metric is **93.98%**, and the two core engine files' combined metric is **95.88%**.
 These are different denominators; frontend code coverage was not measured.
-The [fresh performance workflow](https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784383)
+The [fresh performance workflow](https://github.com/chiranthanv/online-exam-portal/actions/runs/42784714336)
 also passed: 200 API identities, 3,000 requests without errors and five actual
 Chromium attempt-opening probes. The system report states the loopback and timing limits.
 
@@ -68,5 +72,5 @@ as fresh measurements of another source revision.
 
 This package records the completed automated execution and its measured scope.
 Live SMTP receipt was excluded by user choice; local email tests are not a delivery
-receipt. Peer/instructor acceptance and release approval are separate from automated
-test results. The reports do not certify those approvals or unexecuted operational checks.
+receipt. Scoped team-lead acceptance is recorded for this release. The reports do not invent
+a separate teammate/instructor approval or certify unexecuted operational checks.

@@ -1,0 +1,91 @@
+{
+  "report_date": "2026-11-10",
+  "project": "Online Exam Portal",
+  "source_head": "25c23e04f4c810a0cbd1e68397aa3d63a9c4740c",
+  "tested_github_merge": "25c23e04f4c810a0cbd1e68397aa3d63a9c4740c",
+  "tested_tree": "573a573973fc66d981180d0d756a3d163e5d6ae9",
+  "backend_run": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946825",
+  "frontend_run": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946813",
+  "performance_run": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42784714336",
+  "release_identifier": "sprint2-final-2026-11-10",
+  "acceptance": "Scoped team-lead acceptance, review 5838992122; no instructor/other-teammate approval claimed",
+  "ci_artifact_sha256": {
+    "13748450347": "4767575291ee4f6fce0e9e3f0fceb849c2582c71cb37b8cde5a13cf09cf04ead",
+    "13746409451": "116a790ee247ba7d0a3d4e2f565322a957687de111a2bdf79f5ea0babffab405",
+    "13747712064": "fcf865b7d369633406a35262c035f944ed7b2864e3fa2bca677b77949197389a",
+    "13747043265": "52a54777db820da507c9adee26524e2ad951b642f83bc4abe92752961dca6aa3",
+    "13748061967": "655cef38531a4a59f4e708daf3e948d0aed74f6eeed9fd6c41a9a401feb467f4"
+  },
+  "backend": {
+    "passed": 101,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 15.751
+  },
+  "monitor": {
+    "passed": 9,
+    "failed": 0
+  },
+  "frontend_unit": {
+    "passed": 16,
+    "failed": 0
+  },
+  "browser": {
+    "startTime": "2026-11-10T08:37:17.014Z",
+    "duration": 20268.896,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "coverage_scope": "backend/portal; omit migrations, tests, management commands",
+  "totals": {
+    "covered_lines": 1099,
+    "num_statements": 1144,
+    "percent_covered": 93.98280802292264,
+    "percent_covered_display": "94",
+    "missing_lines": 45,
+    "excluded_lines": 0,
+    "percent_statements_covered": 96.06643356643356,
+    "percent_statements_covered_display": "96",
+    "num_branches": 252,
+    "num_partial_branches": 37,
+    "covered_branches": 213,
+    "missing_branches": 39,
+    "percent_branches_covered": 84.52380952380952,
+    "percent_branches_covered_display": "85"
+  },
+  "core": {
+    "covered_statements": 65,
+    "statements": 67,
+    "covered_branches": 28,
+    "branches": 30,
+    "combined_percent": 95.87628865979381
+  },
+  "limitations": [
+    "SMTP receipt user-deferred",
+    "Scoped team-lead acceptance recorded; no separate teammate/instructor sign-off claimed",
+    "No full WCAG, penetration, cross-browser or production-availability certification"
+  ],
+  "files_sha256": {
+    "accessibility-summary.json": "2fd50f3c7de1139caeacaf54daee95a0e00879d15fe51d6d5d7f98b34ab5a990",
+    "backend-coverage-original.zip": "4767575291ee4f6fce0e9e3f0fceb849c2582c71cb37b8cde5a13cf09cf04ead",
+    "backend-coverage.txt": "0ad0c34f5a5a4985e2f96bd73cfc099e6d6977b3d3966f83038106b563e3d7d1",
+    "backend-tests.log": "08af66a3c9034473e472c6ed48ebe292753aa5a6ef8b062deb54fbd04d5fc998",
+    "coverage.json": "7a031dd7e6d77493984e1b13e8fb06973dc84f84478eb00d84d8963a47fe0c80",
+    "coverage.xml": "c245002607e143f5d7a3b26da7dde7837922df3262eab4ba871cf79435bc9e3c",
+    "e2e-results.json": "9df8f75527cbb7c1995003d72436fc6d0b2a83c99cb178a08e85c08edf816695",
+    "lead-indexeddb-checks.json": "41c1151d98e3b75b4d1f610a8e3345036bcd4e90e4ee142a157911e6c2497734",
+    "local-monitor-tests.log": "eeafae3f8ef1c7794fbeaceee683464910ebb57e131565ee8c9bf764fbf1a4ca",
+    "local-sqlite-coverage.json": "270218cbc520537d368145e25f95d0422944075af401075855dd11e4442b1fd9",
+    "local-sqlite-tests.log": "6a8cb7430bca86f62989b3af1012b7e8e8c858d31f45eeb244cfde70f454ad3a",
+    "local-unit-results.json": "2727d3b9ae7e0cdc097a2b1980132119410c6ecfd1a6c392ed95a2fdf5a1dc94",
+    "performance-browser.json": "2506af36c500890ccabcad44875da14ca7d62e33d189f66cd88f4f6da4dc2ecd",
+    "performance-explain.json": "8f04cfd9a9b41812acb19adb7a2d05a659407e3d4871ce44ca3df6fad4b2eafd",
+    "performance-hardware.txt": "4e5081b32abea2f9b99ed138e7b76cd98f8d19356dd41b1c54f96cb8238f4ee2",
+    "performance-load.json": "39342fcb219d07744ca866bfb527024ef8605f73fe648dfe55305b94e48c35c8",
+    "performance-summary.json": "742bf64c27aff5bf7aec6b7f614964e8aa543c22d0dbaf355b1f48276c373c48",
+    "tls-verification.txt": "54cb99bf100df2bdce84155a16f7547c7c46b428ef013618adfa8380b55b23cc",
+    "unit-results.json": "b3c040ff0012cda1f79292dc66cbbd661c9793866f75b58cab36db6b4069ccf1"
+  }
+}

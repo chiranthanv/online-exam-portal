@@ -1,5 +1,14 @@
 # Sprint 2 lead release procedure
 
+**Final closeout - 10 November 2026:** [frozen Sprint 2 release](releases/SPRINT2_FINAL_2026-11-10.md)
+uses verified application `25c23e04f4c810a0cbd1e68397aa3d63a9c4740c` and the
+refreshed three submission PDFs. SCRUM-22/23 have scoped team-lead acceptance;
+all 13 Sprint 2 stories are Done. Release identifier: `sprint2-final-2026-11-10`.
+Live SMTP is excluded by owner choice, not claimed as delivered. Separate
+teammate/instructor approval and production certification are not invented.
+
+The dated snapshots below are historical and superseded by this final record.
+
 **5 November closeout:** see the [current evidence and freeze gate](testing/CLOSEOUT_2026-11-05.md).
 Accessibility basics and the named controlled test-window measurement are now
 recorded; both video cuts are published and SMTP is user-deferred. The selected

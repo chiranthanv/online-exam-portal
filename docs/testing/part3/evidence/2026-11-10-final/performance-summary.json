@@ -1,0 +1,56 @@
+{
+  "started_at_utc": "2026-11-10T08:43:24.661092+00:00",
+  "duration_seconds": 64.217464133,
+  "platform": "Linux-7.0.0-1019-azure-x86_64-with-glibc2.43",
+  "python": "3.11.18",
+  "urls": [
+    "http://127.0.0.1:8001",
+    "http://127.0.0.1:8002"
+  ],
+  "students": 200,
+  "completed_students": 200,
+  "cycles": 6,
+  "think_seconds": 10,
+  "question_count": 50,
+  "auth": "pre-issued real JWTs; authentication throughput excluded",
+  "metrics": {
+    "start": {
+      "requests": 200,
+      "errors": 0,
+      "p50_seconds": 0.9468886899999944,
+      "p95_seconds": 1.5419971639999943,
+      "max_seconds": 1.6396806190000035
+    },
+    "save": {
+      "requests": 1200,
+      "errors": 0,
+      "p50_seconds": 0.04375669699999207,
+      "p95_seconds": 0.349037826,
+      "max_seconds": 0.591614495999977
+    },
+    "resume": {
+      "requests": 1200,
+      "errors": 0,
+      "p50_seconds": 0.04764001200000223,
+      "p95_seconds": 0.36732550900001115,
+      "max_seconds": 0.6361125130000005
+    },
+    "submit": {
+      "requests": 200,
+      "errors": 0,
+      "p50_seconds": 0.1694861729999957,
+      "p95_seconds": 0.5420903860000124,
+      "max_seconds": 0.669936167000003
+    },
+    "closed_write": {
+      "requests": 200,
+      "errors": 0,
+      "p50_seconds": 0.04278221800001347,
+      "p95_seconds": 0.4560649670000032,
+      "max_seconds": 0.5849019469999917
+    }
+  },
+  "failures": [],
+  "api_target_met": true,
+  "browser_target": "reported separately; API timings do not establish page load acceptance"
+}

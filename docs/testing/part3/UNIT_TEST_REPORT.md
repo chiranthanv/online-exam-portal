@@ -1,12 +1,14 @@
 # Unit Test Report
 
-Online Exam Portal | Software Engineering Mini-Project, Part 3 | 6 November 2026
+Online Exam Portal | Software Engineering Mini-Project, Part 3 | 10 November 2026
 
 Student: Chiranthan V | SRN: PES2UG24CS138 | Section C
 
-Tested PR head: d9567f7deeb240389e88603fe15b8729bdea1dc3
+Release identifier: sprint2-final-2026-11-10 | Final submission report
 
-GitHub executed merge: 2373b86fe393577b10f90aea0b1ef8c8152b6d6d. Its file tree equals the PR head (verified with git rev-parse).
+Verified application commit: 25c23e04f4c810a0cbd1e68397aa3d63a9c4740c
+
+Final main CI revision: 25c23e04f4c810a0cbd1e68397aa3d63a9c4740c. Backend, browser and performance runs below executed this merged revision.
 
 The results below refer to these code versions. Earlier operational tests are listed separately with their dates.
 
@@ -22,7 +24,7 @@ PASS: 16 frontend component/function tests and 9 monitor regression tests. The s
 | Earlier local backend cross-check | 95 | 0 / 5 | Windows Python 3.11.9; SQLite; original 100-test suite |
 | Local frontend cross-check | 16 | 0 / 0 | Windows; existing installed Vitest 3.2.7 |
 
-The earlier local run discovered 100 tests: 95 passed and five PostgreSQL-only cases were skipped. The recheck added a simultaneous-attempt-start test, so the current PostgreSQL run contains 101 passing tests, including six concurrency cases. The earlier local result is retained as a separate baseline, not relabelled as a run of the new test. Local monitor rerun: 9 passed in 3.721 seconds. PostgreSQL execution: 101 tests in 15.971 seconds. Results from different environments are not added together as unique cases.
+The earlier local run discovered 100 tests: 95 passed and five PostgreSQL-only cases were skipped. The recheck added a simultaneous-attempt-start test, so the current PostgreSQL run contains 101 passing tests, including six concurrency cases. The earlier local result is retained as a separate baseline, not relabelled as a run of the new test. Local monitor rerun: 9 passed in 3.721 seconds. PostgreSQL execution: 101 tests in 15.751 seconds. Results from different environments are not added together as unique cases.
 
 ## 2. Frontend unit/component results
 
@@ -59,15 +61,17 @@ The backend suite exercises authentication/lockout/RBAC/reset, roster imports, e
 
 The recheck found a gap in the test suite: duplicate-session behavior was checked sequentially, but simultaneous starts were not directly exercised. The new test uses two PostgreSQL transactions and a barrier inside the start path. It confirms one 201 response, one 409 response, exactly one attempt and start audit record, and resume access only for the winning session. The test passed; application code was not changed.
 
-No assertion failures were found in the measured CI runs. The earlier confirmation-focus and sticky-timer defects were fixed in PR #60 and are covered by browser tests. These results cover automated testing, not a peer or instructor sign-off. Local email tests check message generation; they do not establish delivery to a real mailbox.
+No assertion failures were found in the measured CI runs. The earlier confirmation-focus and sticky-timer defects were fixed in PR #60 and are covered by browser tests. Scoped team-lead acceptance is recorded separately from these automated results; no separate teammate or instructor sign-off is claimed. Local email tests check message generation; they do not establish delivery to a real mailbox.
 
 ## Evidence and reproduction
 
-Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784226
+Team-lead acceptance record: https://github.com/chiranthanv/online-exam-portal/pull/61#pullrequestreview-5838992122 . PR #64 approval/review is recorded through chiranthanv; a separate Harkirat/Dwijesh approval is not asserted.
 
-Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784318
+Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946825
 
-Repository evidence: docs/testing/part3/evidence/2026-11-06-recheck/. The manifest records SHA-256 hashes. Downloaded archives were checked against GitHub's artifact digests before extraction. The selected JSON and text results are preserved without report screenshots. The original 100-test run remains in evidence/2026-11-06/.
+Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946813
+
+Repository evidence: docs/testing/part3/evidence/2026-11-10-final/. The manifest records SHA-256 hashes. Downloaded archives were checked against GitHub's artifact digests before extraction. The selected JSON and text results are preserved without report screenshots. The original 100-test run remains in evidence/2026-11-06/; the earlier 101-test recheck remains in evidence/2026-11-06-recheck/.
 
 Detailed coverage: coverage.json, coverage.xml and backend-coverage-original.zip (includes the interactive htmlcov/index.html report). Backend log lists every test; frontend JSON lists each assertion/scenario and actual status.
 

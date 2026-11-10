@@ -1,6 +1,38 @@
 # SCRUM-22 / SCRUM-23 source acceptance review
 
-Status: **requested; independent acceptance is not yet recorded**.
+**Current acceptance - 10 November 2026:** accepted for the stated story scope by
+team lead Chiranthan V at his explicit instruction to review, merge and close out.
+Application baseline: `25c23e04f4c810a0cbd1e68397aa3d63a9c4740c`.
+[Recorded acceptance](https://github.com/chiranthanv/online-exam-portal/pull/61#pullrequestreview-5838992122),
+[scoped review](https://github.com/chiranthanv/online-exam-portal/pull/64#pullrequestreview-5838936073)
+and [approval through chiranthanv](https://github.com/chiranthanv/online-exam-portal/pull/64#pullrequestreview-5838923557).
+
+The earlier requested-peer route below is historical. The owner subsequently
+authorized acceptance through his team-lead account. This is that lead decision,
+not a separate Harkirat/Dwijesh review or an instructor sign-off.
+
+SCRUM-22 covers the unique attempt constraint, owner/session/cookie guards and
+PostgreSQL locking/races. The simultaneous-start regression proves one 201 and
+one 409, one attempt/start audit record and winner-only resume. Terminal-write
+immutability and save/submit races pass. SCRUM-23 covers attempt-scoped durable
+recovery, bounded retries and honest offline state. Merged PR #64 preserves each
+answer's original age; twenty additional real-IndexedDB edge checks passed.
+
+Final merged-version [backend CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946825)
+passed 101 PostgreSQL tests, 9 monitor regressions and deployment/TLS checks.
+[Frontend CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946813)
+passed 16 units, 12 browser scenarios, lint/build and authenticated Lighthouse.
+The browser suite includes actual renderer-crash and persistent-profile restart.
+No blocking finding within the stated scope. Teammate ownership/authorship is preserved.
+
+Intact browser storage is required; erased profiles/never-committed choices cannot
+be recovered. Clock age is approximate, offline outages can prevent ten-second
+server persistence, and the UI reports unsynced state honestly. This acceptance
+does not certify SMTP receipt, full WCAG conformance or production uptime.
+
+## Historical request and checklist - 5 November 2026
+
+Historical status: **requested; independent acceptance was not yet recorded**.
 
 Requested reviewers: Harkirat Singh (`h4ki06`) or Dwijesh (`Dwijesh60`).
 Either reviewer may record findings and scoped acceptance; this file does not

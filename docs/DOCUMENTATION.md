@@ -1,5 +1,14 @@
 # Documentation index and maintenance record
 
+**Final closeout - 10 November 2026:** [frozen Sprint 2 release](releases/SPRINT2_FINAL_2026-11-10.md)
+uses verified application `25c23e04f4c810a0cbd1e68397aa3d63a9c4740c` and the
+refreshed three submission PDFs. SCRUM-22/23 have scoped team-lead acceptance;
+all 13 Sprint 2 stories are Done. Release identifier: `sprint2-final-2026-11-10`.
+Live SMTP is excluded by owner choice, not claimed as delivered. Separate
+teammate/instructor approval and production certification are not invented.
+
+The dated snapshots below are historical and superseded by this final record.
+
 **Part 3 testing deliverables - 6 November 2026:**
 [three upload-ready PDFs, updated test cases and raw verification evidence](testing/part3/README.md).
 The coverage submission combines statement/code and branch coverage in one PDF.

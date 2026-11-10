@@ -1,0 +1,26 @@
+{
+  "application_commit": "25c23e04f4c810a0cbd1e68397aa3d63a9c4740c",
+  "release_identifier": "sprint2-final-2026-11-10",
+  "checks_passed": 64,
+  "checks_total": 64,
+  "pdfs": [
+    {
+      "file": "Code_and_Branch_Coverage_Report.pdf",
+      "pages": 4,
+      "bytes": 9933,
+      "sha256": "39c11d7a30390d75dbecd6eff71f9347fcf09b49340cefb6f297b710fb5a5923"
+    },
+    {
+      "file": "System_Validation_Report.pdf",
+      "pages": 4,
+      "bytes": 12602,
+      "sha256": "290ce7eda18d6feeb97527f0f6649f708b4a1273a5cc11282482673d3e0daea0"
+    },
+    {
+      "file": "Unit_Test_Report.pdf",
+      "pages": 3,
+      "bytes": 8513,
+      "sha256": "d0b8438da5c218ea4e3542e23ed65e35351bf20edc186fe63570e965aa813082"
+    }
+  ]
+}

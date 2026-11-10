@@ -1,6 +1,6 @@
 # Updated Test Case Document
 
-Online Exam Portal | Part 3 | Revision 1 | 6 November 2026
+Online Exam Portal | Part 3 | Revision 2 | 10 November 2026
 
 Test lead: Chiranthan V, PES2UG24CS138, Section C.
 
@@ -116,6 +116,7 @@ Evidence abbreviations link to executable definitions:
 ## Approval and completion
 
 This is an executed-project revision of the design, not an instructor signature.
-SCRUM-22/23 independent acceptance and final release freeze remain separate gates.
+SCRUM-22/23 scoped team-lead acceptance is recorded in the final release notes.
+The final submission reports use the verified merged application and 12 browser scenarios.
 An automated pass does not supply a human approval. See the system validation
 report for evidence dates, scoped outcomes and documented departures from the plan.
