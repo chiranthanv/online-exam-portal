@@ -1,0 +1,99 @@
+{
+  "report_date": "2026-11-10",
+  "project": "Online Exam Portal",
+  "source_head": "14074716e3c2de2f59da3077ef265546004e704c",
+  "tested_github_merge": "14074716e3c2de2f59da3077ef265546004e704c",
+  "tested_tree": "a7e8affe11b4ce614d3bd2720e504045024c3b2c",
+  "backend_run": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113452",
+  "frontend_run": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113444",
+  "performance_run": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42786313478",
+  "release_identifier": "sprint2-final-2026-11-10",
+  "dependency_patch_pr": 67,
+  "audited_lockfile_commit": "fe51836e7dd60a4dedaa27805f01e19dc587e122",
+  "npm_known_findings": {
+    "frontend": 0,
+    "accessibility_tools": 0
+  },
+  "acceptance": "Scoped team-lead acceptance, review 5838992122; no instructor/other-teammate approval claimed",
+  "ci_artifact_sha256": {
+    "13749277329": "1456128c9ac00a9d491608d7cfa0b3181cf8fc4ff29138154d9c08e3ba36c700",
+    "13749617353": "b24450c1a1bcc01d79f47252d9bb46ea4fc812fe9dd1ea38f16932c0e22a5607",
+    "13749387363": "a1ffc148e4863aac318a6137e7378b1fffc21ae29f5fbde84f3def331bf17197",
+    "13749297405": "a6ded4f003b15e27f6577074013588386f97446ec199e124b157babd05dbbe0a",
+    "13748119434": "942457825d3721ea18f87e4cccdf4de7833bd42d83d36693573dbeccd12f62b7"
+  },
+  "backend": {
+    "passed": 101,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 16.257
+  },
+  "monitor": {
+    "passed": 9,
+    "failed": 0
+  },
+  "frontend_unit": {
+    "passed": 16,
+    "failed": 0
+  },
+  "browser": {
+    "startTime": "2026-11-10T08:54:12.018Z",
+    "duration": 20586.825,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "coverage_scope": "backend/portal; omit migrations, tests, management commands",
+  "totals": {
+    "covered_lines": 1099,
+    "num_statements": 1144,
+    "percent_covered": 93.98280802292264,
+    "percent_covered_display": "94",
+    "missing_lines": 45,
+    "excluded_lines": 0,
+    "percent_statements_covered": 96.06643356643356,
+    "percent_statements_covered_display": "96",
+    "num_branches": 252,
+    "num_partial_branches": 37,
+    "covered_branches": 213,
+    "missing_branches": 39,
+    "percent_branches_covered": 84.52380952380952,
+    "percent_branches_covered_display": "85"
+  },
+  "core": {
+    "covered_statements": 65,
+    "statements": 67,
+    "covered_branches": 28,
+    "branches": 30,
+    "combined_percent": 95.87628865979381
+  },
+  "limitations": [
+    "SMTP receipt user-deferred",
+    "Scoped team-lead acceptance recorded; no separate teammate/instructor sign-off claimed",
+    "No full WCAG, penetration, cross-browser or production-availability certification"
+  ],
+  "files_sha256": {
+    "accessibility-summary.json": "76ee09d5daecced882c829118fa47d1bf74a21caef55a677da926c09096552ad",
+    "backend-coverage-original.zip": "1456128c9ac00a9d491608d7cfa0b3181cf8fc4ff29138154d9c08e3ba36c700",
+    "backend-coverage.txt": "0ad0c34f5a5a4985e2f96bd73cfc099e6d6977b3d3966f83038106b563e3d7d1",
+    "backend-tests.log": "69374d6b86a16eb71b3ec3460bfaeb96ba1691738f4285b7f3c6d297b4f640b7",
+    "coverage.json": "3f3dbd5344cf3fcb4b51c9e3c3e4ee53a51c7da8e67ecd5e5adb3261de5512fc",
+    "coverage.xml": "616809a38fe46df23b4bd4008f5d14ed84801d36e402a572e14ef2917ed9a4fa",
+    "e2e-results.json": "d73d7d9471645fdb783fccccbaf466aeddaacf695fbc646b7678c5a38c2b74f1",
+    "lead-indexeddb-checks.json": "41c1151d98e3b75b4d1f610a8e3345036bcd4e90e4ee142a157911e6c2497734",
+    "local-monitor-tests.log": "eeafae3f8ef1c7794fbeaceee683464910ebb57e131565ee8c9bf764fbf1a4ca",
+    "local-sqlite-coverage.json": "270218cbc520537d368145e25f95d0422944075af401075855dd11e4442b1fd9",
+    "local-sqlite-tests.log": "6a8cb7430bca86f62989b3af1012b7e8e8c858d31f45eeb244cfde70f454ad3a",
+    "local-unit-results.json": "2727d3b9ae7e0cdc097a2b1980132119410c6ecfd1a6c392ed95a2fdf5a1dc94",
+    "npm-audit-accessibility.json": "cf15f61ea83a8600014f2cffb0a806af668613fd7e84b230bc315222183a0df3",
+    "npm-audit-frontend.json": "0ef49b316e37f8b1eeda6782daf4b8806058574ff4ad7fb6fb712307c6ad80d3",
+    "performance-browser.json": "bda906b181ec8e0ef38dce1e7e39e1650722377b47a54e25f25133790360ec00",
+    "performance-explain.json": "5f82be13819005bde645f058e1d16037a325e350ff47dde37a5316a1820eef5b",
+    "performance-hardware.txt": "5c3f9c520f5a7ed87466c8a24751a54f2ca41e4cca8a97b5025e863f97cbbb91",
+    "performance-load.json": "575a87f84459a1def33f6e2a9f79d6e8ef19973f4d64d887346b70677e80459d",
+    "performance-summary.json": "3403616a34372c128c6045b21f121e9571c23f0cf84f070daeb4f81b0d2ebbbf",
+    "tls-verification.txt": "54cb99bf100df2bdce84155a16f7547c7c46b428ef013618adfa8380b55b23cc",
+    "unit-results.json": "481d4b92e66b8fd65404a31ea1efa44bd6e3d949879fbd7b7597f5624c009728"
+  }
+}

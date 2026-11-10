@@ -6,9 +6,9 @@ Student: Chiranthan V | SRN: PES2UG24CS138 | Section C
 
 Release identifier: sprint2-final-2026-11-10 | Final submission report
 
-Verified application commit: 25c23e04f4c810a0cbd1e68397aa3d63a9c4740c
+Verified application commit: 14074716e3c2de2f59da3077ef265546004e704c
 
-Final main CI revision: 25c23e04f4c810a0cbd1e68397aa3d63a9c4740c. Backend, browser and performance runs below executed this merged revision.
+Final main CI revision: 14074716e3c2de2f59da3077ef265546004e704c. Backend, browser and performance runs below executed this merged revision.
 
 The results below refer to these code versions. Earlier operational tests are listed separately with their dates.
 
@@ -29,7 +29,7 @@ Tool substitutions from the pre-execution plan: Django unittest/DRF client for b
 | Backend functional/security/concurrency | 101/101 passed | backend-tests.log; six PostgreSQL concurrency cases |
 | Monitor regression | 9/9 passed | Backend CI step + local-monitor-tests.log |
 | Frontend unit/component | 16/16 passed | unit-results.json |
-| Real Chromium system flows | 12/12 passed; 0 flaky/skipped | e2e-results.json; 20.269 seconds |
+| Real Chromium system flows | 12/12 passed; 0 flaky/skipped | e2e-results.json; 20.587 seconds |
 | Authenticated accessibility | 15/15 recorded findings passed | accessibility-summary.json; Lighthouse 100 at 1440/390/320px |
 | Migration/lint/build/deploy/TLS | CI passed | Both workflow step records; tls-verification.txt |
 
@@ -83,13 +83,15 @@ The updated Test Case Document contains 41 scenario groups and maps all 35 SRS r
 
 Availability: 5 Nov source 216fd043df0ff91b3be8c5f6a9f5755138014133, declared 06:03:23-06:33:23 UTC / 11:33:23-12:03:23 IST. External trusted HTTPS probe covered 1,800 seconds; 100.0% slot-weighted estimate, zero failed probes/downtime estimate, 362 healthy guarded raw probes. Two hundred synthetic API identities produced 24,200 origin requests without errors. Tunnel retired. This establishes only the announced controlled test window; loopback load excludes external tunnel/TLS costs and is not 200 full browsers.
 
-Performance was rerun on 10 Nov at 08:43:24 UTC against the code versions named above. All 200 synthetic API students completed 3,000 requests with zero errors in 64.217 seconds. Start p95 was 1.542s; save 0.349s; resume 0.367s; submit 0.542s; closed-write rejection 0.456s. Five actual Chromium exam openings rendered all 50 questions in 0.227-0.330s; all page checks passed. Two app instances shared PostgreSQL. Requests used loopback and pre-issued JWTs, so authentication throughput, WAN/TLS costs and 200 full-browser capacity are excluded. Page timing is Start exam click to rendered questions, not cold-site navigation. Raw request samples, summaries, query plans and hardware details are retained in this recheck's evidence folder. Run: https://github.com/chiranthanv/online-exam-portal/actions/runs/42784714336 . Earlier performance results remain dated historical evidence.
+Performance was rerun on 10 Nov at 08:58:08 UTC against the code versions named above. All 200 synthetic API students completed 3,000 requests with zero errors in 64.045 seconds. Start p95 was 1.920s; save 0.297s; resume 0.324s; submit 0.680s; closed-write rejection 0.553s. Five actual Chromium exam openings rendered all 50 questions in 0.175-0.265s; all page checks passed. Two app instances shared PostgreSQL. Requests used loopback and pre-issued JWTs, so authentication throughput, WAN/TLS costs and 200 full-browser capacity are excluded. Page timing is Start exam click to rendered questions, not cold-site navigation. Raw request samples, summaries, query plans and hardware details are retained in this recheck's evidence folder. Run: https://github.com/chiranthanv/online-exam-portal/actions/runs/42786313478 . Earlier performance results remain dated historical evidence.
 
 Accessibility: 5 Nov PR #60 fixed reproduced confirmation-focus loss and sticky-timer focus obscuration. Native Chromium 100/200/400% zoom, keyboard/reflow/forced-colors checks are retained separately. Fresh CI repeats authenticated Lighthouse/keyboard/layout checks, not that entire native-zoom manual session. No full WCAG certification or live screen-reader audio claim.
 
 Expiry: preserved 3 Nov separate-process synthetic worker evidence confirms closure/evaluation/outbox without a browser request. Fresh backend worker tests also pass. Prior broken timer/performance evidence is historical and is not relabelled as success.
 
 ## 6. Scope and limitations
+
+The final baseline includes merged PR #67 dependency cleanup: Vitest 5.1.0 and patched accessibility-tool dependencies. Independent npm audits of the exact lockfiles returned zero known findings in both trees. Full merged-main backend, browser and accessibility checks passed with those dependencies. Audit results are time-specific, not a blanket security certification.
 
 - Team-lead acceptance was recorded on 10 November against the final merged version. This report records the authorized team-lead acceptance; it does not serve as an instructor sign-off.
 
@@ -105,26 +107,21 @@ The automated execution described in this report is complete and all its tests p
 
 Team-lead acceptance record: https://github.com/chiranthanv/online-exam-portal/pull/61#pullrequestreview-5838992122 . PR #64 approval/review is recorded through chiranthanv; a separate Harkirat/Dwijesh approval is not asserted.
 
-Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946825
+Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113452
 
-Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946813
+Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113444
 
-Repository evidence: docs/testing/part3/evidence/2026-11-10-final/. The manifest records SHA-256 hashes. Downloaded archives were checked against GitHub's artifact digests before extraction. The selected JSON and text results are preserved without report screenshots. The original 100-test run remains in evidence/2026-11-06/; the earlier 101-test recheck remains in evidence/2026-11-06-recheck/.
+Repository evidence: docs/testing/part3/evidence/2026-11-10-release/. The manifest records SHA-256 hashes. Downloaded archives were checked against GitHub's artifact digests before extraction. The selected JSON and text results are preserved without report screenshots. The original 100-test run remains in evidence/2026-11-06/; the earlier 101-test recheck remains in evidence/2026-11-06-recheck/.
 
 Detailed coverage: coverage.json, coverage.xml and backend-coverage-original.zip (includes the interactive htmlcov/index.html report). Backend log lists every test; frontend JSON lists each assertion/scenario and actual status.
 
 Related repository records: docs/testing/RTM.md; part3/TEST_CASES.md; availability/RESULT_2026-11-05.md; performance/RESULTS.md; ACCESSIBILITY_CLOSEOUT_2026-11-05.md; closeout/2026-11-03/worker-result.json. Their dated/source-scoped records remain authoritative for those operational results.
 
 ```text
-python -m pip install -r requirements-dev.txt
-python backend/manage.py migrate --noinput
-python backend/manage.py seed_demo
+python backend/manage.py test portal.tests --verbosity 2
 cd frontend
-npm ci
-npx playwright install --with-deps chromium
-npm run test:e2e -- --reporter=list,html,json
-# from repository root on Linux:
-bash tools/accessibility/run-ci.sh
+npm test
+npm run test:e2e
 ```
 
 Use a new synthetic database with DEBUG=1, and seed_demo only in that database. Browser configuration expects .venv/bin/python on Linux, API port 8000 and Vite port 5173; do not reuse unrelated servers. Workflow files contain the complete reproducible PostgreSQL/TLS setup.

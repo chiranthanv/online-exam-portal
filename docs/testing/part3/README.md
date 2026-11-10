@@ -14,12 +14,12 @@ The submission form requires exactly these three files, each below 10 MB:
 - [System Validation Report](pdf/System_Validation_Report.pdf)
 - [Code Coverage and Branch Coverage - combined PDF](pdf/Code_and_Branch_Coverage_Report.pdf)
 
-Final merged application: `25c23e04f4c810a0cbd1e68397aa3d63a9c4740c`;
-Main CI revision: `25c23e04f4c810a0cbd1e68397aa3d63a9c4740c` (same tree).
-[Backend CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946825)
-and [frontend/browser CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946813)
+Final merged application: `14074716e3c2de2f59da3077ef265546004e704c`;
+Main CI revision: `14074716e3c2de2f59da3077ef265546004e704c` (same tree).
+[Backend CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113452)
+and [frontend/browser CI](https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113444)
 both passed. Raw evidence and source/run/hash metadata are preserved in
-[the final manifest](evidence/2026-11-10-final/manifest.json), including the original
+[the final manifest](evidence/2026-11-10-release/manifest.json), including the original
 backend HTML/JSON/XML coverage artifact. No report screenshots are included.
 The original [100-test baseline](evidence/2026-11-06/manifest.json) is preserved.
 The [recheck record](RECHECK.md) retains the original audit. Final acceptance is recorded in [the release notes](../../releases/SPRINT2_FINAL_2026-11-10.md).
@@ -30,7 +30,7 @@ unit/component tests and 12 Chromium scenarios passed. Backend statements:
 1,099/1,144 = **96.07%**; branches: 213/252 = **84.52%**. The combined coverage.py
 metric is **93.98%**, and the two core engine files' combined metric is **95.88%**.
 These are different denominators; frontend code coverage was not measured.
-The [fresh performance workflow](https://github.com/chiranthanv/online-exam-portal/actions/runs/42784714336)
+The [fresh performance workflow](https://github.com/chiranthanv/online-exam-portal/actions/runs/42786313478)
 also passed: 200 API identities, 3,000 requests without errors and five actual
 Chromium attempt-opening probes. The system report states the loopback and timing limits.
 

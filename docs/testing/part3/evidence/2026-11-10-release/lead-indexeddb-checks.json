@@ -1,0 +1,88 @@
+{
+  "sha": "bc68658d49c563bcb3263d68b80cfb909bdd1c12",
+  "created_at": "2026-11-10T08:34:59.825Z",
+  "browser": "156.0.8078.4",
+  "method": "Fresh headless Chromium context and real IndexedDB; synthetic module data, no application database",
+  "checks": [
+    {
+      "name": "adding Q2 retains Q1 age",
+      "passed": true
+    },
+    {
+      "name": "changing Q1 updates only Q1",
+      "passed": true
+    },
+    {
+      "name": "syncing Q2 preserves Q1 and prunes Q2 metadata",
+      "passed": true
+    },
+    {
+      "name": "cleared choice retains null value and its own age",
+      "passed": true
+    },
+    {
+      "name": "other exam cannot load record",
+      "passed": true
+    },
+    {
+      "name": "other attempt cannot load record",
+      "passed": true
+    },
+    {
+      "name": "legacy v2 map inherits legacy timestamp",
+      "passed": true
+    },
+    {
+      "name": "load falls back for undefined",
+      "passed": true
+    },
+    {
+      "name": "save preserves fallback for undefined",
+      "passed": true
+    },
+    {
+      "name": "load falls back for null",
+      "passed": true
+    },
+    {
+      "name": "save preserves fallback for null",
+      "passed": true
+    },
+    {
+      "name": "load falls back for invalid",
+      "passed": true
+    },
+    {
+      "name": "save preserves fallback for invalid",
+      "passed": true
+    },
+    {
+      "name": "load falls back for NaN",
+      "passed": true
+    },
+    {
+      "name": "save preserves fallback for NaN",
+      "passed": true
+    },
+    {
+      "name": "load falls back for Infinity",
+      "passed": true
+    },
+    {
+      "name": "save preserves fallback for Infinity",
+      "passed": true
+    },
+    {
+      "name": "unknown age remains unknown without losing answers",
+      "passed": true
+    },
+    {
+      "name": "future timestamp suppresses misleading summary age",
+      "passed": true
+    },
+    {
+      "name": "empty queue removes recovery record",
+      "passed": true
+    }
+  ]
+}

@@ -1,5 +1,13 @@
 # SCRUM-22 / SCRUM-23 source acceptance review
 
+**Final packaging baseline:** `14074716e3c2de2f59da3077ef265546004e704c` includes
+PR #67 dependency cleanup after the story acceptance below. Application/test source
+files are unchanged from the accepted PR #64 application. Final merged-main runs
+[backend](https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113452),
+[frontend](https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113444)
+and [performance](https://github.com/chiranthanv/online-exam-portal/actions/runs/42786313478)
+pass on that patched baseline. Both lockfile audits report zero known findings.
+
 **Current acceptance - 10 November 2026:** accepted for the stated story scope by
 team lead Chiranthan V at his explicit instruction to review, merge and close out.
 Application baseline: `25c23e04f4c810a0cbd1e68397aa3d63a9c4740c`.

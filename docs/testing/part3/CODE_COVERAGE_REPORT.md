@@ -6,9 +6,9 @@ Student: Chiranthan V | SRN: PES2UG24CS138 | Section C
 
 Release identifier: sprint2-final-2026-11-10 | Final submission report
 
-Verified application commit: 25c23e04f4c810a0cbd1e68397aa3d63a9c4740c
+Verified application commit: 14074716e3c2de2f59da3077ef265546004e704c
 
-Final main CI revision: 25c23e04f4c810a0cbd1e68397aa3d63a9c4740c. Backend, browser and performance runs below executed this merged revision.
+Final main CI revision: 14074716e3c2de2f59da3077ef265546004e704c. Backend, browser and performance runs below executed this merged revision.
 
 The results below refer to these code versions. Earlier operational tests are listed separately with their dates.
 
@@ -47,10 +47,10 @@ TOTAL: 1,144 statements; 1,099 covered; 45 missing; 96.07% statement coverage. C
 
 Team-lead acceptance record: https://github.com/chiranthanv/online-exam-portal/pull/61#pullrequestreview-5838992122 . PR #64 approval/review is recorded through chiranthanv; a separate Harkirat/Dwijesh approval is not asserted.
 
-Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946825
+Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113452
 
-Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946813
+Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113444
 
-Repository evidence: docs/testing/part3/evidence/2026-11-10-final/. The manifest records SHA-256 hashes. Downloaded archives were checked against GitHub's artifact digests before extraction. The selected JSON and text results are preserved without report screenshots. The original 100-test run remains in evidence/2026-11-06/; the earlier 101-test recheck remains in evidence/2026-11-06-recheck/.
+Repository evidence: docs/testing/part3/evidence/2026-11-10-release/. The manifest records SHA-256 hashes. Downloaded archives were checked against GitHub's artifact digests before extraction. The selected JSON and text results are preserved without report screenshots. The original 100-test run remains in evidence/2026-11-06/; the earlier 101-test recheck remains in evidence/2026-11-06-recheck/.
 
 Detailed coverage: coverage.json, coverage.xml and backend-coverage-original.zip (includes the interactive htmlcov/index.html report). Backend log lists every test; frontend JSON lists each assertion/scenario and actual status.

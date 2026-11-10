@@ -1,0 +1,48 @@
+{
+  "measured_at_utc": "2026-11-10T08:58:15.533Z",
+  "definition": "Start exam click to all 50 question fieldsets rendered in real SPA; login and initial shell navigation excluded",
+  "environment": "headless Chromium, desktop, loopback, no network/CPU throttling, no video",
+  "samples": [
+    {
+      "began_at_utc": "2026-11-10T08:58:14.894Z",
+      "seconds": 0.1788482550000001,
+      "question_count": 50,
+      "errors": [],
+      "unexpected_submissions": [],
+      "ok": true
+    },
+    {
+      "began_at_utc": "2026-11-10T08:58:14.900Z",
+      "seconds": 0.17526609400000007,
+      "question_count": 50,
+      "errors": [],
+      "unexpected_submissions": [],
+      "ok": true
+    },
+    {
+      "began_at_utc": "2026-11-10T08:58:14.899Z",
+      "seconds": 0.23772536999999988,
+      "question_count": 50,
+      "errors": [],
+      "unexpected_submissions": [],
+      "ok": true
+    },
+    {
+      "began_at_utc": "2026-11-10T08:58:14.941Z",
+      "seconds": 0.2587510400000001,
+      "question_count": 50,
+      "errors": [],
+      "unexpected_submissions": [],
+      "ok": true
+    },
+    {
+      "began_at_utc": "2026-11-10T08:58:14.940Z",
+      "seconds": 0.26511304599999996,
+      "question_count": 50,
+      "errors": [],
+      "unexpected_submissions": [],
+      "ok": true
+    }
+  ],
+  "page_target_met": true
+}
