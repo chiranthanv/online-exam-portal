@@ -14,6 +14,60 @@ on:
 permissions:
   contents: read
 jobs:
+  temporary-dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Audit frontend lockfile
+        working-directory: frontend
+        shell: bash
+        run: |
+          npm ci
+          npm audit --json > "$RUNNER_TEMP/frontend-audit.json" || true
+          node -e '
+            const a = require(process.argv[1]);
+            console.log("FRONTEND_AUDIT_SUMMARY", JSON.stringify(a.metadata?.vulnerabilities ?? a.error ?? {}));
+            for (const [name, v] of Object.entries(a.vulnerabilities ?? {})) {
+              console.log("FRONTEND_ADVISORY", JSON.stringify({
+                name, severity: v.severity, isDirect: v.isDirect, range: v.range,
+                nodes: v.nodes, effects: v.effects, fixAvailable: v.fixAvailable,
+                via: (v.via ?? []).map(x => typeof x === "string" ? x : {
+                  name: x.name, title: x.title, url: x.url, range: x.range,
+                  severity: x.severity, cwe: x.cwe, cvss: x.cvss
+                })
+              }));
+            }
+          ' "$RUNNER_TEMP/frontend-audit.json"
+      - name: Audit accessibility lockfile
+        working-directory: tools/accessibility
+        shell: bash
+        run: |
+          npm ci
+          npm audit --json > "$RUNNER_TEMP/accessibility-audit.json" || true
+          node -e '
+            const a = require(process.argv[1]);
+            console.log("ACCESSIBILITY_AUDIT_SUMMARY", JSON.stringify(a.metadata?.vulnerabilities ?? a.error ?? {}));
+            for (const [name, v] of Object.entries(a.vulnerabilities ?? {})) {
+              console.log("ACCESSIBILITY_ADVISORY", JSON.stringify({
+                name, severity: v.severity, isDirect: v.isDirect, range: v.range,
+                nodes: v.nodes, effects: v.effects, fixAvailable: v.fixAvailable,
+                via: (v.via ?? []).map(x => typeof x === "string" ? x : {
+                  name: x.name, title: x.title, url: x.url, range: x.range,
+                  severity: x.severity, cwe: x.cwe, cvss: x.cvss
+                })
+              }));
+            }
+          ' "$RUNNER_TEMP/accessibility-audit.json"
+      - name: Upload audit JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit-report
+          path: |
+            ${{ runner.temp }}/frontend-audit.json
+            ${{ runner.temp }}/accessibility-audit.json
   browser:
     runs-on: ubuntu-latest
     services:
