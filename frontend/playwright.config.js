@@ -1,4 +1,10 @@
 import { defineConfig } from "@playwright/test";
+const pythonExecutable =
+  process.env.PLAYWRIGHT_PYTHON ||
+  (process.platform === "win32"
+    ? "../.venv/Scripts/python.exe"
+    : "../.venv/bin/python");
+
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: false,
@@ -15,8 +21,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command:
-        "../.venv/bin/python ../backend/manage.py runserver 127.0.0.1:8000 --noreload",
+      command: `"${pythonExecutable}" ../backend/manage.py runserver 127.0.0.1:8000 --noreload`,
       url: "http://127.0.0.1:8000/health",
       reuseExistingServer: false,
       timeout: 30000,

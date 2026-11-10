@@ -10,7 +10,19 @@ from django.test import TransactionTestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from portal.models import AttemptAnswer, AuditLog, Exam, ExamAttempt, ExamQuestion, Option, Question, User
+from portal.models import (
+    AttemptAnswer,
+    AuditLog,
+    Batch,
+    Exam,
+    ExamAttempt,
+    ExamBatch,
+    ExamQuestion,
+    Option,
+    Question,
+    StudentBatch,
+    User,
+)
 from portal.services import select_questions
 
 
@@ -148,6 +160,86 @@ class PostgreSQLConcurrencyTests(TransactionTestCase):
             with transaction.atomic():
                 Exam.objects.select_for_update().get(pk=exam.pk)
                 self.assertEqual(executor.submit(read_attempt).result(timeout=10), 200)
+
+    def test_concurrent_initial_attempt_starts_create_only_one_attempt(self):
+        now = timezone.now()
+        student = User.objects.create_user(
+            username="start-racer",
+            email="start-racer@example.test",
+            role="STUDENT",
+        )
+        batch = Batch.objects.create(name="Concurrent Start", year=2026)
+        StudentBatch.objects.create(student=student, batch=batch)
+
+        exam = Exam.objects.create(
+            title="Concurrent Initial Start",
+            created_by=self.admin,
+            duration_minutes=30,
+            start_time=now - timedelta(minutes=1),
+            end_time=now + timedelta(hours=1),
+            result_visible_from=now + timedelta(hours=2),
+            total_marks=2,
+        )
+        question = Question.objects.create(
+            text="Initial start race",
+            subject="SE",
+            topic="Concurrency",
+            difficulty="EASY",
+            default_marks=2,
+            created_by=self.admin,
+        )
+        Option.objects.create(question=question, text="A", is_correct=True)
+        ExamQuestion.objects.create(exam=exam, question=question, sequence=1)
+        ExamBatch.objects.create(exam=exam, batch=batch)
+
+        barrier = Barrier(2)
+
+        def start_attempt(_):
+            close_old_connections()
+            try:
+                client = APIClient()
+                client.force_authenticate(User.objects.get(pk=student.pk))
+                barrier.wait(timeout=10)
+
+                response = client.post(
+                    f"/api/v1/exams/{exam.id}/attempt",
+                    {},
+                    format="json",
+                )
+                attempt_id = (
+                    response.json().get("attempt_id")
+                    if response.status_code == 201
+                    else None
+                )
+                return response.status_code, attempt_id
+            finally:
+                connections.close_all()
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            results = list(executor.map(start_attempt, range(2)))
+
+        self.assertCountEqual(
+            [status for status, _ in results],
+            [201, 409],
+        )
+        self.assertEqual(
+            ExamAttempt.objects.filter(exam=exam, student=student).count(),
+            1,
+        )
+
+        attempt = ExamAttempt.objects.get(exam=exam, student=student)
+        self.assertEqual(attempt.status, ExamAttempt.IN_PROGRESS)
+        self.assertEqual(
+            [attempt_id for _, attempt_id in results if attempt_id],
+            [str(attempt.id)],
+        )
+        self.assertEqual(
+            AuditLog.objects.filter(
+                action="EXAM_ATTEMPT_STARTED",
+                target=str(attempt.id),
+            ).count(),
+            1,
+        )
 
     def test_save_submit_race_cannot_modify_closed_answers(self):
         student = User.objects.create_user(username="racer", email="race@example.test")

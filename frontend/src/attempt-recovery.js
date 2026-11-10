@@ -79,26 +79,86 @@ export function savePendingAnswers(
       new TypeError("A valid exam ID and pending-answer map are required."),
     );
   }
+
   if (!Object.keys(answers).length) {
     return transaction("readwrite", (store) => store.delete(attemptId));
   }
-  // Only answer values and their local save time are persisted. No JWT, user ID,
-  // attempt session UUID, or other authentication/session credential is stored.
-  const record = {
-    exam_id: examId,
-    attempt_id: attemptId,
-    version: VERSION,
-    answers: { ...answers },
-    updated_at: now,
-  };
-  return transaction("readwrite", (store) => store.put(record));
+
+  const changedAt = Number.isFinite(now) ? now : Date.now();
+
+  return transaction("readwrite", (store) => {
+    const request = store.get(attemptId);
+
+    request.onsuccess = () => {
+      const previous = request.result;
+
+      const previousMatches =
+        previous?.version === VERSION &&
+        previous.exam_id === examId &&
+        previous.attempt_id === attemptId &&
+        previous.answers &&
+        typeof previous.answers === "object" &&
+        !Array.isArray(previous.answers);
+
+      const previousTimestamps =
+        previous?.saved_at_by_question &&
+        typeof previous.saved_at_by_question === "object" &&
+        !Array.isArray(previous.saved_at_by_question)
+          ? previous.saved_at_by_question
+          : null;
+
+      const legacyTimestamp =
+        typeof previous?.updated_at === "number" &&
+        Number.isFinite(previous.updated_at)
+          ? previous.updated_at
+          : null;
+
+      const savedAtByQuestion = {};
+
+      for (const [questionId, optionId] of Object.entries(answers)) {
+        const unchanged =
+          previousMatches &&
+          Object.prototype.hasOwnProperty.call(previous.answers, questionId) &&
+          previous.answers[questionId] === optionId;
+
+        const questionTimestamp = previousTimestamps?.[questionId];
+        const previousTimestamp =
+          typeof questionTimestamp === "number" &&
+          Number.isFinite(questionTimestamp)
+            ? questionTimestamp
+            : legacyTimestamp;
+
+        savedAtByQuestion[questionId] =
+          unchanged &&
+          typeof previousTimestamp === "number" &&
+          Number.isFinite(previousTimestamp)
+            ? previousTimestamp
+            : changedAt;
+      }
+
+      const record = {
+        exam_id: examId,
+        attempt_id: attemptId,
+        version: VERSION,
+        answers: { ...answers },
+        updated_at: changedAt,
+        saved_at_by_question: savedAtByQuestion,
+      };
+
+      store.put(record);
+    };
+
+    return request;
+  });
 }
 
 export function loadPendingAnswers(examId, attemptId, now = Date.now()) {
-  if (!examId || !attemptId)
+  if (!examId || !attemptId) {
     return Promise.reject(
       new TypeError("An exam and attempt ID are required."),
     );
+  }
+
   return transaction("readonly", (store) => store.get(attemptId)).then(
     (record) => {
       if (
@@ -109,19 +169,67 @@ export function loadPendingAnswers(examId, attemptId, now = Date.now()) {
         typeof record.answers !== "object" ||
         Array.isArray(record.answers)
       ) {
-        return { answers: {}, age_ms: null, saved_at: null, clock_skew: false };
+        return {
+          answers: {},
+          age_ms: null,
+          saved_at: null,
+          clock_skew: false,
+          age_ms_by_question: {},
+          saved_at_by_question: {},
+        };
       }
-      const savedAt =
-        typeof record.updated_at === "number" &&
-        Number.isFinite(record.updated_at)
-          ? record.updated_at
-          : null;
-      const age = savedAt === null ? Number.NaN : now - savedAt;
+
+      const hasPerAnswerTimestamps =
+        record.saved_at_by_question &&
+        typeof record.saved_at_by_question === "object" &&
+        !Array.isArray(record.saved_at_by_question);
+
+      const savedAtByQuestion = {};
+      const ageMsByQuestion = {};
+      let clockSkew = false;
+
+      for (const questionId of Object.keys(record.answers)) {
+        const candidate = hasPerAnswerTimestamps
+          ? record.saved_at_by_question[questionId]
+          : record.updated_at;
+
+        const savedAt =
+          typeof candidate === "number" && Number.isFinite(candidate)
+            ? candidate
+            : null;
+
+        if (savedAt === null) {
+          clockSkew = true;
+          continue;
+        }
+
+        savedAtByQuestion[questionId] = savedAt;
+
+        const age = now - savedAt;
+
+        if (Number.isFinite(age) && age >= 0) {
+          ageMsByQuestion[questionId] = age;
+        } else {
+          clockSkew = true;
+        }
+      }
+
+      const timestamps = Object.values(savedAtByQuestion);
+      const oldestSavedAt = timestamps.length ? Math.min(...timestamps) : null;
+
+      const oldestAge =
+        oldestSavedAt === null ? Number.NaN : now - oldestSavedAt;
+
       return {
         answers: record.answers,
-        age_ms: Number.isFinite(age) && age >= 0 ? age : null,
-        saved_at: savedAt,
-        clock_skew: !Number.isFinite(age) || age < 0,
+        age_ms:
+          !clockSkew && Number.isFinite(oldestAge) && oldestAge >= 0
+            ? oldestAge
+            : null,
+        saved_at: oldestSavedAt,
+        clock_skew: clockSkew,
+        age_ms_by_question: ageMsByQuestion,
+        saved_at_by_question: savedAtByQuestion,
       };
     },
   );

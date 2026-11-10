@@ -9,7 +9,10 @@ const password = "Recovery-Fixture-Password-123!";
 function fixture(completed = false) {
   const root = path.resolve(process.cwd(), "..");
   const python =
-    process.env.PLAYWRIGHT_PYTHON || path.join(root, ".venv", "bin", "python");
+    process.env.PLAYWRIGHT_PYTHON ||
+    (process.platform === "win32"
+      ? path.join(root, ".venv", "Scripts", "python.exe")
+      : path.join(root, ".venv", "bin", "python"));
   const bootstrap =
     "import os,runpy,sys; root=sys.argv[1]; sys.path.insert(0,os.path.join(root,'backend')); os.environ.setdefault('DJANGO_SETTINGS_MODULE','config.settings'); import django; django.setup(); runpy.run_path(os.path.join(root,'frontend','tests','recovery_fixture.py'),run_name='__main__')";
   const output = execFileSync(python, ["-c", bootstrap, root], {
@@ -69,6 +72,238 @@ test("offline recovery isolates attempts and preserves original local age", asyn
   expect(record.timestamp).toBe(true);
   expect(record.second).toEqual({ question: "B" });
   expect(record.wrongExam).toEqual({});
+});
+
+test("preserves individual answer ages when other answers change or sync", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const result = await page.evaluate(async () => {
+    const m = await import("/src/attempt-recovery.js");
+
+    const examId = `age-test-${crypto.randomUUID()}`;
+    const attemptId = `attempt-${crypto.randomUUID()}`;
+
+    const t0 = 1700000000000;
+    const t1 = t0 + 60000;
+    const t2 = t0 + 120000;
+    const t3 = t0 + 180000;
+
+    try {
+      await m.savePendingAnswers(examId, attemptId, { Q1: "A" }, t0);
+
+      await m.savePendingAnswers(examId, attemptId, { Q1: "A", Q2: "B" }, t1);
+
+      const afterAdding = await m.loadPendingAnswers(
+        examId,
+        attemptId,
+        t1 + 5000,
+      );
+
+      await m.savePendingAnswers(examId, attemptId, { Q1: "C", Q2: "B" }, t2);
+
+      const afterChanging = await m.loadPendingAnswers(
+        examId,
+        attemptId,
+        t2 + 5000,
+      );
+
+      await m.savePendingAnswers(examId, attemptId, { Q1: "C" }, t3);
+
+      const afterSync = await m.loadPendingAnswers(
+        examId,
+        attemptId,
+        t3 + 10000,
+      );
+
+      return { afterAdding, afterChanging, afterSync };
+    } finally {
+      await m.clearPendingAnswers(examId, attemptId);
+    }
+  });
+
+  expect(result.afterAdding.saved_at_by_question).toEqual({
+    Q1: 1700000000000,
+    Q2: 1700000060000,
+  });
+
+  expect(result.afterChanging.saved_at_by_question).toEqual({
+    Q1: 1700000120000,
+    Q2: 1700000060000,
+  });
+
+  expect(result.afterSync.answers).toEqual({ Q1: "C" });
+
+  expect(result.afterSync.saved_at_by_question).toEqual({
+    Q1: 1700000120000,
+  });
+
+  expect(result.afterSync.age_ms_by_question).toEqual({
+    Q1: 70000,
+  });
+});
+
+test("loads and migrates legacy recovery records with one timestamp", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const result = await page.evaluate(async () => {
+    const m = await import("/src/attempt-recovery.js");
+
+    const examId = `legacy-test-${crypto.randomUUID()}`;
+    const attemptId = `attempt-${crypto.randomUUID()}`;
+    const updatedAt = 1700000000000;
+
+    try {
+      // Initialize the database and object store.
+      await m.savePendingAnswers(
+        examId,
+        attemptId,
+        { Q1: "A", Q2: "B" },
+        updatedAt,
+      );
+
+      // Replace the record with its old format:
+      // one updated_at timestamp and no per-answer timestamps.
+      const db = await new Promise((resolve, reject) => {
+        const request = indexedDB.open("oep-attempt-recovery", 2);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      try {
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction("pending-attempt-answers", "readwrite");
+
+          tx.objectStore("pending-attempt-answers").put({
+            exam_id: examId,
+            attempt_id: attemptId,
+            version: 2,
+            answers: { Q1: "A", Q2: "B" },
+            updated_at: updatedAt,
+          });
+
+          tx.oncomplete = resolve;
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error);
+        });
+      } finally {
+        db.close();
+      }
+
+      // Read the legacy record.
+      const legacy = await m.loadPendingAnswers(
+        examId,
+        attemptId,
+        updatedAt + 5000,
+      );
+
+      // Change Q2 and save again, migrating to per-answer timestamps.
+      await m.savePendingAnswers(
+        examId,
+        attemptId,
+        { Q1: "A", Q2: "C" },
+        updatedAt + 60000,
+      );
+
+      const migrated = await m.loadPendingAnswers(
+        examId,
+        attemptId,
+        updatedAt + 65000,
+      );
+
+      // Simulate a partially populated per-question timestamp map.
+      // Q1 has no individual timestamp, but the legacy timestamp is valid.
+      const fallbackTimestamp = updatedAt + 90000;
+      const existingQuestionTimestamp = updatedAt + 30000;
+
+      const fallbackDb = await new Promise((resolve, reject) => {
+        const request = indexedDB.open("oep-attempt-recovery", 2);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+
+      try {
+        await new Promise((resolve, reject) => {
+          const tx = fallbackDb.transaction(
+            "pending-attempt-answers",
+            "readwrite",
+          );
+
+          tx.objectStore("pending-attempt-answers").put({
+            exam_id: examId,
+            attempt_id: attemptId,
+            version: 2,
+            answers: { Q1: "A", Q2: "C" },
+            updated_at: fallbackTimestamp,
+            saved_at_by_question: {
+              Q2: existingQuestionTimestamp,
+            },
+          });
+
+          tx.oncomplete = resolve;
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error);
+        });
+      } finally {
+        fallbackDb.close();
+      }
+
+      // Saving unchanged answers must use the legacy fallback for Q1.
+      await m.savePendingAnswers(
+        examId,
+        attemptId,
+        { Q1: "A", Q2: "C" },
+        updatedAt + 120000,
+      );
+
+      const fallback = await m.loadPendingAnswers(
+        examId,
+        attemptId,
+        updatedAt + 125000,
+      );
+
+      return { legacy, migrated, fallback };
+    } finally {
+      await m.clearPendingAnswers(examId, attemptId);
+    }
+  });
+
+  // Both answers inherit the original legacy timestamp.
+  expect(result.legacy.saved_at_by_question).toEqual({
+    Q1: 1700000000000,
+    Q2: 1700000000000,
+  });
+
+  expect(result.legacy.age_ms_by_question).toEqual({
+    Q1: 5000,
+    Q2: 5000,
+  });
+
+  // The unchanged answer retains the legacy timestamp.
+  // Only the changed answer receives a new timestamp.
+  expect(result.migrated.saved_at_by_question).toEqual({
+    Q1: 1700000000000,
+    Q2: 1700000060000,
+  });
+
+  expect(result.migrated.age_ms_by_question).toEqual({
+    Q1: 65000,
+    Q2: 5000,
+  });
+
+  // Missing per-question timestamps fall back to the legacy timestamp.
+  expect(result.fallback.saved_at_by_question).toEqual({
+    Q1: 1700000090000,
+    Q2: 1700000030000,
+  });
+
+  expect(result.fallback.age_ms_by_question).toEqual({
+    Q1: 35000,
+    Q2: 95000,
+  });
 });
 
 test("committed offline answers recover after renderer crash and browser restart", async ({
