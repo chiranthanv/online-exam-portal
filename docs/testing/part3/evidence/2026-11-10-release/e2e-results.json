@@ -1,0 +1,595 @@
+{
+  "config": {
+    "argv": [
+      "/opt/hostedtoolcache/node/24.22.2/x64/bin/node",
+      "/home/runner/work/online-exam-portal/online-exam-portal/frontend/node_modules/.bin/playwright",
+      "test",
+      "--reporter=list,html,json"
+    ],
+    "configFile": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/playwright.config.js",
+    "rootDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "ci": {
+        "commitHref": "https://github.com/chiranthanv/online-exam-portal/commit/14074716e3c2de2f59da3077ef265546004e704c",
+        "commitHash": "14074716e3c2de2f59da3077ef265546004e704c",
+        "buildHref": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113444"
+      },
+      "gitCommit": {
+        "shortHash": "1407471",
+        "hash": "14074716e3c2de2f59da3077ef265546004e704c",
+        "subject": "Merge pull request #67 from chiranthanv/fix/npm-audit-dependencies",
+        "body": "Merge pull request #67 from chiranthanv/fix/npm-audit-dependencies\n\nPatch npm audit vulnerabilities in frontend and accessibility tools",
+        "author": {
+          "name": "chiranthanv",
+          "email": "chiranthanv851@gmail.com",
+          "time": 1794300778000
+        },
+        "committer": {
+          "name": "GitHub",
+          "email": "noreply@github.com",
+          "time": 1794300778000
+        },
+        "branch": "main"
+      },
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/chiranthanv/online-exam-portal/commit/14074716e3c2de2f59da3077ef265546004e704c",
+            "commitHash": "14074716e3c2de2f59da3077ef265546004e704c",
+            "buildHref": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113444"
+          },
+          "gitCommit": {
+            "shortHash": "1407471",
+            "hash": "14074716e3c2de2f59da3077ef265546004e704c",
+            "subject": "Merge pull request #67 from chiranthanv/fix/npm-audit-dependencies",
+            "body": "Merge pull request #67 from chiranthanv/fix/npm-audit-dependencies\n\nPatch npm audit vulnerabilities in frontend and accessibility tools",
+            "author": {
+              "name": "chiranthanv",
+              "email": "chiranthanv851@gmail.com",
+              "time": 1794300778000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1794300778000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 45000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/chiranthanv/online-exam-portal/commit/14074716e3c2de2f59da3077ef265546004e704c",
+            "commitHash": "14074716e3c2de2f59da3077ef265546004e704c",
+            "buildHref": "https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113444"
+          },
+          "gitCommit": {
+            "shortHash": "1407471",
+            "hash": "14074716e3c2de2f59da3077ef265546004e704c",
+            "subject": "Merge pull request #67 from chiranthanv/fix/npm-audit-dependencies",
+            "body": "Merge pull request #67 from chiranthanv/fix/npm-audit-dependencies\n\nPatch npm audit vulnerabilities in frontend and accessibility tools",
+            "author": {
+              "name": "chiranthanv",
+              "email": "chiranthanv851@gmail.com",
+              "time": 1794300778000
+            },
+            "committer": {
+              "name": "GitHub",
+              "email": "noreply@github.com",
+              "time": 1794300778000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/tests",
+        "snapshotDir": "/home/runner/work/online-exam-portal/online-exam-portal/frontend/tests",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 45000,
+        "use": {
+          "baseURL": "http://localhost:5173",
+          "headless": true,
+          "screenshot": "only-on-failure",
+          "trace": "retain-on-failure",
+          "video": "off"
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "html"
+      ],
+      [
+        "json"
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "recovery.spec.js",
+      "file": "recovery.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "offline recovery isolates attempts and preserves original local age",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 386,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:13.816Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e50d5988c7958d4540fe-bbd2fa0cc1d67460d438",
+          "file": "recovery.spec.js",
+          "line": 40,
+          "column": 1
+        },
+        {
+          "title": "preserves individual answer ages when other answers change or sync",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 307,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:14.458Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e50d5988c7958d4540fe-945d74cb369a43160441",
+          "file": "recovery.spec.js",
+          "line": 77,
+          "column": 1
+        },
+        {
+          "title": "loads and migrates legacy recovery records with one timestamp",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 284,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:14.779Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e50d5988c7958d4540fe-dff401aa2ba13680f6a5",
+          "file": "recovery.spec.js",
+          "line": 147,
+          "column": 1
+        },
+        {
+          "title": "committed offline answers recover after renderer crash and browser restart",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 4051,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:15.076Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e50d5988c7958d4540fe-880a7adb4b3bce58990f",
+          "file": "recovery.spec.js",
+          "line": 329,
+          "column": 1
+        },
+        {
+          "title": "student can find released results after the exam window has ended",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 941,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:19.137Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e50d5988c7958d4540fe-971d97245b3f79c97541",
+          "file": "recovery.spec.js",
+          "line": 455,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "sprint1.spec.js",
+      "file": "sprint1.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "admin CRUD, stored XSS stays text, filters and session recovery",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1565,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:20.101Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-1f29a75004ced37c651b",
+          "file": "sprint1.spec.js",
+          "line": 12,
+          "column": 1
+        },
+        {
+          "title": "partial roster import reports exact errors and memberships are editable",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1039,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:21.675Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-9b582b0eaf841ef01404",
+          "file": "sprint1.spec.js",
+          "line": 61,
+          "column": 1
+        },
+        {
+          "title": "exam schedule, manual order, random selection and batch assignment persist",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1624,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:22.722Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-413083e6e892d5635b42",
+          "file": "sprint1.spec.js",
+          "line": 97,
+          "column": 1
+        },
+        {
+          "title": "students see eligible exams only; API rejects admin access; mobile layout",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 953,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:24.355Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-e4891825c9197cd1e3a1",
+          "file": "sprint1.spec.js",
+          "line": 151,
+          "column": 1
+        },
+        {
+          "title": "email reset is usable once and lockout appears in the browser",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2548,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:25.320Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-77155b88a10156faef83",
+          "file": "sprint1.spec.js",
+          "line": 206,
+          "column": 1
+        },
+        {
+          "title": "exam attempt keeps its timer visible, meets contrast and recovers pending answers",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3927,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:27.876Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-ed34bc21b2d850de52ba",
+          "file": "sprint1.spec.js",
+          "line": 288,
+          "column": 1
+        },
+        {
+          "title": "faculty Reports and Review screen uses the current report APIs",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 45000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 687,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-11-10T08:54:31.813Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "acb7c9f35e556c464d0a-fc662914a1b49fde65d3",
+          "file": "sprint1.spec.js",
+          "line": 588,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-10T08:54:12.018Z",
+    "duration": 20586.825,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

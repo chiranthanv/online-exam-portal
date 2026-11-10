@@ -1,9 +1,14 @@
 # Sprint 2 final release - 10 November 2026
 
 Release identifier: `sprint2-final-2026-11-10`.
-Verified application baseline: `25c23e04f4c810a0cbd1e68397aa3d63a9c4740c`.
+Verified application baseline: `14074716e3c2de2f59da3077ef265546004e704c`.
 The release tag includes final reports and closeout documentation. Runtime and test
 files must match this verified baseline; no further feature changes are included.
+
+This baseline includes merged PR #67's dependency-security cleanup. Both exact
+patched lockfiles were independently audited with zero known npm findings at
+verification time; their JSON results are retained with the final evidence.
+Vitest 5.1.0, the browser suite and the authenticated accessibility audit pass.
 
 ## Acceptance and scope
 
@@ -19,11 +24,11 @@ claimed. The actual Jira close date retains its real timestamp; no dates are bac
 
 ## Verification and deliverables
 
-- [Merged-main backend](https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946825):
+- [Merged-main backend](https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113452):
   101 PostgreSQL tests, 9 monitor tests, lint/migration/configuration/image/TLS checks.
-- [Merged-main frontend](https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946813):
+- [Merged-main frontend](https://github.com/chiranthanv/online-exam-portal/actions/runs/42786113444):
   16 units, 12 Chromium scenarios, lint/build and authenticated Lighthouse.
-- [Final performance verification](https://github.com/chiranthanv/online-exam-portal/actions/runs/42784714336):
+- [Final performance verification](https://github.com/chiranthanv/online-exam-portal/actions/runs/42786313478):
   disposable synthetic API class and actual browser probes on the baseline above.
 - [Updated cases and three final PDFs](../testing/part3/README.md).
 - [Two-minute overview](../evidence/sprint2-product-demo-2min.mp4) and
