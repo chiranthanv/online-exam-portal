@@ -1,18 +1,20 @@
 # System Validation Report
 
-Online Exam Portal | Software Engineering Mini-Project, Part 3 | 6 November 2026
+Online Exam Portal | Software Engineering Mini-Project, Part 3 | 10 November 2026
 
 Student: Chiranthan V | SRN: PES2UG24CS138 | Section C
 
-Tested PR head: d9567f7deeb240389e88603fe15b8729bdea1dc3
+Release identifier: sprint2-final-2026-11-10 | Final submission report
 
-GitHub executed merge: 2373b86fe393577b10f90aea0b1ef8c8152b6d6d. Its file tree equals the PR head (verified with git rev-parse).
+Verified application commit: 25c23e04f4c810a0cbd1e68397aa3d63a9c4740c
+
+Final main CI revision: 25c23e04f4c810a0cbd1e68397aa3d63a9c4740c. Backend, browser and performance runs below executed this merged revision.
 
 The results below refer to these code versions. Earlier operational tests are listed separately with their dates.
 
 ## 1. Validation decision
 
-The automated system tests completed successfully in the environment described below. This report records the tests and their results. It does not certify final release approval or instructor acceptance. Real SMTP delivery was excluded from this execution at the user's request.
+The final merged version passed the automated system tests below. Chiranthan authorized scoped team-lead acceptance and release closeout on 10 November. This report records those results and the actual lead decision, not a separate teammate or instructor approval. Real SMTP delivery was excluded from this execution at the user's request.
 
 ## 2. Environment and test-plan alignment
 
@@ -27,7 +29,7 @@ Tool substitutions from the pre-execution plan: Django unittest/DRF client for b
 | Backend functional/security/concurrency | 101/101 passed | backend-tests.log; six PostgreSQL concurrency cases |
 | Monitor regression | 9/9 passed | Backend CI step + local-monitor-tests.log |
 | Frontend unit/component | 16/16 passed | unit-results.json |
-| Real Chromium system flows | 10/10 passed; 0 flaky/skipped | e2e-results.json; 19.581 seconds |
+| Real Chromium system flows | 12/12 passed; 0 flaky/skipped | e2e-results.json; 20.269 seconds |
 | Authenticated accessibility | 15/15 recorded findings passed | accessibility-summary.json; Lighthouse 100 at 1440/390/320px |
 | Migration/lint/build/deploy/TLS | CI passed | Both workflow step records; tls-verification.txt |
 
@@ -54,8 +56,8 @@ The updated Test Case Document contains 41 scenario groups and maps all 35 SRS r
 | OEP-F-011 | TC-REG-01, TC-REG-02, TC-REG-03 | Automated functional/security regression passed. |
 | OEP-F-012 | TC-BATCH-01 | Automated functional/security regression passed. |
 | OEP-F-013 | P3-EXAM-04 | Automated functional/security regression passed. |
-| OEP-F-014 | P3-ATTEMPT-01, P3-ATTEMPT-02 | Automated checks passed; this is not a peer acceptance record. |
-| OEP-F-015 | TC-TIMER-02, TC-TIMER-03 | Automated checks passed; this is not a peer acceptance record. |
+| OEP-F-014 | P3-ATTEMPT-01, P3-ATTEMPT-02 | Tests passed; scoped team-lead acceptance recorded on 10 Nov. |
+| OEP-F-015 | TC-TIMER-02, TC-TIMER-03 | Tests passed; scoped team-lead acceptance recorded on 10 Nov. |
 | OEP-F-016 | TC-TIMER-01, P3-TIMER-04 | Automated functional/security regression passed. |
 | OEP-F-017 | TC-RESULT-01, TC-RESULT-02, P3-RESULT-03 | Automated functional/security regression passed. |
 | OEP-F-018 | TC-SEC-06 | Automated functional/security regression passed. |
@@ -66,14 +68,14 @@ The updated Test Case Document contains 41 scenario groups and maps all 35 SRS r
 | OEP-NF-001 | TC-PERF-01 | Fresh 200-identity API / five-browser benchmark passed; loopback limits apply. |
 | OEP-NF-002 | P3-SCALE-01 | Fresh 200-identity API / five-browser benchmark passed; loopback limits apply. |
 | OEP-NF-003 | P3-UPTIME-01 | 5 Nov declared controlled-window measurement passed; no production SLA. |
-| OEP-NF-004 | TC-TIMER-02, TC-TIMER-03 | Automated checks passed; this is not a peer acceptance record. |
+| OEP-NF-004 | TC-TIMER-02, TC-TIMER-03 | Tests passed; scoped team-lead acceptance recorded on 10 Nov. |
 | OEP-NF-005 | P3-TIMER-04, P3-A11Y-01 | Fresh Lighthouse/keyboard checks pass; 5 Nov native-zoom audit scoped to basics. |
 | OEP-NF-006 | P3-COV-01 | Measured backend core coverage exceeds 70%; exclusions disclosed. |
 | OEP-SR-001 | TC-AUTH-01 | Automated functional/security regression passed. |
 | OEP-SR-002 | P3-AUTH-03, P3-ATTEMPT-02, TC-SEC-04 | Fresh CI TLS1.2/cookie/header check passed; temporary test stack. |
 | OEP-SR-003 | TC-SEC-01 | Automated functional/security regression passed. |
 | OEP-SR-004 | TC-AUTHZ-01 | Automated functional/security regression passed. |
-| OEP-SR-005 | P3-ATTEMPT-01, P3-ATTEMPT-02 | Automated checks passed; this is not a peer acceptance record. |
+| OEP-SR-005 | P3-ATTEMPT-01, P3-ATTEMPT-02 | Tests passed; scoped team-lead acceptance recorded on 10 Nov. |
 | OEP-SR-006 | TC-PROC-02, TC-SEC-05 | Automated functional/security regression passed. |
 | OEP-SR-007 | TC-REG-02, P3-REPORT-02, TC-SEC-03 | Automated functional/security regression passed. |
 
@@ -81,7 +83,7 @@ The updated Test Case Document contains 41 scenario groups and maps all 35 SRS r
 
 Availability: 5 Nov source 216fd043df0ff91b3be8c5f6a9f5755138014133, declared 06:03:23-06:33:23 UTC / 11:33:23-12:03:23 IST. External trusted HTTPS probe covered 1,800 seconds; 100.0% slot-weighted estimate, zero failed probes/downtime estimate, 362 healthy guarded raw probes. Two hundred synthetic API identities produced 24,200 origin requests without errors. Tunnel retired. This establishes only the announced controlled test window; loopback load excludes external tunnel/TLS costs and is not 200 full browsers.
 
-Performance was rerun on 6 Nov at 10:20:26 UTC against the code versions named above. All 200 synthetic API students completed 3,000 requests with zero errors in 65.269 seconds. Start p95 was 1.620s; save 0.593s; resume 0.663s; submit 0.192s; closed-write rejection 0.094s. Five actual Chromium exam openings rendered all 50 questions in 0.159-0.257s; all page checks passed. Two app instances shared PostgreSQL. Requests used loopback and pre-issued JWTs, so authentication throughput, WAN/TLS costs and 200 full-browser capacity are excluded. Page timing is Start exam click to rendered questions, not cold-site navigation. Raw request samples, summaries, query plans and hardware details are retained in this recheck's evidence folder. Run: https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784383 . Earlier performance results remain dated historical evidence.
+Performance was rerun on 10 Nov at 08:43:24 UTC against the code versions named above. All 200 synthetic API students completed 3,000 requests with zero errors in 64.217 seconds. Start p95 was 1.542s; save 0.349s; resume 0.367s; submit 0.542s; closed-write rejection 0.456s. Five actual Chromium exam openings rendered all 50 questions in 0.227-0.330s; all page checks passed. Two app instances shared PostgreSQL. Requests used loopback and pre-issued JWTs, so authentication throughput, WAN/TLS costs and 200 full-browser capacity are excluded. Page timing is Start exam click to rendered questions, not cold-site navigation. Raw request samples, summaries, query plans and hardware details are retained in this recheck's evidence folder. Run: https://github.com/chiranthanv/online-exam-portal/actions/runs/42784714336 . Earlier performance results remain dated historical evidence.
 
 Accessibility: 5 Nov PR #60 fixed reproduced confirmation-focus loss and sticky-timer focus obscuration. Native Chromium 100/200/400% zoom, keyboard/reflow/forced-colors checks are retained separately. Fresh CI repeats authenticated Lighthouse/keyboard/layout checks, not that entire native-zoom manual session. No full WCAG certification or live screen-reader audio claim.
 
@@ -89,7 +91,7 @@ Expiry: preserved 3 Nov separate-process synthetic worker evidence confirms clos
 
 ## 6. Scope and limitations
 
-- Peer and instructor approval are separate from these automated results. This report does not serve as either approval.
+- Team-lead acceptance was recorded on 10 November against the final merged version. This report records the authorized team-lead acceptance; it does not serve as an instructor sign-off.
 
 - Email generation, scheduling, deduplication and retry behavior passed their tests. The local demo uses file-backed email. A successful real SMTP mailbox-delivery test is not included; the user chose to exclude it after connection attempts timed out.
 
@@ -97,15 +99,17 @@ Expiry: preserved 3 Nov separate-process synthetic worker evidence confirms clos
 
 - No product defect was reproduced by the measured test runs. The test-case mapping covers all 35 requirements, but mapping a requirement is different from proving every possible behavior.
 
-The automated execution described in this report is complete and all its tests passed. The operational checks apply only to their stated dates and environments. This is a test-execution report, not a certificate that every planned operational check or release approval has been completed. A complete defect history was not available, so defect-density and defect-aging figures are not reported.
+The automated execution described in this report is complete and all its tests passed. The operational checks apply only to their stated dates and environments. The release baseline is frozen under sprint2-final-2026-11-10 after the documentation-only closeout merge. This does not certify unexecuted operational checks or instructor acceptance. A complete defect history was not available, so defect-density and defect-aging figures are not reported.
 
 ## Evidence and reproduction
 
-Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784226
+Team-lead acceptance record: https://github.com/chiranthanv/online-exam-portal/pull/61#pullrequestreview-5838992122 . PR #64 approval/review is recorded through chiranthanv; a separate Harkirat/Dwijesh approval is not asserted.
 
-Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784318
+Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946825
 
-Repository evidence: docs/testing/part3/evidence/2026-11-06-recheck/. The manifest records SHA-256 hashes. Downloaded archives were checked against GitHub's artifact digests before extraction. The selected JSON and text results are preserved without report screenshots. The original 100-test run remains in evidence/2026-11-06/.
+Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946813
+
+Repository evidence: docs/testing/part3/evidence/2026-11-10-final/. The manifest records SHA-256 hashes. Downloaded archives were checked against GitHub's artifact digests before extraction. The selected JSON and text results are preserved without report screenshots. The original 100-test run remains in evidence/2026-11-06/; the earlier 101-test recheck remains in evidence/2026-11-06-recheck/.
 
 Detailed coverage: coverage.json, coverage.xml and backend-coverage-original.zip (includes the interactive htmlcov/index.html report). Backend log lists every test; frontend JSON lists each assertion/scenario and actual status.
 

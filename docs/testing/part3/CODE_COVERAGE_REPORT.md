@@ -1,12 +1,14 @@
 # Code Coverage Report
 
-Online Exam Portal | Software Engineering Mini-Project, Part 3 | 6 November 2026
+Online Exam Portal | Software Engineering Mini-Project, Part 3 | 10 November 2026
 
 Student: Chiranthan V | SRN: PES2UG24CS138 | Section C
 
-Tested PR head: d9567f7deeb240389e88603fe15b8729bdea1dc3
+Release identifier: sprint2-final-2026-11-10 | Final submission report
 
-GitHub executed merge: 2373b86fe393577b10f90aea0b1ef8c8152b6d6d. Its file tree equals the PR head (verified with git rev-parse).
+Verified application commit: 25c23e04f4c810a0cbd1e68397aa3d63a9c4740c
+
+Final main CI revision: 25c23e04f4c810a0cbd1e68397aa3d63a9c4740c. Backend, browser and performance runs below executed this merged revision.
 
 The results below refer to these code versions. Earlier operational tests are listed separately with their dates.
 
@@ -43,10 +45,12 @@ TOTAL: 1,144 statements; 1,099 covered; 45 missing; 96.07% statement coverage. C
 
 ## Evidence and reproduction
 
-Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784226
+Team-lead acceptance record: https://github.com/chiranthanv/online-exam-portal/pull/61#pullrequestreview-5838992122 . PR #64 approval/review is recorded through chiranthanv; a separate Harkirat/Dwijesh approval is not asserted.
 
-Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42201784318
+Backend CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946825
 
-Repository evidence: docs/testing/part3/evidence/2026-11-06-recheck/. The manifest records SHA-256 hashes. Downloaded archives were checked against GitHub's artifact digests before extraction. The selected JSON and text results are preserved without report screenshots. The original 100-test run remains in evidence/2026-11-06/.
+Frontend/browser CI: https://github.com/chiranthanv/online-exam-portal/actions/runs/42783946813
+
+Repository evidence: docs/testing/part3/evidence/2026-11-10-final/. The manifest records SHA-256 hashes. Downloaded archives were checked against GitHub's artifact digests before extraction. The selected JSON and text results are preserved without report screenshots. The original 100-test run remains in evidence/2026-11-06/; the earlier 101-test recheck remains in evidence/2026-11-06-recheck/.
 
 Detailed coverage: coverage.json, coverage.xml and backend-coverage-original.zip (includes the interactive htmlcov/index.html report). Backend log lists every test; frontend JSON lists each assertion/scenario and actual status.
