@@ -1,0 +1,18 @@
+{
+  "checked_at_utc": "2026-11-10T09:42:40.697616+00:00",
+  "scope": "Real HTTP reset API through the local UI proxy; synthetic administrator access token held in memory; upgraded isolated demo database",
+  "recipient_control": "owner-controlled mailbox",
+  "reset_subject": "Online Exam Portal: set your password",
+  "reset_smtp_request_accepted": true,
+  "inbox_receipt_confirmed": true,
+  "health_http_status": 200,
+  "frontend_http_status": 200,
+  "reset_http_status": 200,
+  "new_reset_grants": 1,
+  "reset_audit_record_exists": true,
+  "must_reset_password": true,
+  "expires_at_utc": "2026-11-10T10:42:48.940923+00:00",
+  "receipt_confirmed_at_utc": "2026-11-10T09:45:52.513941+00:00",
+  "receipt_confirmation_method": "User explicitly confirmed receiving the actual portal password-reset message in chat",
+  "original_result_preserved": true
+}
