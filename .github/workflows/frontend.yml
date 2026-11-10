@@ -61,6 +61,35 @@ jobs:
               }));
             }
           ' "$RUNNER_TEMP/accessibility-audit.json"
+      - name: Upgrade Vitest to the patched major and run frontend checks
+        working-directory: frontend
+        shell: bash
+        run: |
+          npm install --save-dev vitest@^5.1.0
+          npm audit --json > "$RUNNER_TEMP/frontend-audit-after.json" || true
+          node -e 'const a=require(process.argv[1]); console.log("FRONTEND_AFTER_SUMMARY",JSON.stringify(a.metadata?.vulnerabilities ?? a.error ?? {})); for (const [name,v] of Object.entries(a.vulnerabilities ?? {})) console.log("FRONTEND_AFTER_ADVISORY",JSON.stringify({name,severity:v.severity,range:v.range,nodes:v.nodes,fixAvailable:v.fixAvailable,via:(v.via??[]).map(x=>typeof x==="string"?x:{name:x.name,title:x.title,url:x.url,range:x.range,severity:x.severity})}));' "$RUNNER_TEMP/frontend-audit-after.json"
+          npm run lint
+          npm test -- --reporter=default
+          npm run build
+      - name: Apply non-breaking npm audit fixes to accessibility tools
+        working-directory: tools/accessibility
+        shell: bash
+        run: |
+          npm audit fix
+          npm audit --json > "$RUNNER_TEMP/accessibility-audit-after.json" || true
+          node -e 'const a=require(process.argv[1]); console.log("ACCESSIBILITY_AFTER_SUMMARY",JSON.stringify(a.metadata?.vulnerabilities ?? a.error ?? {})); for (const [name,v] of Object.entries(a.vulnerabilities ?? {})) console.log("ACCESSIBILITY_AFTER_ADVISORY",JSON.stringify({name,severity:v.severity,range:v.range,nodes:v.nodes,fixAvailable:v.fixAvailable,via:(v.via??[]).map(x=>typeof x==="string"?x:{name:x.name,title:x.title,url:x.url,range:x.range,severity:x.severity})}));' "$RUNNER_TEMP/accessibility-audit-after.json"
+          npm ci
+          npm audit --audit-level=moderate
+      - name: Upload updated dependency files and audit reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-fix-candidate
+          path: |
+            ${{ github.workspace }}/frontend/package.json
+            ${{ github.workspace }}/frontend/package-lock.json
+            ${{ github.workspace }}/tools/accessibility/package-lock.json
+            ${{ runner.temp }}/frontend-audit-after.json
+            ${{ runner.temp }}/accessibility-audit-after.json
       - name: Upload audit JSON
         uses: actions/upload-artifact@v4
         with:
